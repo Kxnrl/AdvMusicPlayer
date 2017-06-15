@@ -4,7 +4,10 @@
 #include <store>
 #include <smjansson>
 
+#pragma dynamic 4194304
+
 //#define USE_SteamWorks
+#define DEBUG
 
 #if defined USE_SteamWorks
 	#include <SteamWorks>
@@ -363,6 +366,10 @@ public Action OnClientSayCommand(int client, const char[] command, const char[] 
 	char url[256];
 	Format(url, 256, "%s%s", SEARCH, sArgs)
 	ReplaceString(url, 256, " ", "+", false);
+	
+#if defined DEBUG
+	UTIL_DebugLog("OnClientSayCommand -> %N -> %s -> %s", client, sArgs, url);
+#endif
 
 #if defined USE_SteamWorks
 	Handle hRequest = SteamWorks_CreateHTTPRequest(k_EHTTPMethodGET, url);
@@ -370,7 +377,7 @@ public Action OnClientSayCommand(int client, const char[] command, const char[] 
 	SteamWorks_SetHTTPCallbacks(hRequest, API_SearchMusic);
 	SteamWorks_SendHTTPRequest(hRequest);
 #else
-	System2_GetPage(API_SearchMusic, url, "", "", GetClientUserId(client));
+	System2_DownloadFile(API_SearchMusic, url, "addons/sourcemod/data/music_search.json", GetClientUserId(client));
 #endif
 
 	return Plugin_Stop;
@@ -380,37 +387,41 @@ public Action OnClientSayCommand(int client, const char[] command, const char[] 
 public int API_SearchMusic(Handle hRequest, bool bFailure, bool bRequestSuccessful, EHTTPStatusCode eStatusCode, int userid)
 {
 	if(!bFailure && bRequestSuccessful && eStatusCode == k_EHTTPStatusCode200OK)
-		SteamWorks_GetHTTPResponseBodyCallback(hRequest, API_SearchResult, GetClientOfUserId(userid));
+	{
+		if(SteamWorks_WriteHTTPResponseBodyToFile(hRequest, "addons/sourcemod/data/music_search.json"))
+			UTIL_ProcessResult(GetClientOfUserId(userid));
+		else
+			LogError("SteamWorks -> API_SearchMusic -> WriteHTTPResponseBodyToFile failed");
+	}
 	else
 		LogError("SteamWorks -> API_SearchMusic -> HTTP Response failed: %d", eStatusCode);
 
 	CloseHandle(hRequest);
 }
-
-public int API_SearchResult(const char[] sData, int client)
-{
-	UTIL_ProcessResult(sData, strlen(sData), client);
-}
 #else
-public void API_SearchMusic(const char[] output, const int size, CMDReturn status, int userid)
+public void API_SearchMusic(bool finished, const char[] error, float dltotal, float dlnow, float ultotal, float ulnow, int userid)
 {
-	switch(status)
+	if(finished)
 	{
-		case CMD_SUCCESS: UTIL_ProcessResult(output, size, GetClientOfUserId(userid))
-		case CMD_ERROR  : LogError("System2 -> API_SearchMusic -> HTTP Response failed: %s", output);
+		if(!StrEqual(error, ""))
+		{
+			LogError("System2 -> API_SearchMusic -> Download result Error: %s", error);
+			return;
+		}
+
+		UTIL_ProcessResult(GetClientOfUserId(userid));
 	}
 }
 #endif
 
-void UTIL_ProcessResult(const char[] sData, int maxLen, int client)
+void UTIL_ProcessResult(int client)
 {
-	if(!IsValidClient(client) || !maxLen)
+	if(!IsValidClient(client))
 		return;
 
-	JSONValue hObj = json_load(sData);
+	JSONValue hObj = json_load_file("addons/sourcemod/data/music_search.json");
 	KeyValues Response = new KeyValues("WebResponse");
 	UTIL_ProcessElement("MusicData", Response, hObj);
-	KeyValuesToFile(Response, "addons/musictest.txt");
 
 	if(!KvJumpToKey(Response, "MusicData") || !KvJumpToKey(Response, "result"))
 	{
@@ -419,7 +430,8 @@ void UTIL_ProcessResult(const char[] sData, int maxLen, int client)
 		return;
 	}
 
-	if(KvGetNum(Response, "songCount", 0) < 1)
+	int soundcount = KvGetNum(Response, "songCount", 0);
+	if(soundcount < 1)
 	{
 		delete hObj;
 		delete Response;
@@ -441,7 +453,7 @@ void UTIL_ProcessResult(const char[] sData, int maxLen, int client)
 	}
 	
 	Handle menu = CreateMenu(MenuHandler_DisplayList);
-	SetMenuTitleEx(menu, "[CG] 音乐搜索结果::网易云音乐")
+	SetMenuTitleEx(menu, "[CG] 音乐搜索结果 (找到 %d 首单曲)", soundcount);
 	
 	do
 	{
@@ -474,6 +486,8 @@ void UTIL_ProcessResult(const char[] sData, int maxLen, int client)
 
 	delete hObj;
 	delete Response;
+	
+	DeleteFile("addons/sourcemod/data/music_search.json");
 }
 
 public int MenuHandler_DisplayList(Handle menu, MenuAction action, int client, int itemNum)
@@ -501,7 +515,7 @@ public int MenuHandler_DisplayList(Handle menu, MenuAction action, int client, i
 		
 		PrepareSong(GetClientUserId(client), g_Sound[iSongId]);
 		
-		PrintToChat(client, "%s  \x04服务器正在向CDN节点更新缓存,音乐将在数秒后播放..", PREFIX);
+		PrintToChat(client, "%s  \x04服务器正在向CDN节点更新缓存,音乐将在数秒后播放...", PREFIX);
 	}
 	else if(action == MenuAction_End)
 	{
@@ -513,6 +527,10 @@ void PrepareSong(int userid, int songid)
 {
 	char url[256];
 	Format(url, 256, "%s%d", CACHED, songid);
+	
+#if defined DEBUG
+	UTIL_DebugLog("PrepareSong -> %d -> %d -> %s", userid, songid, url);
+#endif
 
 #if defined USE_SteamWorks
 	Handle hRequest = SteamWorks_CreateHTTPRequest(k_EHTTPMethodGET, url);
@@ -527,35 +545,83 @@ void PrepareSong(int userid, int songid)
 #if defined USE_SteamWorks
 public int API_PrepareSong(Handle hRequest, bool bFailure, bool bRequestSuccessful, EHTTPStatusCode eStatusCode, int userid)
 {
+	int client = GetClientOfUserId(userid);
+	if(!IsValidClient(client))
+		return;
+
+	static int timeouts = 0;
 	if(bRequestSuccessful && eStatusCode == k_EHTTPStatusCode200OK)
 		SteamWorks_GetHTTPResponseBodyCallback(hRequest, API_CachedSong, userid);
 	else
-		LogError("HTTP Response failed: %i", eStatusCode);
-	
+	{
+		if(++timeouts <= 5)
+		{
+			PrepareSong(userid, g_Sound[iSongId]);
+			PrintToChat(client, "%s  \x04服务器正在向CDN节点更新缓存,音乐将在数秒后播放...", PREFIX);
+		}
+		else
+		{
+			g_fNextPlay = 0.0;
+			timeouts = 0;
+			LogError("SteamWorks -> API_PrepareSong -> HTTP Response failed: %d", eStatusCode);
+			PrintToChat(client, "%s  \x07点歌失败,服务器异常[代码x01]...", PREFIX);
+		}
+	}
+
 	CloseHandle(hRequest);
 }
 
 public int API_CachedSong(const char[] sData, int userid)
 {
-	g_fNextPlay = 0.0;
-
 	if(StrEqual(sData, "success!", false) || StrEqual(sData, "file_exists!", false))
-		InitPlayer(GetClientOfUserId(userid));
+		UTIL_InitPlayer(GetClientOfUserId(userid));
 	else
-		LogError("Cache song => [%s]", sData);
+	{
+		g_fNextPlay = 0.0;
+		int client = GetClientOfUserId(userid);
+		if(IsValidClient(client)) PrintToChat(client, "%s  \x07点歌失败,服务器异常[代码x02]...", PREFIX);
+		LogError("SteamWorks -> API_CachedSong -> [%s]", sData);
+	}
 }
 #else
 public void API_CachedSong(const char[] output, const int size, CMDReturn status, int userid)
 {
+	static int timeouts = 0;
 	switch(status)
 	{
-		case CMD_SUCCESS: {if(StrEqual(output, "success!", false) || StrEqual(output, "file_exists!", false)) InitPlayer(GetClientOfUserId(userid)); else LogError("Cache song => [%s]", output);}
-		case CMD_ERROR  : {g_fNextPlay = 0.0; LogError("Cache song => [%s]", output);}
+		case CMD_SUCCESS:
+		{
+			if(StrEqual(output, "success!", false) || StrEqual(output, "file_exists!", false))
+				UTIL_InitPlayer(GetClientOfUserId(userid));
+			else
+			{
+				int client = GetClientOfUserId(userid);
+				if(IsValidClient(client)) PrintToChat(client, "%s  \x07点歌失败,服务器异常[代码x02]...", PREFIX);
+				LogError("System2 -> API_CachedSong -> [%s]", output);
+			}
+		}
+		case CMD_ERROR:
+		{
+			if(++timeouts <= 5)
+			{
+				PrepareSong(userid, g_Sound[iSongId]);
+				int client = GetClientOfUserId(userid);
+				if(IsValidClient(client)) PrintToChat(client, "%s  \x04服务器正在向CDN节点更新缓存,音乐将在数秒后播放...", PREFIX);
+			}
+			else
+			{
+				g_fNextPlay = 0.0;
+				timeouts = 0;
+				LogError("System2 -> API_CachedSong -> failed: %s", output);
+				int client = GetClientOfUserId(userid);
+				if(IsValidClient(client)) PrintToChat(client, "%s  \x07点歌失败,服务器异常[代码x01]...", PREFIX);
+			}
+		}
 	}
 }
 #endif
 
-void InitPlayer(int client)
+void UTIL_InitPlayer(int client)
 {
 	if(!IsValidClient(client))
 		return;
@@ -587,6 +653,10 @@ void InitPlayer(int client)
 		DisplayMenu(g_hPlayMenu, i, 15);
 		CG_ShowHiddenMotd(i, murl);
 		UTIL_StopBGM(i);
+		
+#if defined DEBUG
+		UTIL_DebugLog("UTIL_InitPlayer -> %N -> %s", i, murl);
+#endif
 	}
 
 	int cost = 200;
@@ -605,6 +675,10 @@ public Action Timer_GetLyric(Handle timer, int songid)
 {
 	char url[256];
 	Format(url, 256, "%s%d", LYRICS, songid)
+	
+#if defined DEBUG
+	UTIL_DebugLog("Timer_GetLyric -> %d -> %s", songid, url);
+#endif
 
 #if defined USE_SteamWorks
 	Handle hHandle = SteamWorks_CreateHTTPRequest(k_EHTTPMethodGET, url);
@@ -687,7 +761,7 @@ void UTIL_ProcessLyric()
 	}
 	else LogError("UTIL_ProcessLyric -> OpenFile -> INVALID_HANDLE");
 
-	//DeleteFile("addons/sourcemod/data/lyric.txt");
+	DeleteFile("addons/sourcemod/data/lyric.txt");
 }
 
 public Action Timer_Lyric(Handle timer, int index)
@@ -799,3 +873,12 @@ void UTIL_StopBGM(int client)
 	ClientCommand(client, "playgamesound Music.StopAllExceptMusic");
 	ClientCommand(client, "playgamesound Music.StopAllMusic");
 }
+
+#if defined DEBUG
+void UTIL_DebugLog(const char[] log, any ...)
+{
+	char buffer[512];
+	VFormat(buffer, 512, log, 2);
+	LogToFileEx("addons/sourcemod/logs/mediasystem.debug.log", buffer);
+}
+#endif
