@@ -49,3 +49,5 @@ native Handle CG_GetGameDatabase();
 native Handle CG_GetDiscuzDatabase();
 
 typedef OnClientVIPChecked = function void (int client);
+
+#define _CG_CORE_INCLUDED
