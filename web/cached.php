@@ -19,7 +19,15 @@ else
 function DownloadSong()
 {
 	$url = file_get_contents("https://csgogamers.com/musicserver/api/geturl.php?id=".$_GET['id']);
+	if($url == NULL)
+	{
+		die('file_get_contents -> API -> false');
+	}
 	$file = file_get_contents($url);
+	if($file == NULL)
+	{
+		die('file_get_contents -> download -> failed');
+	}
 	$name = 'd:/music/songs/'.$_GET['id'].'.mp3';
 	if(file_put_contents($name,$file))
 	{
