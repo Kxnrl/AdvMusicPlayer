@@ -9,10 +9,11 @@
 	#include <store_cg>
 #else
 	#include <store>
+	#include <weblync>
 #endif
 
 //#define USE_SteamWorks
-//#define DEBUG
+#define DEBUG
 
 #if defined USE_SteamWorks
 	#include <SteamWorks>
@@ -28,6 +29,7 @@
 #define LYRICS			"https://csgogamers.com/musicserver/api/getlrc.php?id="
 #define CACHED			"https://music.csgogamers.com/api/cached.php?id="
 #define PLAYER			"https://music.csgogamers.com/api/player.php?id="
+//#define PLAYER			"https://csgogamers.com/musicserver/api/player.php?id="
 #define logFile			"addons/sourcemod/logs/musicplayer.log"
 #define Default_Cost 	200
 
@@ -257,7 +259,7 @@ public int MenuHandler_ConfirmStop(Handle menu, MenuAction action, int client, i
 #if defined _CG_CORE_INCLUDED
 			CG_RemoveMotd(client);
 #else
-			UTIL_ShowHiddenMotd(client, "about:blank");
+			WebLync_OpenUrl(client, "about:blank");
 #endif
 			g_bInRadio[client] = false;
 			g_bPause[client] = true;
@@ -282,13 +284,7 @@ public Action Command_Music(int client, int args)
 
 public Action Command_AdminStop(int client, int args)
 {
-	for(int i = 1; i <= MaxClients; i++)
-		if(IsClientInGame(i))
-#if defined _CG_CORE_INCLUDED
-			CG_RemoveMotd(i);
-#else
-			UTIL_ShowHiddenMotd(i, "about:blank");
-#endif
+	UTIL_ClearMotdOfAll();
 
 	g_fNextPlay = 0.0;
 	PrintToChatAll("%s \x02权限X强行停止了音乐播放!", PREFIX);		// admin force music stopped
@@ -517,6 +513,8 @@ public int MenuHandler_DisplayList(Handle menu, MenuAction action, int client, i
 
 		g_fNextPlay = GetGameTime()+g_Sound[fLength];
 		
+		//UTIL_ClearMotdOfAll();
+		
 		PrepareSong(GetClientUserId(client), g_Sound[iSongId]);
 		
 		PrintToChat(client, "%s  \x04服务器正在向CDN节点更新缓存,音乐将在数秒后播放...", PREFIX);	// Music caching
@@ -555,7 +553,10 @@ public int API_PrepareSong(Handle hRequest, bool bFailure, bool bRequestSuccessf
 
 	static int timeouts = 0;
 	if(bRequestSuccessful && eStatusCode == k_EHTTPStatusCode200OK)
+	{
+		timeouts = 0;
 		SteamWorks_GetHTTPResponseBodyCallback(hRequest, API_CachedSong, userid);
+	}
 	else
 	{
 		if(++timeouts <= 5)
@@ -577,13 +578,16 @@ public int API_PrepareSong(Handle hRequest, bool bFailure, bool bRequestSuccessf
 
 public int API_CachedSong(const char[] sData, int userid)
 {
+	int client = GetClientOfUserId(userid);
+	if(!IsValidClient(client))
+		return;
+
 	if(StrEqual(sData, "success!", false) || StrEqual(sData, "file_exists!", false))
-		UTIL_InitPlayer(GetClientOfUserId(userid));
+		UTIL_InitPlayer(client);
 	else
 	{
 		g_fNextPlay = 0.0;
-		int client = GetClientOfUserId(userid);
-		if(IsValidClient(client)) PrintToChat(client, "%s  \x07点歌失败,服务器异常[代码x02]...", PREFIX);	// cached failed
+		PrintToChat(client, "%s  \x07点歌失败,服务器异常[代码x02]...", PREFIX);	// cached failed
 		LogError("SteamWorks -> API_CachedSong -> [%s]", sData);
 	}
 }
@@ -591,16 +595,19 @@ public int API_CachedSong(const char[] sData, int userid)
 public void API_CachedSong(const char[] output, const int size, CMDReturn status, int userid)
 {
 	static int timeouts = 0;
+	int client = GetClientOfUserId(userid);
+	if(!IsValidClient(client))
+		return;
 	switch(status)
 	{
 		case CMD_SUCCESS:
 		{
+			timeouts = 0;
 			if(StrEqual(output, "success!", false) || StrEqual(output, "file_exists!", false))
-				UTIL_InitPlayer(GetClientOfUserId(userid));
+				UTIL_InitPlayer(client);
 			else
 			{
-				int client = GetClientOfUserId(userid);
-				if(IsValidClient(client)) PrintToChat(client, "%s  \x07点歌失败,服务器异常[代码x02]...", PREFIX);	// cache failed
+				PrintToChat(client, "%s  \x07点歌失败,服务器异常[代码x02]...", PREFIX);	// cache failed
 				LogError("System2 -> API_CachedSong -> [%s]", output);
 			}
 		}
@@ -609,16 +616,14 @@ public void API_CachedSong(const char[] output, const int size, CMDReturn status
 			if(++timeouts <= 5)
 			{
 				PrepareSong(userid, g_Sound[iSongId]);
-				int client = GetClientOfUserId(userid);
-				if(IsValidClient(client)) PrintToChat(client, "%s  \x04服务器正在向CDN节点更新缓存,音乐将在数秒后播放...", PREFIX);	// caching
+				PrintToChat(client, "%s  \x04服务器正在向CDN节点更新缓存,音乐将在数秒后播放[%d/5]...", PREFIX, timeouts);	// caching
 			}
 			else
 			{
 				g_fNextPlay = 0.0;
 				timeouts = 0;
 				LogError("System2 -> API_CachedSong -> failed: %s", output);
-				int client = GetClientOfUserId(userid);
-				if(IsValidClient(client)) PrintToChat(client, "%s  \x07点歌失败,服务器异常[代码x01]...", PREFIX);	// cache failed
+				PrintToChat(client, "%s  \x07点歌失败,服务器异常[代码x01]...", PREFIX);	// cache failed
 			}
 		}
 	}
@@ -629,7 +634,11 @@ void UTIL_InitPlayer(int client)
 {
 	if(!IsValidClient(client))
 		return;
-
+	
+#if defined DEBUG
+	UTIL_DebugLog("UTIL_InitPlayer -> %N -> %s -> %d -> %.2f", client, g_Sound[szName], g_Sound[iSongId], g_Sound[fLength]);
+#endif
+	
 	if(g_hPlayMenu != INVALID_HANDLE)
 		CloseHandle(g_hPlayMenu);
 
@@ -658,7 +667,7 @@ void UTIL_InitPlayer(int client)
 #if defined _CG_CORE_INCLUDED
 		CG_ShowHiddenMotd(i, murl);
 #else
-		UTIL_ShowHiddenMotd(i, murl);
+		WebLync_OpenUrl(i, murl);
 #endif
 		UTIL_StopBGM(i);
 		
@@ -907,6 +916,17 @@ void UTIL_DebugLog(const char[] log, any ...)
 }
 #endif
 
+void UTIL_ClearMotdOfAll()
+{
+	for(int i = 1; i <= MaxClients; i++)
+		if(IsClientInGame(i))
+#if defined _CG_CORE_INCLUDED
+			CG_RemoveMotd(i);
+#else
+			WebLync_OpenUrl(i, "about:blank");
+#endif
+}
+
 #if !defined _CG_CORE_INCLUDED
 void UTIL_GameText(int client, const char[] message, const char[] hold)
 {
@@ -945,26 +965,4 @@ void UTIL_GameText(int client, const char[] message, const char[] hold)
 		}
 }
 
-//Motd Cmd
-enum
-{
-	MOTDPANEL_CMD_NONE,
-	MOTDPANEL_CMD_JOIN,
-	MOTDPANEL_CMD_CHANGE_TEAM,
-	MOTDPANEL_CMD_IMPULSE_101,
-	MOTDPANEL_CMD_MAPINFO,
-	MOTDPANEL_CMD_CLOSED_HTMLPAGE,
-	MOTDPANEL_CMD_CHOOSE_TEAM,
-};
-
-void UTIL_ShowHiddenMotd(int client, const char[] url)
-{
-	Handle m_hKv = CreateKeyValues("data");
-	KvSetString(m_hKv, "title", "Advance Music Player");
-	KvSetNum(m_hKv, "type", MOTDPANEL_TYPE_URL);
-	KvSetString(m_hKv, "msg", url);
-	KvSetNum(m_hKv, "cmd", MOTDPANEL_CMD_NONE);
-	ShowVGUIPanel(client, "info", m_hKv, false);
-	CloseHandle(m_hKv);
-}
 #endif
