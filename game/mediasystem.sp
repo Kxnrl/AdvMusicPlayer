@@ -13,7 +13,7 @@
 #endif
 
 //#define USE_SteamWorks
-#define DEBUG
+//#define DEBUG
 
 #if defined USE_SteamWorks
 	#include <SteamWorks>
@@ -39,9 +39,10 @@ bool g_pStore;
 bool g_bDiable[MAXPLAYERS+1];
 bool g_bBanned[MAXPLAYERS+1];
 bool g_bListen[MAXPLAYERS+1];
-bool g_bInRadio[MAXPLAYERS+1];
-bool g_bPause[MAXPLAYERS+1];
+bool g_bPlayed[MAXPLAYERS+1];
+bool g_bMapBGM[MAXPLAYERS+1];
 int g_iVolume[MAXPLAYERS+1];
+int g_iBGMVol[MAXPLAYERS+1];
 
 #if !defined _CG_CORE_INCLUDED
 int g_iGameTextRef = INVALID_ENT_REFERENCE;
@@ -60,6 +61,8 @@ songinfo g_Sound[songinfo];
 Handle g_cDisable;
 Handle g_cVolume;
 Handle g_cBanned;
+Handle g_cMapBGM;
+Handle g_cBGMVol;
 Handle g_hMainMenu;
 Handle g_hVolMenu;
 Handle g_hPlayMenu;
@@ -71,21 +74,30 @@ public Plugin myinfo =
 	name		= "Media System",
 	author		= "Kyle",
 	description = "Media System , Powered by CG Community",
-	version		= "1.1",
+	version		= "1.2",
 	url			= "http://steamcommunity.com/id/_xQy_/"
 };
 
 public void OnPluginStart()
 {
-	g_cDisable 	= RegClientCookie("media_disable",	"", CookieAccess_Private);
-	g_cVolume	= RegClientCookie("media_volume",	"", CookieAccess_Private);
-	g_cBanned 	= RegClientCookie("media_banned", 	"", CookieAccess_Private);
+	g_cDisable =  RegClientCookie("media_disable",	"", CookieAccess_Private);
+	g_cVolume  =  RegClientCookie("media_volume",	"", CookieAccess_Private);
+	g_cBanned  =  RegClientCookie("media_banned", 	"", CookieAccess_Private);
+	g_cMapBGM  =  RegClientCookie("media_mapbgm", 	"", CookieAccess_Private);
+	g_cBGMVol  =  RegClientCookie("media_bgmvol", 	"", CookieAccess_Private);
 
-	RegConsoleCmd("sm_music",		Command_Music);
-	RegConsoleCmd("sm_dj", 			Command_Music);
+	RegConsoleCmd("sm_music",			Command_Music);
+	RegConsoleCmd("sm_dj", 				Command_Music);
+	RegConsoleCmd("sm_stop",			Command_MapMusic);
+	RegConsoleCmd("sm_stopmusic",		Command_MapMusic);
+	RegConsoleCmd("sm_mapmusic",		Command_MapMusic);
 
 	RegAdminCmd("sm_adminmusicstop",	Command_AdminStop, ADMFLAG_BAN);
 	RegAdminCmd("sm_musicban", 			Command_MusicBan,  ADMFLAG_BAN);
+
+	AddAmbientSoundHook(Hook_AmbientSound);
+	
+	CreateTimer(10.0, Timer_CheckBGMVolume, _, TIMER_REPEAT);
 
 	PrepareGlobalMenu();
 
@@ -110,17 +122,17 @@ void PrepareGlobalMenu()
 {
 	//Main Menu
 	g_hMainMenu = CreateMenu(MenuHanlder_Main);
-	SetMenuTitle(g_hMainMenu, "[多媒体点歌系统] 主菜单");
-	AddMenuItem(g_hMainMenu, "musictoall", "点播歌曲给全部人");			// Broadcast music to All
-	AddMenuItem(g_hMainMenu, "bgmstop", "停止地图音乐");				// Stop map BGM		
-	AddMenuItem(g_hMainMenu, "musicvol", "调节音量(下首歌生效)");		// Set volume
-	AddMenuItem(g_hMainMenu, "musicstop", "停止播放音乐");				// Stop play
-	AddMenuItem(g_hMainMenu, "musictoggle", "开关接收点歌");			// Block Receive
+	SetMenuTitleEx(g_hMainMenu, "[多媒体点歌系统] 主菜单");
+	AddMenuItem(g_hMainMenu, "musictoall",	"点播歌曲给全部人");			// Broadcast music to All
+	AddMenuItem(g_hMainMenu, "musicvol",	"调节点歌音量");				// Set volume
+	AddMenuItem(g_hMainMenu, "mapbgm",		"地图音乐设置");				// Stop map BGM
+	AddMenuItem(g_hMainMenu, "musicstop",	"停止播放音乐");				// Stop play
+	AddMenuItem(g_hMainMenu, "musictoggle", "开关接收点歌");				// Block Receive
 	SetMenuExitButton(g_hMainMenu, true);
 
 	//VolumeMenu
 	g_hVolMenu = CreateMenu(MenuHanlder_SelectVolume);
-	SetMenuTitle(g_hVolMenu, "[多媒体点歌系统]  音量调整");				// Set Volume
+	SetMenuTitleEx(g_hVolMenu, "[多媒体点歌系统]  音量调整");				// Set Volume
 	AddMenuItem(g_hVolMenu, "99", "99%音量");
 	AddMenuItem(g_hVolMenu, "90", "90%音量");
 	AddMenuItem(g_hVolMenu, "80", "80%音量");
@@ -133,7 +145,7 @@ void PrepareGlobalMenu()
 	AddMenuItem(g_hVolMenu, "10", "10%音量");
 	SetMenuExitBackButton(g_hVolMenu, true);
 	SetMenuExitButton(g_hVolMenu, true);
-	
+
 	//Player Menu
 	g_hPlayMenu = INVALID_HANDLE;
 }
@@ -147,24 +159,29 @@ public void OnMapEnd()
 
 public void OnClientConnected(int client)
 {
-	g_bPause[client] = false;
+	g_bPlayed[client] = false;
 	g_bDiable[client] = false;
-	g_iVolume[client] = 80;
 	g_bBanned[client] = false;
 	g_bListen[client] = false;
-	g_bInRadio[client] = false;
+	g_bMapBGM[client] = true;
+	g_iVolume[client] = 65;
+	g_iBGMVol[client] = 99;
 }
 
 public void OnClientCookiesCached(int client)
 {
-	char buf[3][4];
+	char buf[5][4];
 	GetClientCookie(client, g_cDisable, buf[0], 4);
 	GetClientCookie(client,  g_cVolume, buf[1], 4);
 	GetClientCookie(client,  g_cBanned, buf[2], 4);
+	GetClientCookie(client,  g_cMapBGM, buf[3], 4);
+	GetClientCookie(client,  g_cBGMVol, buf[4], 4);
 
 	g_bDiable[client] = (StringToInt(buf[0]) ==  1);
-	g_iVolume[client] = (StringToInt(buf[1]) >= 10) ? StringToInt(buf[1]) : 50;
+	g_iVolume[client] = (StringToInt(buf[1]) >= 10) ? StringToInt(buf[1]) : 65;
 	g_bBanned[client] = (StringToInt(buf[2]) ==  1);
+	g_bMapBGM[client] = (StringToInt(buf[3]) ==  1) ? false : true;
+	g_iBGMVol[client] = (strlen(buf[4]) >= 2) ? StringToInt(buf[4]) : 99;
 }
 
 public int MenuHanlder_SelectVolume(Handle menu, MenuAction action, int client, int itemNum)
@@ -191,11 +208,21 @@ public int MenuHanlder_Main(Handle menu, MenuAction action, int client, int item
 	{
 		char info[256];
 		GetMenuItem(menu, itemNum, info, 256);
-		if(strcmp(info, "musictoggle") == 0)
+		if(!strcmp(info, "musictoggle"))
 		{
 			g_bDiable[client] = !g_bDiable[client];
 			SetClientCookie(client, g_cDisable, g_bDiable[client] ? "1" : "0");
 			PrintToChat(client, "%s  \x10点歌接收已%s", PREFIX, g_bDiable[client] ? "\x07关闭" : "\x04开启");	// Music Receive is enabled : disabled
+			if(g_bDiable[client])
+			{
+#if defined _CG_CORE_INCLUDED
+				CG_RemoveMotd(client);
+#else
+				WebLync_OpenUrl(client, "about:blank");
+#endif
+				g_bPlayed[client] = false;
+				UTIL_ClearLyric(client);
+			}
 		}
 		else if(!strcmp(info, "musicvol"))
 			DisplayMenu(g_hVolMenu, client, 0);
@@ -203,13 +230,8 @@ public int MenuHanlder_Main(Handle menu, MenuAction action, int client, int item
 			ConfirmStopMenu(client);
 		else if(!strcmp(info, "mainmenu"))
 			DisplayMenu(g_hMainMenu, client, 0);
-		else if(!strcmp(info, "bgmstop"))
-		{
-			if(FindPluginByFile("KZTimerGlobal.smx"))
-				FakeClientCommandEx(client, "sm_stopsound");
-			else
-				FakeClientCommandEx(client, "sm_stop");
-		}
+		else if(!strcmp(info, "mapbgm"))
+			Command_MapMusic(client, 0);
 		else if(!strcmp(info, "musictoall"))
 		{
 			if(g_bBanned[client])
@@ -236,15 +258,10 @@ public int MenuHanlder_PlayPanel(Handle menu, MenuAction action, int client, int
 	{
 		char info[64];
 		GetMenuItem(menu, itemNum, info, 64);
-		if(strcmp(info, "musicstop") == 0)
+		if(!strcmp(info, "musicstop"))
 			ConfirmStopMenu(client);
-		else if(strcmp(info, "bgmstop") == 0)
-		{
-			if(FindPluginByFile("KZTimerGlobal.smx"))
-				FakeClientCommandEx(client, "sm_stopsound");
-			else
-				FakeClientCommandEx(client, "sm_stop");
-		}
+		else if(!strcmp(info, "mapbgm"))
+			Command_MapMusic(client, 0);
 	}
 }
 
@@ -254,15 +271,14 @@ public int MenuHandler_ConfirmStop(Handle menu, MenuAction action, int client, i
 	{
 		char info[32];
 		GetMenuItem(menu, itemNum, info, 32);
-		if(strcmp(info,"tr") == 0) 
+		if(!strcmp(info,"tr")) 
 		{
 #if defined _CG_CORE_INCLUDED
 			CG_RemoveMotd(client);
 #else
 			WebLync_OpenUrl(client, "about:blank");
 #endif
-			g_bInRadio[client] = false;
-			g_bPause[client] = true;
+			g_bPlayed[client] = false;
 			UTIL_ClearLyric(client);
 			PrintToChat(client, "%s  \x04音乐已停止播放", PREFIX);		// Music stopped
 		}
@@ -278,8 +294,72 @@ public int MenuHandler_ConfirmStop(Handle menu, MenuAction action, int client, i
 
 public Action Command_Music(int client, int args)
 {
+	if(!IsValidClient(client))
+		return Plugin_Handled;
+	
 	DisplayMenu(g_hMainMenu, client, 0);
+	
 	return Plugin_Handled;
+}
+
+public Action Command_MapMusic(int client, int args)
+{
+	if(!IsValidClient(client))
+		return Plugin_Handled;
+	
+	Handle menu = CreateMenu(MenuHandler_MapBGM);
+	SetMenuTitleEx(menu, "[多媒体点歌系统]  地图音乐控制");								// Map BGM controller
+	AddMenuItemEx(menu, ITEMDRAW_DEFAULT, "status", "状态: %s", g_bMapBGM[client] ? "开" : "关");			// Status on:off
+	AddMenuItemEx(menu, ITEMDRAW_DEFAULT, "volume", "音量: %d", g_iBGMVol[client]);						// Volume %d
+	SetMenuExitBackButton(menu, true);
+	SetMenuExitButton(menu, true);
+	DisplayMenu(menu, client, 0);
+
+	return Plugin_Handled;
+}
+
+public int MenuHandler_MapBGM(Handle menu, MenuAction action, int client, int itemNum)
+{
+	if(action == MenuAction_Select) 
+	{
+		char info[32];
+		GetMenuItem(menu, itemNum, info, 32);
+		if(!strcmp(info,"status")) 
+		{
+			g_bMapBGM[client] = !g_bMapBGM[client];
+			SetClientCookie(client, g_cMapBGM, g_bMapBGM[client] ? "0" : "1");
+			UTIL_StopBGM(client);
+		}
+		else if(!strcmp(info,"volume"))
+		{
+			switch(g_iBGMVol[client])
+			{
+				case 99: g_iBGMVol[client] = 90;
+				case 90: g_iBGMVol[client] = 80;
+				case 80: g_iBGMVol[client] = 70;
+				case 70: g_iBGMVol[client] = 60;
+				case 60: g_iBGMVol[client] = 50;
+				case 50: g_iBGMVol[client] = 40;
+				case 40: g_iBGMVol[client] = 30;
+				case 30: g_iBGMVol[client] = 20;
+				case 20: g_iBGMVol[client] = 10;
+				case 10: g_iBGMVol[client] = 99;
+			}
+			UTIL_FadeClientVolume(client, float(g_iBGMVol[client]));
+			
+			char strVol[4];
+			IntToString(g_iBGMVol[client], strVol, 4);
+			SetClientCookie(client, g_cBGMVol, strVol);
+		}
+		Command_MapMusic(client, 0);
+	}
+	else if(action == MenuAction_Cancel)
+	{
+		if(itemNum == MenuCancel_ExitBack)
+			DisplayMenu(g_hMainMenu, client, 0);
+	}
+	else if(action == MenuAction_End)
+		CloseHandle(menu);
 }
 
 public Action Command_AdminStop(int client, int args)
@@ -329,6 +409,27 @@ void ConfirmStopMenu(int client)
 	SetMenuExitBackButton(menu, true);
 	SetMenuExitButton(menu, true);
 	DisplayMenu(menu, client, 10);
+}
+
+// Code by Agent Wesker https://forums.alliedmods.net/showthread.php?t=294323
+public Action Hook_AmbientSound(char sample[PLATFORM_MAX_PATH], int &entity, float &volume, int &level, int &pitch, float pos[3], int &flags, float &delay)
+{
+	if(flags != SND_SPAWNING)
+		return Plugin_Continue;
+
+	if(!IsValidEntity(entity))
+			return Plugin_Continue;
+
+	char classname[32];
+	GetEdictClassname(entity, classname, 32);
+	if(!StrEqual(classname, "ambient_generic"))
+		return Plugin_Continue;
+
+	int len = strlen(sample);
+	if(len > 4 && (StrEqual(sample[len-3], "mp3") || StrEqual(sample[len-3], "wav")))
+		CreateTimer(0.0, Timer_CheckBGMVolume);
+
+	return Plugin_Changed;
 }
 
 public Action OnClientSayCommand(int client, const char[] command, const char[] sArgs)
@@ -643,23 +744,24 @@ void UTIL_InitPlayer(int client)
 		CloseHandle(g_hPlayMenu);
 
 	g_hPlayMenu = CreateMenu(MenuHanlder_Main);
-	SetMenuTitle(g_hPlayMenu, "正在播放： %s", g_Sound[szName]);
-	AddMenuItem(g_hPlayMenu, "bgmstop", "关闭地图音乐");			// Stop map BGM
-	AddMenuItem(g_hPlayMenu, "mainmenu", "打开主菜单");				// Open main menu
-	AddMenuItem(g_hPlayMenu, "musicvol", "调节音量");				// Set volume
-	AddMenuItem(g_hPlayMenu, "musicstop", "关闭点播歌曲");			// Stop music
+	SetMenuTitleEx(g_hPlayMenu, "正在播放： %s", g_Sound[szName]);
+	AddMenuItem(g_hPlayMenu, "mainmenu",	"打开主菜单");				// Open main menu
+	AddMenuItem(g_hPlayMenu, "mapbgm",		"地图音乐");				// Stop map BGM
+	AddMenuItem(g_hPlayMenu, "musicvol",	"调节音量");				// Set volume
+	AddMenuItem(g_hPlayMenu, "musicstop",	"关闭点播歌曲");			// Stop music
 	SetMenuExitButton(g_hPlayMenu, true);
 
 	for(int i = 1; i <= MaxClients; ++i)
 	{
 		g_bListen[i] = false;
-		g_bPause[i] = false;
 		
 		if(!IsClientInGame(i))
 			continue;
 
 		if(g_bDiable[i])
 			continue;
+		
+		g_bPlayed[i] = true;
 
 		char murl[192];
 		Format(murl, 192, "%s%d&volume=%d", PLAYER, g_Sound[iSongId], g_iVolume[i]);
@@ -807,7 +909,38 @@ public Action Timer_Lyric(Handle timer, int index)
 	UTIL_LyricHud(buffer);
 }
 
-// Code by ShuFen.jp ** my json is so bad.
+public Action Timer_CheckBGMVolume(Handle timer)
+{
+	for(int client = 1; client <= MaxClients; client++)
+	{
+		if(!IsClientInGame(client))
+			continue;
+		
+		if(!g_bMapBGM[client] || g_bPlayed[client])
+		{
+			UTIL_StopBGM(client);
+			continue;
+		}
+
+		UTIL_FadeClientVolume(client, float(g_iBGMVol[client]));
+	}
+
+	return Plugin_Continue;
+}
+
+// Code by Agent Wesker https://forums.alliedmods.net/showthread.php?t=294323
+void UTIL_FadeClientVolume(int client, float volume)
+{
+	float fade;
+
+	if(volume >= 100.0) fade = 0.0;
+	else if (volume <= 0.0) fade = 100.0;
+	else  fade = (100.0 - volume);
+
+	FadeClientVolume(client, fade, 0.0, 100.0, 0.0);
+}
+
+// Code by ShuFen.jp ** my json is so bad. https://github.com/Xectali/POSSESSION_tokyo/tree/master/EarthquakeNotification
 void UTIL_ProcessElement(char[] sKey, KeyValues kv, JSONValue hObj)
 {
 	switch(view_as<JSONType>(json_typeof(hObj)))
@@ -876,11 +1009,8 @@ void UTIL_LyricHud(const char[] message)
 #if defined _CG_CORE_INCLUDED
 	ArrayList array_client = CreateArray();
 	for(int client = 1; client <= MaxClients; ++client)
-		if(IsClientInGame(client) && !g_bDiable[client] && !g_bPause[client])
-		{
-			UTIL_StopBGM(client);
+		if(IsClientInGame(client) && !g_bDiable[client] && g_bPlayed[client])
 			PushArrayCell(array_client, client);
-		}
 
 	CG_ShowGameText(message, "30.0", "57 197 187", "-1.0", "0.8", array_client);
 	delete array_client;
@@ -958,7 +1088,7 @@ void UTIL_GameText(int client, const char[] message, const char[] hold)
 	DispatchSpawn(entity);
 
 	for(int i = 1; i <= MaxClients; ++i)
-		if(IsClientInGame(i) && !g_bDiable[i] && !g_bPause[i])
+		if(IsClientInGame(i) && !g_bDiable[i] && g_bPlayed[i])
 		{
 			UTIL_StopBGM(i);
 			if(client == i) AcceptEntityInput(entity, "Display", i);
