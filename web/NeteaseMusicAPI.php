@@ -93,7 +93,7 @@ class NeteaseMusicAPI{
     }
 
     // main function
-    public function search($s,$limit=6,$offset=0,$type=1){
+    public function search($s,$limit=60,$offset=0,$type=1){
         $url='http://music.163.com/weapi/cloudsearch/get/web?csrf_token=';
         $data=array(
             's'=>$s,

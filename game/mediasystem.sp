@@ -1,24 +1,28 @@
-#include <clientprefs>
+//my stock
 #include <maoling>
+
+// require extensions
+#include <clientprefs>
 #include <smjansson>
 
-// cg_core
+// cg_core (options)
 //#include <cg_core>
 
 #if defined _CG_CORE_INCLUDED
 	#include <store_cg>
 #else
 	#include <store>
-	#include <weblync>
+	#include <weblync> // u can change this if u use webshortcuts (use weblync by default)
 #endif
 
-//#define USE_SteamWorks
+// Use SteamWorks or System2 extension (options) (use system2 by default)
+//#define USE_SteamWorks 
 //#define DEBUG
 
 #if defined USE_SteamWorks
-	#include <SteamWorks>
+	#include <SteamWorks> //https://github.com/KyleSanderson/SteamWorks
 #else
-	#include <system2>
+	#include <system2>  //https://github.com/dordnung/System2
 #endif
 
 #pragma dynamic 4194304
@@ -26,10 +30,8 @@
 
 #define PREFIX			"[\x10Music\x01]  "
 #define SEARCH			"https://csgogamers.com/musicserver/api/search.php?s="
-#define LYRICS			"https://csgogamers.com/musicserver/api/getlrc.php?id="
-#define CACHED			"https://music.csgogamers.com/api/cached.php?id="
-#define PLAYER			"https://music.csgogamers.com/api/player.php?id="
-//#define PLAYER			"https://csgogamers.com/musicserver/api/player.php?id="
+#define LYRICS			"https://csgogamers.com/musicserver/api/advlyric.php?id="
+#define PLAYER			"https://csgogamers.com/musicserver/api/advplayer.php?id="
 #define logFile			"addons/sourcemod/logs/musicplayer.log"
 #define Default_Cost 	200
 
@@ -52,8 +54,8 @@ enum songinfo
 {
 	iSongId,
 	String:szName[128],
-	Float:fLength,
-	String:szLen[16]
+	String:szSinger[64],
+	Float:fLength
 }
 
 songinfo g_Sound[songinfo];
@@ -74,7 +76,7 @@ public Plugin myinfo =
 	name		= "Media System",
 	author		= "Kyle",
 	description = "Media System , Powered by CG Community",
-	version		= "1.2",
+	version		= "1.3",
 	url			= "http://steamcommunity.com/id/_xQy_/"
 };
 
@@ -105,7 +107,7 @@ public void OnPluginStart()
 	array_lyric = CreateArray(ByteCountToCells(128));
 
 	for(int client = 1; client <= MaxClients; ++client)
-		if(IsClientInGame(client))
+		if(IsClientInGame(client) && !IsFakeClient(client))
 		{
 			OnClientConnected(client);
 			if(AreClientCookiesCached(client))
@@ -227,7 +229,7 @@ public int MenuHanlder_Main(Handle menu, MenuAction action, int client, int item
 		else if(!strcmp(info, "musicvol"))
 			DisplayMenu(g_hVolMenu, client, 0);
 		else if(!strcmp(info, "musicstop"))
-			ConfirmStopMenu(client);
+			UTIL_StopMusic(client);
 		else if(!strcmp(info, "mainmenu"))
 			DisplayMenu(g_hMainMenu, client, 0);
 		else if(!strcmp(info, "mapbgm"))
@@ -259,37 +261,22 @@ public int MenuHanlder_PlayPanel(Handle menu, MenuAction action, int client, int
 		char info[64];
 		GetMenuItem(menu, itemNum, info, 64);
 		if(!strcmp(info, "musicstop"))
-			ConfirmStopMenu(client);
+			UTIL_StopMusic(client);
 		else if(!strcmp(info, "mapbgm"))
 			Command_MapMusic(client, 0);
 	}
 }
 
-public int MenuHandler_ConfirmStop(Handle menu, MenuAction action, int client, int itemNum)
+void UTIL_StopMusic(int client)
 {
-	if(action == MenuAction_Select) 
-	{
-		char info[32];
-		GetMenuItem(menu, itemNum, info, 32);
-		if(!strcmp(info,"tr")) 
-		{
-#if defined _CG_CORE_INCLUDED
-			CG_RemoveMotd(client);
+	#if defined _CG_CORE_INCLUDED
+	CG_RemoveMotd(client);
 #else
-			WebLync_OpenUrl(client, "about:blank");
+	WebLync_OpenUrl(client, "about:blank");
 #endif
-			g_bPlayed[client] = false;
-			UTIL_ClearLyric(client);
-			PrintToChat(client, "%s  \x04音乐已停止播放", PREFIX);		// Music stopped
-		}
-	}
-	else if(action == MenuAction_Cancel)
-	{
-		if(itemNum == MenuCancel_ExitBack)
-			DisplayMenu(g_hMainMenu, client, 0);
-	}
-	else if(action == MenuAction_End)
-		CloseHandle(menu);
+	g_bPlayed[client] = false;
+	UTIL_ClearLyric(client);
+	PrintToChat(client, "%s  \x04音乐已停止播放", PREFIX);		// Music stopped
 }
 
 public Action Command_Music(int client, int args)
@@ -306,7 +293,7 @@ public Action Command_MapMusic(int client, int args)
 {
 	if(!IsValidClient(client))
 		return Plugin_Handled;
-	
+
 	Handle menu = CreateMenu(MenuHandler_MapBGM);
 	SetMenuTitleEx(menu, "[多媒体点歌系统]  地图音乐控制");								// Map BGM controller
 	AddMenuItemEx(menu, ITEMDRAW_DEFAULT, "status", "状态: %s", g_bMapBGM[client] ? "开" : "关");			// Status on:off
@@ -396,19 +383,6 @@ public Action Command_MusicBan(int client, int args)
 	PrintToChatAll("%s \x02%N\x01%s", PREFIX, target, g_bBanned[target] ? "因为乱玩点歌系统,已被\x07封禁\x01点歌权限" : "点歌权限已被\x04解禁");		// {client name} has been banned : unban
 
 	return Plugin_Handled;
-}
-
-void ConfirmStopMenu(int client)
-{
-	Handle menu = CreateMenu(MenuHandler_ConfirmStop);
-	SetMenuTitleEx(menu, "[多媒体点歌系统]  你确认要停止播放吗");		// confirm stop music?
-	int rdm = GetRandomInt(0, 5);
-	for(int x; x <= 5; ++x)
-		AddMenuItem(menu, (x == rdm) ? "tr" :  "no", (x == rdm) ? "确定" : "拒绝");
-
-	SetMenuExitBackButton(menu, true);
-	SetMenuExitButton(menu, true);
-	DisplayMenu(menu, client, 10);
 }
 
 // Code by Agent Wesker https://forums.alliedmods.net/showthread.php?t=294323
@@ -558,7 +532,7 @@ void UTIL_ProcessResult(int client)
 	
 	do
 	{
-		char sid[32], name[32], ar[32], arlist[128], buffer[256], dt[32];
+		char sid[256], name[32], ar[32], arlist[128], buffer[256], dt[32];
 		KvGetString(Response, "name", name, 32);
 		KvGetString(Response, "id", sid, 32);
 		KvGetString(Response, "dt", dt, 32);
@@ -579,7 +553,7 @@ void UTIL_ProcessResult(int client)
 		}
 
 		Format(buffer, 256, "%s - %s", name, arlist);
-		Format(sid, 32, "%s;%s;", sid, dt);
+		Format(sid, 256, "%s;%s", sid, dt);
 		AddMenuItemEx(menu, ITEMDRAW_DEFAULT, sid, buffer);
 	} while (KvGotoNextKey(Response));
 	
@@ -587,7 +561,7 @@ void UTIL_ProcessResult(int client)
 
 	delete hObj;
 	delete Response;
-	
+
 	DeleteFile("addons/sourcemod/data/music_search.json");
 }
 
@@ -601,135 +575,27 @@ public int MenuHandler_DisplayList(Handle menu, MenuAction action, int client, i
 			return;
 		}
 
-		char info[32], soundname[128];
-		GetMenuItem(menu, itemNum, info, 32, _, soundname, 128)
+		char info_1[32], info_2[128];
+		GetMenuItem(menu, itemNum, info_1, 32, _, info_2, 128)
 		
-		char data[2][32];
-		ExplodeString(info, ";", data, 2, 32);
+		char data_1[2][32];
+		ExplodeString(info_1, ";", data_1, 2, 32);
 		
-		strcopy(g_Sound[szName], 128, soundname);
-		strcopy(g_Sound[szLen], 16, data[1]);
-		g_Sound[iSongId] = StringToInt(data[0]);
-		g_Sound[fLength] = StringToFloat(data[1])*0.001;
+		char data_2[2][64];
+		ExplodeString(info_2, " - ", data_2, 2, 64);
+
+		strcopy(g_Sound[szName], 128, data_2[0]);
+		strcopy(g_Sound[szSinger], 128, data_2[1]);
+		g_Sound[iSongId] = StringToInt(data_1[0]);
+		g_Sound[fLength] = StringToFloat(data_1[1])*0.001;
 
 		g_fNextPlay = GetGameTime()+g_Sound[fLength];
-		
-		//UTIL_ClearMotdOfAll();
-		
-		PrepareSong(GetClientUserId(client), g_Sound[iSongId]);
-		
-		PrintToChat(client, "%s  \x04服务器正在向CDN节点更新缓存,音乐将在数秒后播放...", PREFIX);	// Music caching
+
+		UTIL_InitPlayer(client);
 	}
 	else if(action == MenuAction_End)
-	{
 		CloseHandle(menu);
-	}
 }
-
-void PrepareSong(int userid, int songid)
-{
-	char url[256];
-	Format(url, 256, "%s%d", CACHED, songid);
-	
-#if defined DEBUG
-	UTIL_DebugLog("PrepareSong -> %d -> %d -> %s", userid, songid, url);
-#endif
-
-#if defined USE_SteamWorks
-	Handle hRequest = SteamWorks_CreateHTTPRequest(k_EHTTPMethodGET, url);
-	SteamWorks_SetHTTPRequestContextValue(hRequest, userid);
-	SteamWorks_SetHTTPCallbacks(hRequest, API_PrepareSong);
-	SteamWorks_SendHTTPRequest(hRequest);
-#else
-	System2_GetPage(API_CachedSong, url, "", "", userid);
-#endif
-}
-
-#if defined USE_SteamWorks
-public int API_PrepareSong(Handle hRequest, bool bFailure, bool bRequestSuccessful, EHTTPStatusCode eStatusCode, int userid)
-{
-	int client = GetClientOfUserId(userid);
-	if(!IsValidClient(client))
-		return;
-
-	static int timeouts = 0;
-	if(bRequestSuccessful && eStatusCode == k_EHTTPStatusCode200OK)
-	{
-		timeouts = 0;
-		SteamWorks_GetHTTPResponseBodyCallback(hRequest, API_CachedSong, userid);
-	}
-	else
-	{
-		if(++timeouts <= 5)
-		{
-			PrepareSong(userid, g_Sound[iSongId]);
-			PrintToChat(client, "%s  \x04服务器正在向CDN节点更新缓存,音乐将在数秒后播放...", PREFIX);	// Music caching
-		}
-		else
-		{
-			g_fNextPlay = 0.0;
-			timeouts = 0;
-			LogError("SteamWorks -> API_PrepareSong -> HTTP Response failed: %d", eStatusCode);
-			PrintToChat(client, "%s  \x07点歌失败,服务器异常[代码x01]...", PREFIX);						// cached failed
-		}
-	}
-
-	CloseHandle(hRequest);
-}
-
-public int API_CachedSong(const char[] sData, int userid)
-{
-	int client = GetClientOfUserId(userid);
-	if(!IsValidClient(client))
-		return;
-
-	if(StrEqual(sData, "success!", false) || StrEqual(sData, "file_exists!", false))
-		UTIL_InitPlayer(client);
-	else
-	{
-		g_fNextPlay = 0.0;
-		PrintToChat(client, "%s  \x07点歌失败,服务器异常[代码x02]...", PREFIX);	// cached failed
-		LogError("SteamWorks -> API_CachedSong -> [%s]", sData);
-	}
-}
-#else
-public void API_CachedSong(const char[] output, const int size, CMDReturn status, int userid)
-{
-	static int timeouts = 0;
-	int client = GetClientOfUserId(userid);
-	if(!IsValidClient(client))
-		return;
-	switch(status)
-	{
-		case CMD_SUCCESS:
-		{
-			timeouts = 0;
-			if(StrEqual(output, "success!", false) || StrEqual(output, "file_exists!", false))
-				UTIL_InitPlayer(client);
-			else
-			{
-				PrintToChat(client, "%s  \x07点歌失败,服务器异常[代码x02]...", PREFIX);	// cache failed
-				LogError("System2 -> API_CachedSong -> [%s]", output);
-			}
-		}
-		case CMD_ERROR:
-		{
-			if(++timeouts <= 5)
-			{
-				PrepareSong(userid, g_Sound[iSongId]);
-				PrintToChat(client, "%s  \x04服务器正在向CDN节点更新缓存,音乐将在数秒后播放[%d/5]...", PREFIX, timeouts);	// caching
-			}
-			else
-			{
-				g_fNextPlay = 0.0;
-				timeouts = 0;
-				LogError("System2 -> API_CachedSong -> failed: %s", output);
-				PrintToChat(client, "%s  \x07点歌失败,服务器异常[代码x01]...", PREFIX);	// cache failed
-			}
-		}
-	}
-}
-#endif
 
 void UTIL_InitPlayer(int client)
 {
@@ -744,7 +610,7 @@ void UTIL_InitPlayer(int client)
 		CloseHandle(g_hPlayMenu);
 
 	g_hPlayMenu = CreateMenu(MenuHanlder_Main);
-	SetMenuTitleEx(g_hPlayMenu, "正在播放： %s", g_Sound[szName]);
+	SetMenuTitleEx(g_hPlayMenu, "正在播放▼\n歌名: %s\n歌手: %s", g_Sound[szName], g_Sound[szSinger]); // current play: song name ; singer name
 	AddMenuItem(g_hPlayMenu, "mainmenu",	"打开主菜单");				// Open main menu
 	AddMenuItem(g_hPlayMenu, "mapbgm",		"地图音乐");				// Stop map BGM
 	AddMenuItem(g_hPlayMenu, "musicvol",	"调节音量");				// Set volume
@@ -755,7 +621,7 @@ void UTIL_InitPlayer(int client)
 	{
 		g_bListen[i] = false;
 		
-		if(!IsClientInGame(i))
+		if(!IsClientInGame(i) || IsFakeClient(i))
 			continue;
 
 		if(g_bDiable[i])
@@ -772,7 +638,7 @@ void UTIL_InitPlayer(int client)
 		WebLync_OpenUrl(i, murl);
 #endif
 		UTIL_StopBGM(i);
-		
+
 #if defined DEBUG
 		UTIL_DebugLog("UTIL_InitPlayer -> %N -> %s", i, murl);
 #endif
@@ -781,8 +647,9 @@ void UTIL_InitPlayer(int client)
 	if(g_pStore)
 	{
 		int cost = Default_Cost;
-		if(FindPluginByFile("zombiereloaded.smx")) cost *= 5;
 #if defined _CG_CORE_INCLUDED
+		if(FindPluginByFile("zombiereloaded.smx")) cost *= 5;
+		if(FindPluginByFile("jb_stats.smx")) cost *= 2;
 		Store_SetClientCredits(client, Store_GetClientCredits(client) - cost, "点歌");
 #else
 		Store_SetClientCredits(client, Store_GetClientCredits(client) - cost);
@@ -791,7 +658,7 @@ void UTIL_InitPlayer(int client)
 	}
 
 	PrintToChatAll("%s \x04%N\x01点播歌曲[\x0C%s\x01]", PREFIX, client, g_Sound[szName]);	// {client name} broadcase {song name}
-	LogToFileEx(logFile, "\"%L\" 点播了歌曲[%s]", client, g_Sound[szName]);
+	LogToFileEx(logFile, "\"%L\" 点播了歌曲[%s - %s]", client, g_Sound[szName],  g_Sound[szSinger]);
 
 	CreateTimer(0.1, Timer_GetLyric, g_Sound[iSongId], TIMER_FLAG_NO_MAPCHANGE);
 
@@ -886,7 +753,7 @@ void UTIL_ProcessLyric()
 		}
 		CloseHandle(hFile);
 	}
-	else LogError("UTIL_ProcessLyric -> OpenFile -> INVALID_HANDLE");
+	else LogError("UTIL_ProcessLyric -> OpenFile -> INVALID_HANDLE -> Load Lyric failed.");
 
 	DeleteFile("addons/sourcemod/data/lyric.txt");
 }
@@ -913,9 +780,9 @@ public Action Timer_CheckBGMVolume(Handle timer)
 {
 	for(int client = 1; client <= MaxClients; client++)
 	{
-		if(!IsClientInGame(client))
+		if(!IsClientInGame(client) || IsFakeClient(client))
 			continue;
-		
+
 		if(!g_bMapBGM[client] || g_bPlayed[client])
 		{
 			UTIL_StopBGM(client);
@@ -1009,7 +876,7 @@ void UTIL_LyricHud(const char[] message)
 #if defined _CG_CORE_INCLUDED
 	ArrayList array_client = CreateArray();
 	for(int client = 1; client <= MaxClients; ++client)
-		if(IsClientInGame(client) && !g_bDiable[client] && g_bPlayed[client])
+		if(IsClientInGame(client) && !IsFakeClient(client) && !g_bDiable[client] && g_bPlayed[client])
 			PushArrayCell(array_client, client);
 
 	CG_ShowGameText(message, "30.0", "57 197 187", "-1.0", "0.8", array_client);
@@ -1049,7 +916,7 @@ void UTIL_DebugLog(const char[] log, any ...)
 void UTIL_ClearMotdOfAll()
 {
 	for(int i = 1; i <= MaxClients; i++)
-		if(IsClientInGame(i))
+		if(IsClientInGame(i) && !IsFakeClient(i))
 #if defined _CG_CORE_INCLUDED
 			CG_RemoveMotd(i);
 #else
@@ -1088,7 +955,7 @@ void UTIL_GameText(int client, const char[] message, const char[] hold)
 	DispatchSpawn(entity);
 
 	for(int i = 1; i <= MaxClients; ++i)
-		if(IsClientInGame(i) && !g_bDiable[i] && g_bPlayed[i])
+		if(IsClientInGame(i) && !IsFakeClient(i) && !g_bDiable[i] && g_bPlayed[i])
 		{
 			UTIL_StopBGM(i);
 			if(client == i) AcceptEntityInput(entity, "Display", i);

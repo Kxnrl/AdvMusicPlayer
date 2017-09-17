@@ -93,13 +93,11 @@ stock void tPrintToChatAll(const char[] szMessage, any ...)
 	char szBuffer[256];
 
 	for(int i = 1; i <= MaxClients; i++)
-	{
 		if(IsClientInGame(i) && !IsFakeClient(i))
 		{
 			SetGlobalTransTarget(i);			
 			VFormat(szBuffer, 256, szMessage, 2);
 			ReplaceColorsCode(szBuffer, 256);
-			PrintToChat(i, "%s", szBuffer);
+			PrintToChat(i, szBuffer);
 		}
-	}
 }
