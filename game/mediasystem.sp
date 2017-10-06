@@ -6,7 +6,7 @@
 #include <smjansson>
 
 // cg_core (options)
-#include <cg_core>
+//#include <cg_core>
 
 #if defined _CG_CORE_INCLUDED
     #include <store_cg>
@@ -76,7 +76,7 @@ public Plugin myinfo =
     name        = "Media System",
     author      = "Kyle",
     description = "Media System , Powered by CG Community",
-    version     = "1.3",
+    version     = "1.4",
     url         = "http://steamcommunity.com/id/_xQy_/"
 };
 
@@ -663,6 +663,18 @@ void UTIL_InitPlayer(int client)
     CreateTimer(0.1, Timer_GetLyric, g_Sound[iSongId], TIMER_FLAG_NO_MAPCHANGE);
 
     g_fNextPlay = GetGameTime()+g_Sound[fLength];
+    
+    CreateTimer(g_Sound[fLength]+0.1, Timer_MapBGM, _, TIMER_FLAG_NO_MAPCHANGE);
+}
+
+public Action Timer_MapBGM(Handle timer)
+{
+    for(int i = 1; i <= MaxClients; ++i)
+        g_bPlayed[i] = false;
+    
+    UTIL_LyricHud(">>> 播放完毕 <<<");
+    
+    return Plugin_Stop;
 }
 
 public Action Timer_GetLyric(Handle timer, int songid)
@@ -789,6 +801,9 @@ public Action Timer_CheckBGMVolume(Handle timer)
             continue;
         }
 
+        if(g_iBGMVol[client] > 99)
+            continue;
+        
         UTIL_FadeClientVolume(client, float(g_iBGMVol[client]));
     }
 
