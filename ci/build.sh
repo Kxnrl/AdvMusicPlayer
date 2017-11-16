@@ -119,12 +119,13 @@ mv include build/scripts
 mv game/* build/scripts
 mv web/* build/webinterface
 mv LICENSE build
+mv README.md build
 
 
 #打包
 echo -e "Compress file ..."
 cd build
-7z a $FILE -t7z -mx9 LICENSE scripts plugins webinterface >nul
+7z a $FILE -t7z -mx9 LICENSE README.md scripts plugins webinterface >nul
 
 
 #上传
