@@ -11,7 +11,7 @@
 
 
 //definitions
-#define DEBUG
+//#define DEBUG
 
 #define PREFIX            "[\x10Music\x01]  "
 #define logFile           "addons/sourcemod/logs/advmusicplayer.log"

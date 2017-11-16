@@ -115,6 +115,7 @@ fi
 
 #移动文件
 echo -e "Move files to build folder ..."
+mv include build/scripts
 mv game/* build/scripts
 mv web/* build/webinterface
 mv LICENSE build
