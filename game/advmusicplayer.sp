@@ -137,8 +137,10 @@ public Action Command_Music(int client, int args)
 public Action Command_AdminStop(int client, int args)
 {
     UTIL_ClearMotdAll();
+    
+    // notify sound end
+    CreateTimer(0.1, Timer_SoundEnd);
 
-    g_fNextPlay = 0.0;
     PrintToChatAll("%s \x02权限X强行停止了音乐播放!", PREFIX);
 
     while(GetArraySize(array_timer))

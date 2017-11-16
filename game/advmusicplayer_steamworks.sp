@@ -616,6 +616,8 @@ public Action Timer_SoundEnd(Handle timer)
     g_Sound[szSinger][0] = '\0';
     g_Sound[szAlbum][0] = '\0';
     
+    g_fNextPlay = 0.0;
+    
     for(int i = 1; i <= MaxClients; ++i)
         g_bPlayed[i] = false;
 
