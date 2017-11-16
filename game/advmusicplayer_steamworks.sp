@@ -54,7 +54,7 @@ public Plugin myinfo =
     name        = "Advance Music Player [SteamWorks]",
     author      = "Kyle",
     description = "Media System",
-    version     = "1.0",
+    version     = "1.0.<commit_count>.<commit_branch> - <commit_date>",
     url         = "http://steamcommunity.com/id/_xQy_/"
 };
 
