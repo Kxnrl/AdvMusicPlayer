@@ -134,7 +134,9 @@ lftp -c "open -u $FTP_USER,$FTP_PSWD $FTP_HOST; put -O /AMP/$1/ $FILE"
 
 
 #RAW
-echo -e "Upload RAW ..."
-cd plugins
-mv advmusicplayer_dontusethis.smx advmusicplayer.smx
-lftp -c "open -u $FTP_USER,$FTP_PSWD $FTP_HOST; put -O /AMP/Raw/ advmusicplayer.smx"
+if [ "$1" = "1.8" ]; then
+    echo "Upload RAW..."
+    cd plugins
+    mv advmusicplayer_dontusethis.smx advmusicplayer.smx
+    lftp -c "open -u $FTP_USER,$FTP_PSWD $FTP_HOST; put -O /AMP/Raw/ advmusicplayer.smx"
+fi
