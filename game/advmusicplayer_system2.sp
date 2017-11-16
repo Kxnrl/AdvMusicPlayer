@@ -175,7 +175,7 @@ public Action Command_AdminStop(int client, int args)
     }
 
     // show hud
-    UTIL_LyricHud(">>> Music End <<<");
+    UTIL_LyricHud(">>> Music End <<<", 3.0);
 }
 
 public Action Command_MusicBan(int client, int args)
@@ -615,7 +615,7 @@ public Action Timer_SoundEnd(Handle timer)
     for(int i = 1; i <= MaxClients; ++i)
         g_bPlayed[i] = false;
 
-    UTIL_LyricHud(">>> End <<<");
+    UTIL_LyricHud(">>> End <<<", 3.0);
 
     return Plugin_Stop;
 }
@@ -669,7 +669,7 @@ void UTIL_ProcessLyric()
         return;
     }
 
-    UTIL_LyricHud("....Wating for Lyric....");
+    UTIL_LyricHud("....Wating for Lyric....", 5.0);
 
     array_lyric.PushString(">>> Music <<<\n");
 
@@ -719,7 +719,7 @@ public Action Timer_Lyric(Handle timer, int index)
 
     char buffer[256];
     FormatEx(buffer, 256, "%s%s%s", lyric[0], lyric[1], lyric[2]);
-    UTIL_LyricHud(buffer);
+    UTIL_LyricHud(buffer, 20.0);
 }
 
 void UTIL_StopMusic(int client)
@@ -729,11 +729,11 @@ void UTIL_StopMusic(int client)
     UTIL_ClearLyric(client);
 }
 
-void UTIL_LyricHud(const char[] message)
+void UTIL_LyricHud(const char[] message, float life)
 {
     for(int client = 1; client <= MaxClients; ++client)
         if(IsValidClient(client) && !g_bDiable[client] && g_bPlayed[client])
-            UTIL_ShowGameText(client, message);
+            UTIL_ShowGameText(client, message, life);
 }
 
 void UTIL_ClearLyric(int client)
@@ -769,8 +769,8 @@ bool AddMenuItemEx(Handle menu, int style, const char[] info, const char[] displ
 	return AddMenuItem(menu, info, m_szBuffer, style);
 }
 
-void UTIL_ShowGameText(int client, const char[] message)
+void UTIL_ShowGameText(int client, const char[] message, float life)
 {
-    SetHudTextParams(-1.0, 0.8, 3.0, 57, 197, 187, 255, 0, 30.0, 0.0, 0.0);
+    SetHudTextParams(-1.0, 0.8, life, 57, 197, 187, 255, 0, 30.0, 0.0, 0.0);
     ShowSyncHudText(client, g_hSyncHUD, message);
 }
