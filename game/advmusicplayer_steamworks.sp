@@ -92,10 +92,7 @@ public void OnPluginStart()
     g_hSyncHUD = CreateHudSynchronizer();
     
     // create data dir
-    char path[128];
-    BuildPath(Path_SM, path, 128, "data/music");
-    if(!DirExists(path))
-        CreateDirectory(path, 511);
+    UTIL_CheckDirector();
 
     // if late load
     for(int client = 1; client <= MaxClients; ++client)
@@ -204,7 +201,7 @@ void DisplayMainMenu(int client)
     Handle menu = CreateMenu(MenuHanlder_Main);
     
     if(g_bPlayed[client])
-        SetMenuTitle(menu, "Current playing ▼\nSong: %s\nSinger: %s\nAlbum: %s\n ", g_Sound[szName], g_Sound[szSinger], g_Sound[szAlbum]); 
+        SetMenuTitle(menu, "Current playing ▼\n \nSong: %s\nSinger: %s\nAlbum: %s\n ", g_Sound[szName], g_Sound[szSinger], g_Sound[szAlbum]); 
     else
         SetMenuTitle(menu, "[AMP]  Main menu\n ");
 
@@ -783,4 +780,32 @@ void UTIL_ShowGameText(int client, const char[] message, float life)
 {
     SetHudTextParams(-1.0, 0.8, life, 57, 197, 187, 255, 0, 30.0, 0.0, 0.0);
     ShowSyncHudText(client, g_hSyncHUD, message);
+}
+
+void UTIL_CheckDirector()
+{
+    char path[128];
+    BuildPath(Path_SM, path, 128, "data/music");
+    if(!DirExists(path))
+        CreateDirectory(path, 511);
+    else
+    {
+        // we need clear logs of searching
+        Handle hDirectory;
+        if((hDirectory = OpenDirectory("addons/sourcemod/data/music")) != INVALID_HANDLE)
+        {
+            FileType type = FileType_Unknown;
+            char filename[128];
+            while(ReadDirEntry(hDirectory, filename, 128, type))
+            {
+                if(type != FileType_File || StrContains(filename, "search_", false) != 0)
+                    continue;
+                
+                char path[128];
+                FormatEx(path, 128, "addons/sourcemod/data/music/%s", filename);
+                DeleteFile(path);
+            }
+            CloseHandle(hDirectory);
+        }
+    }
 }

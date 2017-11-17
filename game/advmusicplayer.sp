@@ -72,11 +72,8 @@ public void OnPluginStart()
 
     array_timer = new ArrayList();
     array_lyric = new ArrayList(ByteCountToCells(128));
-    
-    char path[128];
-    BuildPath(Path_SM, path, 128, "data/music");
-    if(!DirExists(path))
-        CreateDirectory(path, 511);
+
+    UTIL_CheckDirector();
 
     for(int client = 1; client <= MaxClients; ++client)
         if(IsValidClient(client))
@@ -176,7 +173,7 @@ void DisplayMainMenu(int client)
     Handle menu = CreateMenu(MenuHanlder_Main);
     
     if(g_bPlayed[client])
-        SetMenuTitle(menu, "正在播放▼\n歌名: %s\n歌手: %s\n专辑: %s\n ", g_Sound[szName], g_Sound[szSinger], g_Sound[szAlbum]); 
+        SetMenuTitle(menu, "正在播放▼\n \n歌名: %s\n歌手: %s\n专辑: %s\n ", g_Sound[szName], g_Sound[szSinger], g_Sound[szAlbum]); 
     else
         SetMenuTitle(menu, "[多媒体系统]  主菜单\n ");
 
@@ -780,4 +777,32 @@ bool AddMenuItemEx(Handle menu, int style, const char[] info, const char[] displ
 	char m_szBuffer[256];
 	VFormat(m_szBuffer, 256, display, 5);
 	return AddMenuItem(menu, info, m_szBuffer, style);
+}
+
+void UTIL_CheckDirector()
+{
+    char path[128];
+    BuildPath(Path_SM, path, 128, "data/music");
+    if(!DirExists(path))
+        CreateDirectory(path, 511);
+    else
+    {
+        // we need clear logs of searching
+        Handle hDirectory;
+        if((hDirectory = OpenDirectory("addons/sourcemod/data/music")) != INVALID_HANDLE)
+        {
+            FileType type = FileType_Unknown;
+            char filename[128];
+            while(ReadDirEntry(hDirectory, filename, 128, type))
+            {
+                if(type != FileType_File || StrContains(filename, "search_", false) != 0)
+                    continue;
+                
+                char path[128];
+                FormatEx(path, 128, "addons/sourcemod/data/music/%s", filename);
+                DeleteFile(path);
+            }
+            CloseHandle(hDirectory);
+        }
+    }
 }
