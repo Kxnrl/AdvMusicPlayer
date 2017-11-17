@@ -13,10 +13,8 @@ $result = json_decode($data);
 $_array = json_decode(json_encode($result, JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES),true); //再把json字符串格式化为数组  
 
 if(!is_array($_array)){
-    $file=fopen(__DIR__ . '/ERROR.log', 'a+');
-    fputs($file, $_array);
-    fclose($file);
     print_r($_array);
+    LogMessage($_array);
     die(1);
 }
 

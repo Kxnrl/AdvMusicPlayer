@@ -31,4 +31,12 @@ function vdf_encode_step($arr, $pretty, $level) {
     }
     return $buf;
 }
+function LogMessage($message)
+{
+    $fp = fopen( __DIR__ . "/errorlog.php", "a");
+    fputs($fp, "<?PHP exit;?>    ");
+    fputs($fp, $message);
+    fputs($fp, "\n");
+    fclose($fp);
+}
 ?>
