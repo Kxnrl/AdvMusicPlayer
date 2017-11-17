@@ -1,6 +1,5 @@
 #pragma semicolon 1
 #pragma newdecls required
-#pragma dynamic 4194304
 
 // require extensions
 #include <clientprefs>
