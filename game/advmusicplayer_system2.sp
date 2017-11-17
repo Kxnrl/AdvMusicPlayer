@@ -792,8 +792,7 @@ void UTIL_CheckDirector()
             {
                 if(type != FileType_File || StrContains(filename, "search_", false) != 0)
                     continue;
-                
-                char path[128];
+
                 FormatEx(path, 128, "addons/sourcemod/data/music/%s", filename);
                 DeleteFile(path);
             }
