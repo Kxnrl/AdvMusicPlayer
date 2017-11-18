@@ -554,11 +554,17 @@ public void API_CachedSong(const char[] output, const int size, CMDReturn status
 {
     g_fNextPlay = 0.0;
 
-	switch(status)
-	{
-		case CMD_SUCCESS: {if(strcmp(output, "success!", false) == 0 || strcmp(output, "file_exists!", false) == 0) UTIL_InitPlayer(GetClientOfUserId(userid)); else LogError("API_CachedSong -> [%s]", output);}
-		case CMD_ERROR  : LogError("API_CachedSong -> [%s]", output);
-	}
+    switch(status)
+    {
+        case CMD_SUCCESS:
+        {
+            if(strcmp(output, "success!", false) == 0 || strcmp(output, "file_exists!", false) == 0)
+                UTIL_InitPlayer(GetClientOfUserId(userid));
+            else
+                LogError("API_CachedSong -> [%s]", output);
+        }
+        case CMD_ERROR  : LogError("API_CachedSong -> [%s]", output);
+    }
 }
 
 void UTIL_InitPlayer(int client)
@@ -825,9 +831,9 @@ bool IsValidClient(int client)
 
 bool AddMenuItemEx(Handle menu, int style, const char[] info, const char[] display, any ...)
 {
-	char m_szBuffer[256];
-	VFormat(m_szBuffer, 256, display, 5);
-	return AddMenuItem(menu, info, m_szBuffer, style);
+    char m_szBuffer[256];
+    VFormat(m_szBuffer, 256, display, 5);
+    return AddMenuItem(menu, info, m_szBuffer, style);
 }
 
 void UTIL_ShowGameText(int client, const char[] message, float life)

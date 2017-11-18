@@ -546,9 +546,9 @@ void UTIL_CacheSong(int client)
     Format(url, 192, "%s%d", songId);
     
     Handle hRequest = SteamWorks_CreateHTTPRequest(k_EHTTPMethodGET, url);
-	SteamWorks_SetHTTPRequestContextValue(hRequest, GetClientUserId(client));
-	SteamWorks_SetHTTPCallbacks(hRequest, API_PrepareSong);
-	SteamWorks_SendHTTPRequest(hRequest);
+    SteamWorks_SetHTTPRequestContextValue(hRequest, GetClientUserId(client));
+    SteamWorks_SetHTTPCallbacks(hRequest, API_PrepareSong);
+    SteamWorks_SendHTTPRequest(hRequest);
     
     PrintToChat(client, "%s  Song is precaching now...", PREFIX);
     
@@ -559,22 +559,22 @@ void UTIL_CacheSong(int client)
 
 public int API_PrepareSong(Handle hRequest, bool bFailure, bool bRequestSuccessful, EHTTPStatusCode eStatusCode, int userid)
 {
-	if(bRequestSuccessful && eStatusCode == k_EHTTPStatusCode200OK)
-		SteamWorks_GetHTTPResponseBodyCallback(hRequest, API_CachedSong, userid);
-	else
-		LogError("API_PrepareSong -> HTTP Response failed: %i", eStatusCode);
+    if(bRequestSuccessful && eStatusCode == k_EHTTPStatusCode200OK)
+        SteamWorks_GetHTTPResponseBodyCallback(hRequest, API_CachedSong, userid);
+    else
+        LogError("API_PrepareSong -> HTTP Response failed: %i", eStatusCode);
 
-	CloseHandle(hRequest);
+    CloseHandle(hRequest);
 }
 
 public int API_CachedSong(const char[] sData, int userid)
 {
-	g_fNextPlay = 0.0;
+    g_fNextPlay = 0.0;
 
-	if(strcmp(sData, "success!", false) == 0 || strcmp(sData, "file_exists!", false) == 0)
-		UTIL_InitPlayer(GetClientOfUserId(userid));
-	else
-		LogError("API_CachedSong -> [%s]", sData);
+    if(strcmp(sData, "success!", false) == 0 || strcmp(sData, "file_exists!", false) == 0)
+        UTIL_InitPlayer(GetClientOfUserId(userid));
+    else
+        LogError("API_CachedSong -> [%s]", sData);
 }
 
 void UTIL_InitPlayer(int client)
@@ -845,9 +845,9 @@ bool IsValidClient(int client)
 
 bool AddMenuItemEx(Handle menu, int style, const char[] info, const char[] display, any ...)
 {
-	char m_szBuffer[256];
-	VFormat(m_szBuffer, 256, display, 5);
-	return AddMenuItem(menu, info, m_szBuffer, style);
+    char m_szBuffer[256];
+    VFormat(m_szBuffer, 256, display, 5);
+    return AddMenuItem(menu, info, m_szBuffer, style);
 }
 
 void UTIL_ShowGameText(int client, const char[] message, float life)
