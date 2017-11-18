@@ -7,8 +7,8 @@ header('Content-type: text/html; charset=UTF-8');
 require_once 'NeteaseMusicAPI.php';
 require_once 'KyleUTILs.php';
 
-if(empty($_GET['id')){
-    LogMessage("WTF YOU DOING? EMPTY PARAM!");
+if(!isset($_GET['id']) || empty($_GET['id'])){
+    LogMessage("Player -> WTF YOU DOING? EMPTY PARAM!");
     die(404);
 }
 
@@ -36,8 +36,7 @@ echo '</head>';
 echo '<body>';
 echo '<audio id="music" src="'.$url.'" autoplay="autoplay"></audio>';
 
-if($_GET['volume'])
-{
+if(isset($_GET['volume']) && !empty($_GET['volume'])){
 	$volume = round($_GET['volume'] / 100, 2);
 	echo "<script type='text/javascript'>window.onload=function(){document.getElementById('music').volume=$volume;};</script>";
 }

@@ -4,8 +4,8 @@
 require_once 'NeteaseMusicAPI.php';
 require_once 'KyleUTILs.php';
 
-if(empty($_GET['id')){
-    LogMessage("WTF YOU DOING? EMPTY PARAM!");
+if(!isset($_GET['id']) || empty($_GET['id')){
+    LogMessage("Lyric -> WTF YOU DOING? EMPTY PARAM!");
     die(404);
 }
 
