@@ -19,6 +19,7 @@
 // global variables
 float g_fNextPlay;
 
+bool g_bLyrics[MAXPLAYERS+1];
 bool g_bDiable[MAXPLAYERS+1];
 bool g_bBanned[MAXPLAYERS+1];
 bool g_bListen[MAXPLAYERS+1];
@@ -41,6 +42,7 @@ Handle g_hSyncHUD;
 Handle g_cDisable;
 Handle g_cVolume;
 Handle g_cBanned;
+Handle g_cLyrics;
 
 ConVar g_cvarSEARCH;
 ConVar g_cvarLYRICS;
@@ -66,6 +68,7 @@ public void OnPluginStart()
     g_cDisable = RegClientCookie("media_disable", "", CookieAccess_Private);
     g_cVolume  = RegClientCookie("media_volume",  "", CookieAccess_Private);
     g_cBanned  = RegClientCookie("media_banned",  "", CookieAccess_Private);
+    g_cLyrics  = RegClientCookie("media_lyrics",  "", CookieAccess_Private);
 
     // register commands
     RegConsoleCmd("sm_music",        Command_Music);
@@ -129,20 +132,23 @@ public void OnClientConnected(int client)
     g_bDiable[client] = false;
     g_bBanned[client] = false;
     g_bListen[client] = false;
+    g_bLyrics[client] = true;
     g_iVolume[client] = 100;
 }
 
 public void OnClientCookiesCached(int client)
 {
     // load client settings
-    char buf[5][4];
+    char buf[4][4];
     GetClientCookie(client, g_cDisable, buf[0], 4);
     GetClientCookie(client, g_cVolume,  buf[1], 4);
     GetClientCookie(client, g_cBanned,  buf[2], 4);
+    GetClientCookie(client, g_cLyrics,  buf[3], 4);
 
     g_bDiable[client] = (StringToInt(buf[0]) ==  1);
     g_iVolume[client] = (StringToInt(buf[1]) >= 10) ? StringToInt(buf[1]) : 65;
     g_bBanned[client] = (StringToInt(buf[2]) ==  1);
+    g_bLyrics[client] = (buf[3][0] != '\0' && StringToInt(buf[3]) == 0);
 }
 
 public Action Command_Music(int client, int args)
@@ -209,7 +215,8 @@ void DisplayMainMenu(int client)
     else
         SetMenuTitle(menu, "[AMP]  Main menu\n ");
 
-    AddMenuItemEx(menu, g_bPlayed[client] ? ITEMDRAW_DISABLED : ITEMDRAW_DEFAULT, "toall",  "broadcast");
+    AddMenuItemEx(menu, g_bPlayed[client] ? ITEMDRAW_DISABLED : ITEMDRAW_DEFAULT, "toall",  "Broadcast");
+    AddMenuItemEx(menu, ITEMDRAW_DEFAULT, "lyrics", "Lyrics: %s", g_bLyrics[client] ? "ON" : "OFF");
     AddMenuItemEx(menu, ITEMDRAW_DEFAULT, "toggle", "Toggle: %s", g_bDiable[client] ? "OFF" : "ON");
     AddMenuItemEx(menu, ITEMDRAW_DEFAULT, "volume", "Volume: %d", g_iVolume[client]);
     AddMenuItemEx(menu, ITEMDRAW_DEFAULT, "stop",   "Stop Music");
@@ -256,6 +263,14 @@ public int MenuHanlder_Main(Handle menu, MenuAction action, int client, int item
                 g_bPlayed[client] = false;
                 UTIL_ClearLyric(client);
             }
+        }
+        else if(strcmp(info, "lyrics") == 0)
+        {
+            g_bLyrics[client] = !g_bLyrics[client];
+            SetClientCookie(client, g_cLyrics, g_bLyrics[client] ? "1" : "0");
+            PrintToChat(client, "%s  \x10Display lyrics: %s", PREFIX, g_bLyrics[client] ? "\x04ON" : "\x07OFF");
+            if(!g_hSyncHUD[client])
+                ClearSyncHud(client, g_hSyncHUD);
         }
         else if(strcmp(info, "volume") == 0)
         {
@@ -813,7 +828,7 @@ void UTIL_StopMusic(int client)
 void UTIL_LyricHud(const char[] message, float life)
 {
     for(int client = 1; client <= MaxClients; ++client)
-        if(IsValidClient(client) && !g_bDiable[client] && g_bPlayed[client])
+        if(IsValidClient(client) && !g_bDiable[client] && g_bPlayed[client] && g_bLyrics[client])
             UTIL_ShowGameText(client, message, life);
 }
 

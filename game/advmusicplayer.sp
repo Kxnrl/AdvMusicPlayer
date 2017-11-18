@@ -26,6 +26,7 @@
 
 float g_fNextPlay;
 
+bool g_bLyrics[MAXPLAYERS+1];
 bool g_bDiable[MAXPLAYERS+1];
 bool g_bBanned[MAXPLAYERS+1];
 bool g_bListen[MAXPLAYERS+1];
@@ -49,6 +50,7 @@ Handle g_cDisable;
 Handle g_cVolume;
 Handle g_cBanned;
 Handle g_cBGMVol;
+Handle g_cLyrics;
 
 ArrayList array_timer;
 ArrayList array_lyric;
@@ -68,6 +70,7 @@ public void OnPluginStart()
     g_cVolume  = RegClientCookie("media_volume",  "", CookieAccess_Private);
     g_cBanned  = RegClientCookie("media_banned",  "", CookieAccess_Private);
     g_cBGMVol  = RegClientCookie("media_bgmvol",  "", CookieAccess_Private);
+    g_cLyrics  = RegClientCookie("media_lyrics",  "", CookieAccess_Private);
 
     RegConsoleCmd("sm_music",        Command_Music);
     RegConsoleCmd("sm_dj",           Command_Music);
@@ -110,6 +113,7 @@ public void OnClientConnected(int client)
     g_bDiable[client] = false;
     g_bBanned[client] = false;
     g_bListen[client] = false;
+    g_bLyrics[client] = true;
     g_iVolume[client] = 100;
     g_iBGMVol[client] = 100;
 }
@@ -120,12 +124,14 @@ public void OnClientCookiesCached(int client)
     GetClientCookie(client, g_cDisable, buf[0], 4);
     GetClientCookie(client, g_cVolume,  buf[1], 4);
     GetClientCookie(client, g_cBanned,  buf[2], 4);
-    GetClientCookie(client, g_cBGMVol,  buf[4], 4);
+    GetClientCookie(client, g_cBGMVol,  buf[3], 4);
+    GetClientCookie(client, g_cLyrics,  buf[4], 4);
 
     g_bDiable[client] = (StringToInt(buf[0]) ==  1);
     g_iVolume[client] = (StringToInt(buf[1]) >= 10) ? StringToInt(buf[1]) : 65;
     g_bBanned[client] = (StringToInt(buf[2]) ==  1);
-    g_iBGMVol[client] = (strlen(buf[4]) >= 2) ? StringToInt(buf[4]) : 100;
+    g_iBGMVol[client] = (strlen(buf[3]) >= 2) ? StringToInt(buf[3]) : 100;
+    g_bLyrics[client] = (buf[4][0] != '\0' && StringToInt(buf[4]) == 0);
 }
 
 public Action Command_Music(int client, int args)
@@ -187,6 +193,7 @@ void DisplayMainMenu(int client)
 
     AddMenuItemEx(menu, g_bPlayed[client] ? ITEMDRAW_DISABLED : ITEMDRAW_DEFAULT, "toall",  "我要点歌");
     AddMenuItemEx(menu, ITEMDRAW_DEFAULT, "toggle", "点歌接收: %s", g_bDiable[client] ? "关" : "开");
+    AddMenuItemEx(menu, ITEMDRAW_DEFAULT, "lyrics", "歌词显示: %s", g_bLyrics[client] ? "开" : "关");
     AddMenuItemEx(menu, ITEMDRAW_DEFAULT, "volume", "点歌音量: %d", g_iVolume[client]);
     AddMenuItemEx(menu, ITEMDRAW_DEFAULT, "stop",   "停止播放");
     AddMenuItemEx(menu, ITEMDRAW_DEFAULT, "mapbgm", "地图音量: %d", g_iBGMVol[client]);
@@ -232,6 +239,12 @@ public int MenuHanlder_Main(Handle menu, MenuAction action, int client, int item
                 g_bPlayed[client] = false;
                 UTIL_ClearLyric(client);
             }
+        }
+        else if(strcmp(info, "lyrics") == 0)
+        {
+            g_bLyrics[client] = !g_bLyrics[client];
+            SetClientCookie(client, g_cLyrics, g_bLyrics[client] ? "1" : "0");
+            PrintToChat(client, "%s  \x10歌词显示已%s", PREFIX, g_bLyrics[client] ? "\x04开启" : "\x07关闭");
         }
         else if(strcmp(info, "volume") == 0)
         {
@@ -750,7 +763,7 @@ void UTIL_LyricHud(const char[] message)
 {
     ArrayList array_client = new ArrayList();
     for(int client = 1; client <= MaxClients; ++client)
-        if(IsValidClient(client) && !g_bDiable[client] && g_bPlayed[client])
+        if(IsValidClient(client) && !g_bDiable[client] && g_bPlayed[client] && g_bLyrics[client])
             array_client.Push(client);
 
     CG_ShowGameText(message, "30.0", "57 197 187", "-1.0", "0.8", array_client);
@@ -759,6 +772,9 @@ void UTIL_LyricHud(const char[] message)
 
 void UTIL_ClearLyric(int client)
 {
+    if(!g_bLyrics[client])
+        return;
+    
     ArrayList array_client = new ArrayList();
     array_client.Push(client);
     CG_ShowGameText(">>> 歌曲已停止播放 <<<", "3.0", "57 197 187", "-1.0", "0.8", array_client);
