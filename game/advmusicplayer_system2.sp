@@ -56,7 +56,7 @@ public Plugin myinfo =
     name        = "Advance Music Player [System2]",
     author      = "Kyle",
     description = "Media System",
-    version     = "1.0.<commit_count>.<commit_branch> - <commit_date>",
+    version     = "1.1.<commit_count>.<commit_branch> - <commit_date>",
     url         = "http://steamcommunity.com/id/_xQy_/"
 };
 
