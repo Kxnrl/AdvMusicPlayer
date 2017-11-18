@@ -1,10 +1,16 @@
 <?php
-ini_set("display_errors", 1);
-// header
-//header('Content-type: text/html; charset=UTF-8');
 
-// require library
+// library
 require_once 'NeteaseMusicAPI.php';
+require_once 'KyleUTILs.php';
+
+if(empty($_GET['id')){
+    LogMessage("WTF YOU DOING? EMPTY PARAM!");
+    die(404);
+}
+
+// header
+Header("Content-type: text/plain; charset=UTF-8"); 
 
 $api = new NeteaseMusicAPI();
 $result = $api->lyric($_GET['id']);

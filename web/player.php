@@ -3,8 +3,14 @@
 // header
 header('Content-type: text/html; charset=UTF-8');
 
-// require library
+// library
 require_once 'NeteaseMusicAPI.php';
+require_once 'KyleUTILs.php';
+
+if(empty($_GET['id')){
+    LogMessage("WTF YOU DOING? EMPTY PARAM!");
+    die(404);
+}
 
 // get result
 $api = new NeteaseMusicAPI();

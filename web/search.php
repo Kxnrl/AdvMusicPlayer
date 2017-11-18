@@ -4,6 +4,11 @@
 require_once 'NeteaseMusicAPI.php';
 require_once 'KyleUTILs.php';
 
+if(empty($_GET['s')){
+    LogMessage("WTF YOU DOING? EMPTY PARAM!");
+    die(404);
+}
+
 // require api
 $api = new NeteaseMusicAPI();
 $data = $api->search($_GET['s']);
@@ -22,7 +27,7 @@ if(!is_array($_array)){
 $data = vdf_encode($_array['result'], true);
 
 // file name
-if(isset($_GET['steam'])){
+if(!empty($_GET['steam'])){
 	$name = "result_" . $_GET['steam'];
 }else{
     $name = 'unnamed';
