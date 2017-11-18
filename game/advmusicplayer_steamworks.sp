@@ -269,7 +269,7 @@ public int MenuHanlder_Main(Handle menu, MenuAction action, int client, int item
             g_bLyrics[client] = !g_bLyrics[client];
             SetClientCookie(client, g_cLyrics, g_bLyrics[client] ? "1" : "0");
             PrintToChat(client, "%s  \x10Display lyrics: %s", PREFIX, g_bLyrics[client] ? "\x04ON" : "\x07OFF");
-            if(!g_hSyncHUD[client])
+            if(!g_bLyrics[client])
                 ClearSyncHud(client, g_hSyncHUD);
         }
         else if(strcmp(info, "volume") == 0)
