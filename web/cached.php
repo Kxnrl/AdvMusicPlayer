@@ -25,9 +25,13 @@ if(!file_exists($dir)){
 
 $path = __DIR__ . "/cached/".$_GET['id'].".mp3";
 
-if(file_exists($path) && filesize($path) > 524288){
-	echo 'file_exists!';
-    die(200);
+if(file_exists($path)){
+    if(filesize($path) > 524288){
+        echo 'file_exists!';
+        die(200);
+    }else{
+        unlink($path);
+    }
 }
 
 // get result
@@ -50,10 +54,14 @@ $file = curl_exec($curl);
 curl_close($curl);
 
 // save file
-if(file_put_contents($path, $file) && filesize($path) > 524288){
-    echo 'success!';
+if(file_put_contents($path, $file)){
+    if(filesize($path) > 524288){
+        echo 'success!';
+    }else{
+        echo 'file error -> '.$path.'   size: '.filesize($path);
+    }
 }else{
-    echo 'put file failed or file error -> '.$path;
-    LogMessage("Cache -> put file failed or file error -> $path");
+    echo 'put file failed: '.$path;
+    LogMessage("Cache -> put file failed -> $path");
 }
 ?>
