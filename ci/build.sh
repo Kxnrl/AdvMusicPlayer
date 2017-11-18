@@ -130,11 +130,11 @@ cd build
 
 #上传
 echo -e "Upload file ..."
-lftp -c "open -u $FTP_USER,$FTP_PSWD $FTP_HOST; put -O /AMP/$1/ $FILE"
+lftp -c "open -u $FTP_USER,$FTP_PSWD $FTP_HOST; put -O /AMP/$5/$1/ $FILE"
 
 
 #RAW
-if [ "$1" = "1.8" ]; then
+if [ "$1" = "1.8" ] && [ "$5" = "master" ]; then
     echo "Upload RAW..."
     cd plugins
     mv advmusicplayer_dontusethis.smx advmusicplayer.smx
