@@ -666,7 +666,7 @@ void UTIL_InitPlayer(int client)
     
     char url[192];
     g_cvarPLAYER.GetString(url, 192);
-    Format(url, 192, "%s&cache=%d", url, g_cvarECACHE.IntValue);
+    Format(url, 192, "%s%d&cache=%d", url, g_Sound[iSongId], g_cvarECACHE.IntValue);
 
     for(int i = 1; i <= MaxClients; ++i)
     {
@@ -681,7 +681,7 @@ void UTIL_InitPlayer(int client)
         g_bPlayed[i] = true;
 
         char murl[192];
-        FormatEx(murl, 192, "%s%d&volume=%d", url, g_Sound[iSongId], g_iVolume[i]);
+        FormatEx(murl, 192, "%s&volume=%d", url, g_iVolume[i]);
         DisplayMainMenu(client);
         MotdEx_ShowHiddenMotd(i, murl);
 
