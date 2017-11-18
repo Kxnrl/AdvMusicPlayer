@@ -558,7 +558,7 @@ void UTIL_CacheSong(int client)
     
     char url[192];
     g_cvarCACHED.GetString(url, 192);
-    Format(url, 192, "%s%d", songId);
+    Format(url, 192, "%s%d", url, songId);
     
     Handle hRequest = SteamWorks_CreateHTTPRequest(k_EHTTPMethodGET, url);
     SteamWorks_SetHTTPRequestContextValue(hRequest, GetClientUserId(client));

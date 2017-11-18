@@ -554,7 +554,7 @@ void UTIL_CacheSong(int client)
     
     char url[192];
     g_cvarCACHED.GetString(url, 192);
-    Format(url, 192, "%s%d", songId);
+    Format(url, 192, "%s%d", url, songId);
     
     System2_GetPage(API_CachedSong, url, "", "", GetClientUserId(client));
 
