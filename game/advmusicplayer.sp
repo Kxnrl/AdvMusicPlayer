@@ -1,3 +1,11 @@
+/***************************************************** */
+/*                                                     */
+/*           DON`T USE THIS IN PRODUCTION!             */
+/*                                                     */
+/*  Choose one (steamworks or system2) what you like   */
+/*                                                      /
+/*******************************************************/
+
 #pragma semicolon 1
 #pragma newdecls required
 
@@ -50,7 +58,7 @@ public Plugin myinfo =
     name        = "Advance Music Player",
     author      = "Kyle",
     description = "Media System , Powered by CG Community",
-    version     = "1.0.<commit_count>.<commit_branch> - <commit_date>",
+    version     = "1.1.<commit_count>.<commit_branch> - <commit_date>",
     url         = "http://steamcommunity.com/id/_xQy_/"
 };
 
@@ -467,6 +475,8 @@ public int MenuHandler_DisplayList(Handle menu, MenuAction action, int client, i
         }
         else
             strcopy(album, 128, "unknown");
+        
+        delete kv;
 
         int cost = RoundFloat(length*2.0);
         if(Store_GetClientCredits(client) < cost)
@@ -508,6 +518,8 @@ public int MenuHandler_Confirm(Handle menu, MenuAction action, int client, int i
         if(StringToInt(info) == 1)
             UTIL_InitPlayer(client);
     }
+    else if(action == MenuAction_End)
+        CloseHandle(menu);
 }
 
 void UTIL_InitPlayer(int client)
@@ -567,6 +579,8 @@ void UTIL_InitPlayer(int client)
     }
     else
         strcopy(g_Sound[szAlbum], 64, "unknown");
+    
+    delete kv;
 
 #if defined DEBUG
     UTIL_DebugLog("UTIL_InitPlayer -> %N -> %s -> %d -> %.2f", client, g_Sound[szName], g_Sound[iSongId], g_Sound[fLength]);

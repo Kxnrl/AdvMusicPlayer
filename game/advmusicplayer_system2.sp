@@ -45,6 +45,8 @@ Handle g_cBanned;
 ConVar g_cvarSEARCH;
 ConVar g_cvarLYRICS;
 ConVar g_cvarPLAYER;
+ConVar g_cvarCACHED;
+ConVar g_cvarECACHE;
 
 ArrayList array_timer;
 ArrayList array_lyric;
@@ -79,7 +81,9 @@ public void OnPluginStart()
     // register console variables
     g_cvarSEARCH = CreateConVar("amp_url_search", "https://csgogamers.com/musicserver/api/search.php?s=",   "url for searching music");
     g_cvarLYRICS = CreateConVar("amp_url_lyrics", "https://csgogamers.com/musicserver/api/lyrics.php?id=",  "url for downloading lyric");
-    g_cvarPLAYER = CreateConVar("amp_url_player", "https://csgogamers.com/musicserver/api/player.php?id=", "url of motd player");
+    g_cvarPLAYER = CreateConVar("amp_url_player", "https://csgogamers.com/musicserver/api/player.php?id=",  "url of motd player");
+    g_cvarCACHED = CreateConVar("amp_url_cached", "https://csgogamers.com/musicserver/api/cached.php?id=",  "url for caching music");
+    g_cvarECACHE = CreateConVar("amp_url_cached_enable", "0", "enable music cached in your web server (0 = disabled, 1 = enabled)", _, true, 0.0, true, 1.0);
 
     // exec configs
     AutoExecConfig(true, "AdvMusicPlayer", "KyleLu");
@@ -468,6 +472,8 @@ public int MenuHandler_DisplayList(Handle menu, MenuAction action, int client, i
         }
         else
             strcopy(album, 128, "unknown");
+        
+        delete kv;
 
         DisplayConfirmMenu(client, name, arlist, album, length);
     }
@@ -500,12 +506,66 @@ public int MenuHandler_Confirm(Handle menu, MenuAction action, int client, int i
         GetMenuItem(menu, itemNum, info, 32);
         
         if(StringToInt(info) == 1)
-            UTIL_InitPlayer(client);
+        {
+            if(g_cvarECACHE.IntValue == 1)
+            {
+                g_fNextPlay = GetGameTime()+60.0;
+                UTIL_CacheSong(client);
+            }
+            else
+                UTIL_InitPlayer(client);
+        }
     }
+    else if(action == MenuAction_End)
+        CloseHandle(menu);
+}
+
+void UTIL_CacheSong(int client)
+{
+    char path[128];
+    BuildPath(Path_SM, path, 128, "data/music/search_%d.kv", GetClientUserId(client));
+    
+    KeyValues kv = new KeyValues("songs");
+    kv.ImportFromFile(path);
+
+    char key[32];
+    IntToString(g_iSelect[client], key, 32);
+    
+    kv.JumpToKey(key, true);
+    
+    int songId = kv.GetNum("id");
+    
+    delete kv;
+    
+    char url[192];
+    g_cvarCACHED.GetString(url, 192);
+    Format(url, 192, "%s%d", songId);
+    
+    System2_GetPage(API_CachedSong, url, "", "", GetClientUserId(client));
+
+    PrintToChat(client, "%s  Song is precaching now...", PREFIX);
+    
+#if defined DEBUG
+    UTIL_DebugLog("UTIL_CacheSong -> %N -> %s", client, url);
+#endif
+}
+
+public void API_CachedSong(const char[] output, const int size, CMDReturn status, int userid)
+{
+    g_fNextPlay = 0.0;
+
+	switch(status)
+	{
+		case CMD_SUCCESS: {if(strcmp(output, "success!", false) == 0 || strcmp(output, "file_exists!", false) == 0) UTIL_InitPlayer(GetClientOfUserId(userid)); else LogError("API_CachedSong -> [%s]", output);}
+		case CMD_ERROR  : LogError("API_CachedSong -> [%s]", output);
+	}
 }
 
 void UTIL_InitPlayer(int client)
 {
+    if(!IsValidClient(client))
+        return;
+
     if(GetGameTime() < g_fNextPlay)
     {
         PrintToChat(client, "%s  \x10The last song has not expired, please wait until the end of time", PREFIX);
@@ -561,11 +621,12 @@ void UTIL_InitPlayer(int client)
     }
     else
         strcopy(g_Sound[szAlbum], 64, "unknown");
+    
+    delete kv;
 
 #if defined DEBUG
     UTIL_DebugLog("UTIL_InitPlayer -> %N -> %s -> %d -> %.2f", client, g_Sound[szName], g_Sound[iSongId], g_Sound[fLength]);
 #endif
-
 
     PrintToChatAll("%s \x04%N\x01 broadcast [\x0C%s\x01]", PREFIX, client, g_Sound[szName]);
     LogToFileEx(logFile, "\"%L\" broadcast [%s - %s]", client, g_Sound[szName],  g_Sound[szSinger]);
@@ -574,6 +635,7 @@ void UTIL_InitPlayer(int client)
     
     char url[192];
     g_cvarPLAYER.GetString(url, 192);
+    Format(url, 192, "%s&cache=%d", url, g_cvarECACHE.IntValue);
 
     for(int i = 1; i <= MaxClients; ++i)
     {
