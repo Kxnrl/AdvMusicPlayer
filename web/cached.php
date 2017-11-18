@@ -44,6 +44,12 @@ $json_e = json_encode($json_d,JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT|JSON_UNES
 $de_json = json_decode($json_e, true);
 $url = $de_json['data'][0]['url'];
 
+if(strlen($url) < 24){
+    echo 'Can not get url.';
+    LogMessage("Cache -> Can not get url.");
+    exit(404);
+}
+
 // get mp3
 $curl = curl_init();
 curl_setopt($curl, CURLOPT_URL, $url);
@@ -61,7 +67,7 @@ if(file_put_contents($path, $file)){
         echo 'file error -> '.$path.'   size: '.filesize($path);
     }
 }else{
-    echo 'put file failed: '.$path;
-    LogMessage("Cache -> put file failed -> $path");
+    echo 'put file failed: '.$path.'   length: '.strlen($file);
+    LogMessage("Cache -> put file failed -> $path   length: ".strlen($file));
 }
 ?>
