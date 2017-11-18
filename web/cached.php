@@ -45,7 +45,7 @@ $file = curl_exec($curl);
 curl_close($curl);
 
 // save file
-if(file_put_contents($path, $file) && filesize($path)<=524288){
+if(file_put_contents($path, $file) && filesize($path) > 524288){
     echo 'success!';
 }else{
     echo 'put file failed or file error -> '.$path;
