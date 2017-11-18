@@ -14,8 +14,13 @@ if(!isset($_GET['id']) || empty($_GET['id'])){
 
 $path = __DIR__ . "/cached";
 if(!file_exists($dir)){
-    mkdir($path,0777,true);
-    LogMessage("Cache -> We created a cached director.");
+    if(!mkdir($path, 0777, true)){
+        LogMessage("Cache -> create cached director failed.");
+        echo 'create director failed!';
+        exit(404);
+    }else{
+        LogMessage("Cache -> We created a cached director.");
+    }
 }
 
 $path = __DIR__ . "/cached/".$_GET['id'].".mp3";
