@@ -12,16 +12,20 @@ if(!isset($_GET['id']) || empty($_GET['id'])){
     die(404);
 }
 
-// get result
-$api = new NeteaseMusicAPI();
-$result = $api->url($_GET['id']);
+$path = __DIR__ . "/cached/".$_GET['id'].".mp3";
+if(isset($_GET['cache']) && !empty($_GET['cache']) && $_GET['cache'] == 1 && file_exists($path) && filesize($path) > 524288){
+    $url = "cached/".$_GET['id'].".mp3";
+}else{
+    // get result
+    $api = new NeteaseMusicAPI();
+    $result = $api->url($_GET['id']);
 
-// get url
-$json_d = json_decode($result);
-$json_e = json_encode($json_d,JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES);
-$de_json = json_decode($json_e, true);
-//print_r($de_json);
-$url = $de_json['data'][0]['url'];
+    // get url
+    $json_d = json_decode($result);
+    $json_e = json_encode($json_d,JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES);
+    $de_json = json_decode($json_e, true);
+    $url = $de_json['data'][0]['url'];
+}
 
 echo '<html>';
 
