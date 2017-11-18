@@ -12,15 +12,17 @@ if(!isset($_GET['id']) || empty($_GET['id'])){
     die(404);
 }
 
-$path = __DIR__ . "/cached";
+$dir = __DIR__ . "/cached";
 if(!file_exists($dir)){
-    if(!mkdir($path, 0777, true)){
+    if(!mkdir($dir, 0777, true)){
         LogMessage("Cache -> create cached director failed.");
         echo 'create director failed!';
         exit(404);
     }else{
         LogMessage("Cache -> We created a cached director.");
     }
+}else{
+    chmod($dir, 0777);
 }
 
 $path = __DIR__ . "/cached/".$_GET['id'].".mp3";
@@ -45,8 +47,8 @@ $de_json = json_decode($json_e, true);
 $url = $de_json['data'][0]['url'];
 
 if(strlen($url) < 24){
-    echo 'Can not get url.';
-    LogMessage("Cache -> Can not get url.");
+    echo 'Can not get url.  -> '.$url;
+    LogMessage("Cache -> Can not get url. -> $url");
     exit(404);
 }
 
