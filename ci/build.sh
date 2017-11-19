@@ -31,7 +31,7 @@ wget "https://github.com/Kxnrl/Core/raw/master/include/cg_core.inc" -q -O includ
 
 
 #下载Store头文件
-echo -e "Download cg_core.inc ..."
+echo -e "Download store.inc ..."
 wget "https://github.com/Kxnrl/Store/raw/master/include/store.inc" -q -O include/store.inc
 
 
