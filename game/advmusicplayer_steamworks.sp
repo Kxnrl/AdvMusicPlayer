@@ -59,7 +59,7 @@ public Plugin myinfo =
     author      = "Kyle",
     description = "Media System",
     version     = "1.1.<commit_count>.<commit_branch> - <commit_date>",
-    url         = "http://steamcommunity.com/id/_xQy_/"
+    url         = "https://ump45.moe"
 };
 
 public void OnPluginStart()
