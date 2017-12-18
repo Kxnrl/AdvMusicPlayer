@@ -682,7 +682,7 @@ void UTIL_InitPlayer(int client)
 
         char murl[192];
         FormatEx(murl, 192, "%s&volume=%d", url, g_iVolume[i]);
-        DisplayMainMenu(client);
+        DisplayMainMenu(i);
         MotdEx_ShowHiddenMotd(i, murl);
 
 #if defined DEBUG

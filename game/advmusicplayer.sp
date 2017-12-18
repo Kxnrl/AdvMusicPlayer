@@ -191,7 +191,7 @@ void DisplayMainMenu(int client)
     else
         SetMenuTitle(menu, "[多媒体系统]  主菜单\n ");
 
-    AddMenuItemEx(menu, g_bPlayed[client] ? ITEMDRAW_DISABLED : ITEMDRAW_DEFAULT, "toall",  "我要点歌");
+    AddMenuItemEx(menu, g_bPlayed[client] ? ITEMDRAW_DISABLED : ITEMDRAW_DEFAULT, "search",  "搜索音乐");
     AddMenuItemEx(menu, ITEMDRAW_DEFAULT, "toggle", "点歌接收: %s", g_bDiable[client] ? "关" : "开");
     AddMenuItemEx(menu, ITEMDRAW_DEFAULT, "lyrics", "歌词显示: %s", g_bLyrics[client] ? "开" : "关");
     AddMenuItemEx(menu, ITEMDRAW_DEFAULT, "volume", "点歌音量: %d", g_iVolume[client]);
@@ -210,17 +210,11 @@ public int MenuHanlder_Main(Handle menu, MenuAction action, int client, int item
 
         bool reply = true;
 
-        if(strcmp(info, "toall") == 0)
+        if(strcmp(info, "search") == 0)
         {
             if(g_bBanned[client])
             {
                 PrintToChat(client, "%s  \x10你点歌权限被BAN了", PREFIX);
-                return;
-            }
-
-            if(GetGameTime() < g_fNextPlay)
-            {
-                PrintToChat(client, "%s  \x10上次点歌未过期,请等待时间结束", PREFIX);
                 return;
             }
 
@@ -311,12 +305,6 @@ public Action OnClientSayCommand(int client, const char[] command, const char[] 
     if(g_bBanned[client])
     {
         PrintToChat(client, "%s  \x07你已被封禁点歌", PREFIX);
-        return Plugin_Stop;
-    }
-
-    if(GetGameTime() < g_fNextPlay)
-    {
-        PrintToChat(client, "%s  \x10上次点歌未过期,请等待时间结束", PREFIX);
         return Plugin_Stop;
     }
 
@@ -512,12 +500,11 @@ void DisplayConfirmMenu(int client, int cost, const char[] name, const char[] ar
     AddMenuItemEx(menu, ITEMDRAW_DISABLED, " ", "歌名: %s", name);
     AddMenuItemEx(menu, ITEMDRAW_DISABLED, " ", "歌手: %s", arlist);
     AddMenuItemEx(menu, ITEMDRAW_DISABLED, " ", "专辑: %s", album);
-    AddMenuItemEx(menu, ITEMDRAW_DISABLED, " ", "时长: %d分%d秒", time/60, time%60);
-    
-    AddMenuItemEx(menu, ITEMDRAW_SPACER, " ", " ");
-    
-    AddMenuItemEx(menu, ITEMDRAW_DEFAULT, "1", "YES");
-    
+    AddMenuItemEx(menu, ITEMDRAW_DISABLED, " ", "时长: %d分%d秒\n ", time/60, time%60);
+
+    AddMenuItemEx(menu, ITEMDRAW_DEFAULT, "1", "所有人");
+    AddMenuItemEx(menu, ITEMDRAW_DEFAULT, "2", "自己听");
+
     DisplayMenu(menu, client, 15);
 }
 
@@ -530,9 +517,35 @@ public int MenuHandler_Confirm(Handle menu, MenuAction action, int client, int i
         
         if(StringToInt(info) == 1)
             UTIL_InitPlayer(client);
+        else if(StringToInt(info) == 2)
+            UTIL_ListenMusic(client);
     }
     else if(action == MenuAction_End)
         CloseHandle(menu);
+}
+
+void UTIL_ListenMusic(int client)
+{
+    if(g_bBanned[client])
+    {
+        PrintToChat(client, "%s  \x07你已被封禁点歌", PREFIX);
+        return;
+    }
+    
+    char key[32];
+    IntToString(g_iSelect[client], key, 32);
+    kv.JumpToKey(key, true);
+    int songid = kv.GetNum("id");
+    delete kv;
+
+#if defined DEBUG
+    UTIL_DebugLog("UTIL_ListenMusic -> %N -> %d -> %d -> %.2f", client, songid);
+#endif
+
+    char murl[192];
+    FormatEx(murl, 192, "%s%d&volume=%d", PLAYER, songid, g_iVolume[client]);
+    DisplayMainMenu(client);
+    CG_ShowHiddenMotd(client, murl);
 }
 
 void UTIL_InitPlayer(int client)
@@ -623,7 +636,7 @@ void UTIL_InitPlayer(int client)
 
         char murl[192];
         FormatEx(murl, 192, "%s%d&volume=%d", PLAYER, g_Sound[iSongId], g_iVolume[i]);
-        DisplayMainMenu(client);
+        DisplayMainMenu(i);
         CG_ShowHiddenMotd(i, murl);
 
 #if defined DEBUG
