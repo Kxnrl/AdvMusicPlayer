@@ -352,28 +352,28 @@ void UTIL_ProcessResult(int userid)
     if(!IsValidClient(client))
         return;
 
-    KeyValues kv = new KeyValues("songs");
+    KeyValues _kv = new KeyValues("songs");
     
     char path[128];
     BuildPath(Path_SM, path, 128, "data/music/search_%d.kv", userid);
    
     if(!FileExists(path))
     {
-        delete kv;
+        delete _kv;
         LogError("UTIL_ProcessResult -> Download error!");
         return;
     }
 
-    if(!kv.ImportFromFile(path))
+    if(!_kv.ImportFromFile(path))
     {
-        delete kv;
+        delete _kv;
         LogError("UTIL_ProcessResult -> Import error!");
         return;
     }
 
-    if(!kv.GotoFirstSubKey(true))
+    if(!_kv.GotoFirstSubKey(true))
     {
-        delete kv;
+        delete _kv;
         LogError("UTIL_ProcessResult -> No result!");
         return;
     }
@@ -385,45 +385,45 @@ void UTIL_ProcessResult(int userid)
     {
         char key[32], name[64], arlist[128], album[128];
 
-        kv.GetSectionName(key, 32);
-        kv.GetString("name", name, 32);
+        _kv.GetSectionName(key, 32);
+        _kv.GetString("name", name, 32);
 
-        if(kv.JumpToKey("ar"))
+        if(_kv.JumpToKey("ar"))
         {
-            if(kv.GotoFirstSubKey(true))
+            if(_kv.GotoFirstSubKey(true))
             {
                 do
                 {
                     char ar[32];
-                    kv.GetString("name", ar, 32);
+                    _kv.GetString("name", ar, 32);
                     if(arlist[0] != '\0')
                         Format(arlist, 128, "%s/%s", arlist, ar);
                     else
                         FormatEx(arlist, 128, "%s", ar);
-                } while (kv.GotoNextKey(true));
-                kv.GoBack();
+                } while (_kv.GotoNextKey(true));
+                _kv.GoBack();
             }
-            kv.GoBack();
+            _kv.GoBack();
         }
         else
             strcopy(arlist, 128, "unnamed");
 
-        if(kv.JumpToKey("al"))
+        if(_kv.JumpToKey("al"))
         {
-            kv.GetString("name", album, 128);
-            kv.GoBack();
+            _kv.GetString("name", album, 128);
+            _kv.GoBack();
         }
         else
             strcopy(album, 128, "unknown");
 
         AddMenuItemEx(menu, ITEMDRAW_DEFAULT, key, "%s\n歌手: %s\n专辑: %s", name, arlist, album);
         count++;
-    } while (kv.GotoNextKey(true));
+    } while (_kv.GotoNextKey(true));
 
     SetMenuTitle(menu, "[CG] 音乐搜索结果 (找到 %d 首单曲)\n ", count);
     DisplayMenu(menu, client, 60);
 
-    delete kv;
+    delete _kv;
 }
 
 public int MenuHandler_DisplayList(Handle menu, MenuAction action, int client, int itemNum)
@@ -435,49 +435,49 @@ public int MenuHandler_DisplayList(Handle menu, MenuAction action, int client, i
         char path[128];
         BuildPath(Path_SM, path, 128, "data/music/search_%d.kv", GetClientUserId(client));
         
-        KeyValues kv = new KeyValues("songs");
-        kv.ImportFromFile(path);
+        KeyValues _kv = new KeyValues("songs");
+        _kv.ImportFromFile(path);
 
         char key[32];
         IntToString(itemNum, key, 32);
-        kv.JumpToKey(key, true);
+        _kv.JumpToKey(key, true);
 
         char name[128];
-        kv.GetString("name", name, 128);
+        _kv.GetString("name", name, 128);
 
-        int length = kv.GetNum("dt")/1000;
+        int length = _kv.GetNum("dt")/1000;
 
         char arlist[64];
-        if(kv.JumpToKey("ar"))
+        if(_kv.JumpToKey("ar"))
         {
-            if(kv.GotoFirstSubKey(true))
+            if(_kv.GotoFirstSubKey(true))
             {
                 do
                 {
                     char ar[32];
-                    kv.GetString("name", ar, 32);
+                    _kv.GetString("name", ar, 32);
                     if(arlist[0] != '\0')
                         Format(arlist, 64, "%s/%s", arlist, ar);
                     else
                         FormatEx(arlist, 64, "%s", ar);
-                } while (kv.GotoNextKey(true));
-                kv.GoBack();
+                } while (_kv.GotoNextKey(true));
+                _kv.GoBack();
             }
-            kv.GoBack();
+            _kv.GoBack();
         }
         else
             strcopy(arlist, 64, "unnamed");
         
         char album[64];
-        if(kv.JumpToKey("al"))
+        if(_kv.JumpToKey("al"))
         {
-            kv.GetString("name", album, 128);
-            kv.GoBack();
+            _kv.GetString("name", album, 128);
+            _kv.GoBack();
         }
         else
             strcopy(album, 128, "unknown");
         
-        delete kv;
+        delete _kv;
 
         int cost = RoundFloat(length*2.0);
         if(Store_GetClientCredits(client) < cost)
@@ -532,11 +532,17 @@ void UTIL_ListenMusic(int client)
         return;
     }
     
+    char path[128];
+    BuildPath(Path_SM, path, 128, "data/music/search_%d.kv", GetClientUserId(client));
+    
+    KeyValues _kv = new KeyValues("songs");
+    _kv.ImportFromFile(path);
+
     char key[32];
     IntToString(g_iSelect[client], key, 32);
-    kv.JumpToKey(key, true);
-    int songid = kv.GetNum("id");
-    delete kv;
+    _kv.JumpToKey(key, true);
+    int songid = _kv.GetNum("id");
+    delete _kv;
 
 #if defined DEBUG
     UTIL_DebugLog("UTIL_ListenMusic -> %N -> %d -> %d -> %.2f", client, songid);
@@ -565,48 +571,48 @@ void UTIL_InitPlayer(int client)
     char path[128];
     BuildPath(Path_SM, path, 128, "data/music/search_%d.kv", GetClientUserId(client));
     
-    KeyValues kv = new KeyValues("songs");
-    kv.ImportFromFile(path);
+    KeyValues _kv = new KeyValues("songs");
+    _kv.ImportFromFile(path);
 
     char key[32];
     IntToString(g_iSelect[client], key, 32);
     
-    kv.JumpToKey(key, true);
+    _kv.JumpToKey(key, true);
 
-    kv.GetString("name", g_Sound[szName], 128);
+    _kv.GetString("name", g_Sound[szName], 128);
 
-    g_Sound[iSongId] = kv.GetNum("id");
-    g_Sound[fLength] = kv.GetNum("dt")*0.001;
+    g_Sound[iSongId] = _kv.GetNum("id");
+    g_Sound[fLength] = _kv.GetNum("dt")*0.001;
 
-    if(kv.JumpToKey("ar"))
+    if(_kv.JumpToKey("ar"))
     {
-        if(kv.GotoFirstSubKey(true))
+        if(_kv.GotoFirstSubKey(true))
         {
             do
             {
                 char ar[32];
-                kv.GetString("name", ar, 32);
+                _kv.GetString("name", ar, 32);
                 if(g_Sound[szSinger][0] != '\0')
                     Format(g_Sound[szSinger], 64, "%s/%s", g_Sound[szSinger], ar);
                 else
                     FormatEx(g_Sound[szSinger], 64, "%s", ar);
-            } while (kv.GotoNextKey(true));
-            kv.GoBack();
+            } while (_kv.GotoNextKey(true));
+            _kv.GoBack();
         }
-        kv.GoBack();
+        _kv.GoBack();
     }
     else
         strcopy(g_Sound[szSinger], 64, "unnamed");
     
-    if(kv.JumpToKey("al"))
+    if(_kv.JumpToKey("al"))
     {
-        kv.GetString("name", g_Sound[szAlbum], 64);
-        kv.GoBack();
+        _kv.GetString("name", g_Sound[szAlbum], 64);
+        _kv.GoBack();
     }
     else
         strcopy(g_Sound[szAlbum], 64, "unknown");
     
-    delete kv;
+    delete _kv;
 
 #if defined DEBUG
     UTIL_DebugLog("UTIL_InitPlayer -> %N -> %s -> %d -> %.2f", client, g_Sound[szName], g_Sound[iSongId], g_Sound[fLength]);
