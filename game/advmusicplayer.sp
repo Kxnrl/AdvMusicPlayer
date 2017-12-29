@@ -23,6 +23,7 @@
 #define LYRICS            "https://csgogamers.com/musicserver/api/lyrics.php?id="
 #define PLAYER            "https://csgogamers.com/musicserver/api/player.php?id="
 #define logFile           "addons/sourcemod/logs/advmusicplayer.log"
+#define PLAYALL           0
 
 float g_fNextPlay;
 
@@ -52,8 +53,8 @@ Handle g_cBanned;
 Handle g_cBGMVol;
 Handle g_cLyrics;
 
-ArrayList array_timer;
-ArrayList array_lyric;
+ArrayList array_timer[MAXPLAYERS+1];
+ArrayList array_lyric[MAXPLAYERS+1];
 
 public Plugin myinfo = 
 {
@@ -81,8 +82,11 @@ public void OnPluginStart()
     RegAdminCmd("sm_adminmusicstop", Command_AdminStop, ADMFLAG_BAN);
     RegAdminCmd("sm_musicban",       Command_MusicBan,  ADMFLAG_BAN);
 
-    array_timer = new ArrayList();
-    array_lyric = new ArrayList(ByteCountToCells(128));
+    for(int index = 0; index <= MaxClients; ++index)
+    {
+        array_timer[index] = new ArrayList();
+        array_lyric[index] = new ArrayList(ByteCountToCells(128));
+    }
 
     UTIL_CheckDirector();
 
@@ -103,8 +107,8 @@ public void OnMapEnd()
     g_Sound[szName][0] = '\0';
     g_Sound[szSinger][0] = '\0';
     g_Sound[szAlbum][0] = '\0';
-    array_timer.Clear();
-    array_lyric.Clear();
+    array_timer[PLAYALL].Clear();
+    array_lyric[PLAYALL].Clear();
 }
 
 public void OnClientConnected(int client)
@@ -153,14 +157,16 @@ public Action Command_AdminStop(int client, int args)
 
     PrintToChatAll("%s \x02权限X强行停止了音乐播放!", PREFIX);
 
-    while(GetArraySize(array_timer))
+    while(GetArraySize(array_timer[PLAYALL]))
     {
-        Handle timer = array_timer.Get(0);
+        Handle timer = array_timer[PLAYALL].Get(0);
         KillTimer(timer);
-        array_timer.Erase(0);
+        array_timer[PLAYALL].Erase(0);
     }
 
-    UTIL_LyricHud(">>> 歌曲已停止播放 <<<");
+    for(int i = 1; i <= MaxClients; ++i)
+        if(IsClientInGame(i) && g_bPlayed[i])
+            UTIL_LyricHud(i, ">>> 歌曲已停止播放 <<<");
 }
 
 public Action Command_MusicBan(int client, int args)
@@ -437,7 +443,8 @@ void UTIL_ProcessResult(int userid)
             strcopy(album, 128, "unknown");
 
         AddMenuItemEx(menu, ITEMDRAW_DEFAULT, key, "%s\n歌手: %s\n专辑: %s", name, arlist, album);
-        count++;
+        if(++count % 5 == 0)
+            AddMenuItem(menu, "0", "0", ITEMDRAW_SPACER);
     } while (_kv.GotoNextKey(true));
 
     SetMenuTitle(menu, "[CG] 音乐搜索结果 (找到 %d 首单曲)\n ", count);
@@ -515,15 +522,15 @@ public int MenuHandler_DisplayList(Handle menu, MenuAction action, int client, i
 void DisplayConfirmMenu(int client, int cost, const char[] name, const char[] arlist, const char[] album, int time)
 {
     Handle menu = CreateMenu(MenuHandler_Confirm);
-    SetMenuTitle(menu, "您确定要点播以下歌曲吗[花费: %d信用点]\n ", cost);
+    SetMenuTitle(menu, "您确定要点播以下歌曲吗\n ");
     
     AddMenuItemEx(menu, ITEMDRAW_DISABLED, " ", "歌名: %s", name);
     AddMenuItemEx(menu, ITEMDRAW_DISABLED, " ", "歌手: %s", arlist);
     AddMenuItemEx(menu, ITEMDRAW_DISABLED, " ", "专辑: %s", album);
     AddMenuItemEx(menu, ITEMDRAW_DISABLED, " ", "时长: %d分%d秒\n ", time/60, time%60);
 
-    AddMenuItemEx(menu, ITEMDRAW_DEFAULT, "1", "所有人");
-    AddMenuItemEx(menu, ITEMDRAW_DEFAULT, "2", "自己听");
+    AddMenuItemEx(menu, ITEMDRAW_DEFAULT, "1", "所有人[花费: %d信用点]", cost);
+    AddMenuItemEx(menu, ITEMDRAW_DEFAULT, "2", "自己听[免费]");
 
     DisplayMenu(menu, client, 15);
 }
@@ -551,7 +558,7 @@ void UTIL_ListenMusic(int client)
         PrintToChat(client, "%s  \x07你已被封禁点歌", PREFIX);
         return;
     }
-    
+
     char path[128];
     BuildPath(Path_SM, path, 128, "data/music/search_%d.kv", GetClientUserId(client));
     
@@ -572,6 +579,9 @@ void UTIL_ListenMusic(int client)
     FormatEx(murl, 192, "%s%d&volume=%d", PLAYER, songid, g_iVolume[client]);
     DisplayMainMenu(client);
     CG_ShowHiddenMotd(client, murl);
+    
+    g_iSelect[client] = songid;
+    CreateTimer(0.1, Timer_GetLyric, client, TIMER_FLAG_NO_MAPCHANGE);
 }
 
 void UTIL_InitPlayer(int client)
@@ -647,6 +657,8 @@ void UTIL_InitPlayer(int client)
     LogToFileEx(logFile, "\"%L\" 点播了歌曲[%s - %s]", client, g_Sound[szName],  g_Sound[szSinger]);
 
     g_fNextPlay = GetGameTime()+g_Sound[fLength];
+    
+    UTIL_ClearAll();
 
     for(int i = 1; i <= MaxClients; ++i)
     {
@@ -670,7 +682,8 @@ void UTIL_InitPlayer(int client)
 #endif
     }
 
-    CreateTimer(0.1, Timer_GetLyric, g_Sound[iSongId], TIMER_FLAG_NO_MAPCHANGE);
+    g_iSelect[PLAYALL] = g_Sound[iSongId];
+    CreateTimer(0.1, Timer_GetLyric, PLAYALL, TIMER_FLAG_NO_MAPCHANGE);
     CreateTimer(g_Sound[fLength]+0.1, Timer_SoundEnd, _, TIMER_FLAG_NO_MAPCHANGE);
 }
 
@@ -683,28 +696,30 @@ public Action Timer_SoundEnd(Handle timer)
     g_Sound[szAlbum][0] = '\0';
 
     for(int i = 1; i <= MaxClients; ++i)
-        g_bPlayed[i] = false;
-
-    UTIL_LyricHud(">>> 播放完毕 <<<");
+        if(IsClientInGame(i) && !g_bDiable[i] && g_bPlayed[i])
+        {
+            g_bPlayed[i] = false;
+            UTIL_LyricHud(i, ">>> 播放完毕 <<<");
+        }
 
     return Plugin_Stop;
 }
 
-public Action Timer_GetLyric(Handle timer, int songid)
+public Action Timer_GetLyric(Handle timer, int client)
 {
     char path[128];
-    BuildPath(Path_SM, path, 128, "data/music/lyric_%d.lrc", songid);
+    BuildPath(Path_SM, path, 128, "data/music/lyric_%d.lrc", g_iSelect[PLAYALL]);
     
     if(!FileExists(path))
     {
         char url[256];
-        FormatEx(url, 256, "%s%d", LYRICS, songid);
+        FormatEx(url, 256, "%s%d", LYRICS, g_iSelect[PLAYALL]);
         
 #if defined DEBUG
-        UTIL_DebugLog("Timer_GetLyric -> %d -> %s", songid, url);
+        UTIL_DebugLog("Timer_GetLyric -> %d -> %s", g_iSelect[PLAYALL], url);
 #endif
 
-        System2_DownloadFile(API_GetLyric, url, path);
+        System2_DownloadFile(API_GetLyric, url, path, client);
         /*
         System2HTTPRequest request = new System2HTTPRequest(url, API_GetLyric);
         request.SetURL(url);
@@ -715,7 +730,7 @@ public Action Timer_GetLyric(Handle timer, int songid)
         */
     }
     else
-        UTIL_ProcessLyric();
+        UTIL_ProcessLyric(client);
 }
 /*
 public void API_GetLyric(bool success, System2HTTPRequest request, System2HTTPResponse response)
@@ -726,7 +741,7 @@ public void API_GetLyric(bool success, System2HTTPRequest request, System2HTTPRe
         LogError("System2 -> API_GetLyric -> Download lyric Error");
 }
 */
-public void API_GetLyric(bool finished, const char[] error, float dltotal, float dlnow, float ultotal, float ulnow)
+public void API_GetLyric(bool finished, const char[] error, float dltotal, float dlnow, float ultotal, float ulnow, int client)
 {
     if(finished)
     {
@@ -736,27 +751,30 @@ public void API_GetLyric(bool finished, const char[] error, float dltotal, float
             return;
         }
 
-        UTIL_ProcessLyric();
+        UTIL_ProcessLyric(client);
     }
 }
 
-void UTIL_ProcessLyric()
+void UTIL_ProcessLyric(int index)
 {
-    array_lyric.Clear();
+    if(index != 0 && !IsClientInGame(index))
+        return;
     
+    array_lyric[index].Clear();
+
     char path[128];
-    BuildPath(Path_SM, path, 128, "data/music/lyric_%d.lrc", g_Sound[iSongId]);
+    BuildPath(Path_SM, path, 128, "data/music/lyric_%d.lrc", g_iSelect[index]);
 
     Handle hFile = OpenFile(path, "r");
     if(hFile == null)
     {
-        LogError("UTIL_ProcessLyric -> OpenFile -> null -> Load Lyric failed.");
+        LogError("UTIL_ProcessLyric -> OpenFile -> null -> Load Lyric failed [%d].", g_iSelect[index]);
         return;
     }
 
-    UTIL_LyricHud("....等待歌词中....");
+    UTIL_LyricHud(index, "....等待歌词中....");
 
-    array_lyric.PushString(">>> Music <<<\n");
+    array_lyric[index].PushString(">>> Music <<<\n");
 
     char fileline[128];
     while(ReadFileLine(hFile, fileline, 128))
@@ -783,28 +801,31 @@ void UTIL_ProcessLyric()
         if(ExplodeString(data[0], ":", time, 2, 16) != 2)
             continue;
 
-        array_timer.Push(CreateTimer(StringToFloat(time[0])*60.0+StringToFloat(time[1]), Timer_Lyric, array_lyric.PushString(data[1]), TIMER_FLAG_NO_MAPCHANGE));
+        array_timer[index].Push(CreateTimer(StringToFloat(time[0])*60.0+StringToFloat(time[1]), Timer_Lyric, array_lyric[index].PushString(data[1]) | (index << 7), TIMER_FLAG_NO_MAPCHANGE));
     }
 
     delete hFile;
 }
 
-public Action Timer_Lyric(Handle timer, int index)
+public Action Timer_Lyric(Handle timer, int values)
 {
-    int idx = array_timer.FindValue(timer);
+    int lyrics_index = values & 0x7f;
+    int player_index = values >> 7;
+
+    int idx = array_timer[player_index].FindValue(timer);
     if(idx != -1)
-        array_timer.Erase(idx);
+        array_timer[player_index].Erase(idx);
 
     char lyric[3][128];
-    array_lyric.GetString(index-1, lyric[0], 128);
-    array_lyric.GetString(index-0, lyric[1], 128);
-    if(index+1 < GetArraySize(array_lyric))
-    array_lyric.GetString(index+1, lyric[2], 128);
+    array_lyric[player_index].GetString(lyrics_index-1, lyric[0], 128);
+    array_lyric[player_index].GetString(lyrics_index-0, lyric[1], 128);
+    if(lyrics_index+1 < GetArraySize(array_lyric[player_index]))
+    array_lyric[player_index].GetString(lyrics_index+1, lyric[2], 128);
     else strcopy(lyric[2], 128, " >>> End <<< ");
 
     char buffer[256];
     FormatEx(buffer, 256, "%s%s%s", lyric[0], lyric[1], lyric[2]);
-    UTIL_LyricHud(buffer);
+    UTIL_LyricHud(player_index, buffer);
 }
 
 void UTIL_StopMusic(int client)
@@ -814,26 +835,28 @@ void UTIL_StopMusic(int client)
     UTIL_ClearLyric(client);
 }
 
-void UTIL_LyricHud(const char[] message)
+void UTIL_LyricHud(int index, const char[] message)
 {
-    ArrayList array_client = new ArrayList();
-    for(int client = 1; client <= MaxClients; ++client)
-        if(IsValidClient(client) && !g_bDiable[client] && g_bPlayed[client] && g_bLyrics[client])
-            array_client.Push(client);
+    if(index == PLAYALL)
+    {
+        ArrayList array_client = new ArrayList();
+        for(int client = 1; client <= MaxClients; ++client)
+            if(IsValidClient(client) && !g_bDiable[client] && g_bPlayed[client] && g_bLyrics[client])
+                array_client.Push(client);
 
-    CG_ShowGameText(message, "30.0", "57 197 187", "-1.0", "0.8", array_client);
-    delete array_client;
+        CG_ShowGameText(message, "30.0", "57 197 187", "-1.0", "0.8", array_client);
+        delete array_client;
+    }
+    else
+        CG_ShowGameTextToClient(message, "30.0", "57 197 187", "-1.0", "0.8", index);
 }
 
 void UTIL_ClearLyric(int client)
 {
     if(!g_bLyrics[client])
         return;
-    
-    ArrayList array_client = new ArrayList();
-    array_client.Push(client);
-    CG_ShowGameText(">>> 歌曲已停止播放 <<<", "3.0", "57 197 187", "-1.0", "0.8", array_client);
-    delete array_client;
+
+    CG_ShowGameTextToClient(">>> 歌曲已停止播放 <<<", "3.0", "57 197 187", "-1.0", "0.8", client);
 }
 
 #if defined DEBUG
@@ -845,10 +868,28 @@ void UTIL_DebugLog(const char[] log, any ...)
 }
 #endif
 
+void UTIL_ClearAll()
+{
+    for(int i = 0; i <= MaxClients; i++)
+    {
+        if(g_bDiable[i])
+            continue;
+
+        while(GetArraySize(array_timer[i]))
+        {
+            Handle timer = array_timer[i].Get(0);
+            KillTimer(timer);
+            array_timer[i].Erase(0);
+        }
+        
+        array_lyric[i].Clear();
+    }
+}
+
 void UTIL_ClearMotdAll()
 {
     for(int i = 1; i <= MaxClients; i++)
-        if(IsValidClient(i))
+        if(IsValidClient(i) && g_bPlayed[i])
             CG_RemoveMotd(i);
 }
 
