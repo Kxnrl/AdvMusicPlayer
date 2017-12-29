@@ -326,25 +326,43 @@ public Action OnClientSayCommand(int client, const char[] command, const char[] 
 
     char path[128];
     BuildPath(Path_SM, path, 128, "data/music/search_%d.kv", GetClientUserId(client));
-    //System2_DownloadFile(API_SearchMusic, url, path, GetClientUserId(client));
+    System2_DownloadFile(API_SearchMusic, url, path, GetClientUserId(client));
+    /*
+    System2 3.0 New API
     System2HTTPRequest request = new System2HTTPRequest(url, API_SearchMusic);
-    //request.SetProgressCallback(API_SearchMusic);
+    request.SetProgressCallback(API_SearchMusic);
     request.SetURL(url);
     request.SetOutputFile(path);
     request.AutoClean = true;
     request.Timeout = 4000;
     request.Any = GetClientUserId(client);
     request.GET();
-
+    */
     return Plugin_Stop;
 }
 
+/*
+    System2 3.0 New API
 public void API_SearchMusic(bool success, System2HTTPRequest request, System2HTTPResponse response)
 {
     if(!success)
         LogError("System2 -> API_SearchMusic -> Download result Error");
     else
         UTIL_ProcessResult(request.Any);
+}
+*/
+public void API_SearchMusic(bool finished, const char[] error, float dltotal, float dlnow, float ultotal, float ulnow, int userid)
+{
+    if(finished)
+    {
+        if(!StrEqual(error, ""))
+        {
+            LogError("System2 -> API_SearchMusic -> Download result Error: %s", error);
+            return;
+        }
+
+        UTIL_ProcessResult(userid);
+    }
 }
 
 void UTIL_ProcessResult(int userid)
@@ -686,24 +704,40 @@ public Action Timer_GetLyric(Handle timer, int songid)
         UTIL_DebugLog("Timer_GetLyric -> %d -> %s", songid, url);
 #endif
 
-        //System2_DownloadFile(API_GetLyric, url, path);
+        System2_DownloadFile(API_GetLyric, url, path);
+        /*
         System2HTTPRequest request = new System2HTTPRequest(url, API_GetLyric);
         request.SetURL(url);
         request.SetOutputFile(path);
         request.AutoClean = true;
         request.Timeout = 4000;
         request.GET();
+        */
     }
     else
         UTIL_ProcessLyric();
 }
-
+/*
 public void API_GetLyric(bool success, System2HTTPRequest request, System2HTTPResponse response)
 {
     if(success)
         UTIL_ProcessLyric();
     else
         LogError("System2 -> API_GetLyric -> Download lyric Error");
+}
+*/
+public void API_GetLyric(bool finished, const char[] error, float dltotal, float dlnow, float ultotal, float ulnow)
+{
+    if(finished)
+    {
+        if(!StrEqual(error, ""))
+        {
+            LogError("System2 -> API_GetLyric -> Download lyric Error: %s", error);
+            return;
+        }
+
+        UTIL_ProcessLyric();
+    }
 }
 
 void UTIL_ProcessLyric()
