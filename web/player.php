@@ -15,6 +15,8 @@ if(!isset($_GET['id']) || empty($_GET['id'])){
 $path = __DIR__ . "/cached/".$_GET['id'].".mp3";
 if(isset($_GET['cache']) && !empty($_GET['cache']) && $_GET['cache'] == 1 && file_exists($path) && filesize($path) > 524288){
     $url = "cached/".$_GET['id'].".mp3";
+}elseif(isset($_GET['proxy']) && !empty($_GET['proxy']) && $_GET['proxy'] == 1){
+    $url = file_get_contents("https://music.ump45.moe/geturl.php?id=$_GET[id]");
 }else{
     // get result
     $api = new NeteaseMusicAPI();
