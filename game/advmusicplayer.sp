@@ -6,6 +6,9 @@
 /*                                                     */
 /*******************************************************/
 
+//To do
+// Music Stop -> https://github.com/AgentWesker/StopMusic
+
 #pragma semicolon 1
 #pragma newdecls required
 
@@ -13,9 +16,13 @@
 #include <clientprefs>
 #include <system2>
 
-// cg_core (options)
+// cg test function (options)
 #include <cg_core>
 #include <store>
+
+// other library
+#undef REQUIRE_PLUGIN
+#include <mapmusic>
 
 //#define DEBUG
 #define PREFIX            "[\x10Music\x01]  "
@@ -26,6 +33,7 @@
 #define PLAYALL           0
 
 float g_fNextPlay;
+bool g_bMapMusicLib;
 
 bool g_bLyrics[MAXPLAYERS+1];
 bool g_bDiable[MAXPLAYERS+1];
@@ -45,7 +53,8 @@ enum songinfo
     Float:fLength
 }
 
-songinfo g_Sound[songinfo];
+songinfo g_Sound[MAXPLAYERS+1][songinfo];
+Handle g_tTimer[MAXPLAYERS+1];
 
 Handle g_cDisable;
 Handle g_cVolume;
@@ -64,6 +73,13 @@ public Plugin myinfo =
     version     = "1.1.<commit_count>.<commit_branch> - <commit_date>",
     url         = "https://ump45.moe"
 };
+
+public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
+{
+    MarkNativeAsOptional("MapMusic_SetVolume");
+
+    return APLRes_Success;
+}
 
 public void OnPluginStart()
 {
@@ -99,14 +115,20 @@ public void OnPluginStart()
         }
 }
 
+public void OnMapStart()
+{
+    g_bMapMusicLib = LibraryExists("MapMusic");
+}
+
 public void OnMapEnd()
 {
     g_fNextPlay = 0.0;
-    g_Sound[iSongId] = 0;
-    g_Sound[fLength] = 0.0;
-    g_Sound[szName][0] = '\0';
-    g_Sound[szSinger][0] = '\0';
-    g_Sound[szAlbum][0] = '\0';
+    g_tTimer[PLAYALL] = INVALID_HANDLE;
+    g_Sound[PLAYALL][iSongId] = 0;
+    g_Sound[PLAYALL][fLength] = 0.0;
+    g_Sound[PLAYALL][szName][0] = '\0';
+    g_Sound[PLAYALL][szSinger][0] = '\0';
+    g_Sound[PLAYALL][szAlbum][0] = '\0';
     array_timer[PLAYALL].Clear();
     array_lyric[PLAYALL].Clear();
 }
@@ -120,6 +142,24 @@ public void OnClientConnected(int client)
     g_bLyrics[client] = true;
     g_iVolume[client] = 100;
     g_iBGMVol[client] = 100;
+}
+
+public void OnClientDisconnect(int client)
+{
+    while(GetArraySize(array_timer[client]))
+    {
+        Handle timer = array_timer[client].Get(0);
+        KillTimer(timer);
+        array_timer[client].Erase(0);
+    }
+    
+    array_lyric[client].Clear();
+
+    if(g_tTimer[client] != INVALID_HANDLE)
+        KillTimer(g_tTimer[client]);
+    g_tTimer[client] = INVALID_HANDLE;
+
+    g_bPlayed[client] = false;
 }
 
 public void OnClientCookiesCached(int client)
@@ -136,6 +176,9 @@ public void OnClientCookiesCached(int client)
     g_bBanned[client] = (StringToInt(buf[2]) ==  1);
     g_iBGMVol[client] = (strlen(buf[3]) >= 2) ? StringToInt(buf[3]) : 100;
     g_bLyrics[client] = (buf[4][0] != '\0' && StringToInt(buf[4]) == 0);
+    
+    if(g_bMapMusicLib)
+        MapMusic_SetVolume(client, g_iBGMVol[client]);
 }
 
 public Action Command_Music(int client, int args)
@@ -151,7 +194,7 @@ public Action Command_Music(int client, int args)
 public Action Command_AdminStop(int client, int args)
 {
     UTIL_ClearMotdAll();
-    
+
     // notify sound end
     CreateTimer(0.1, Timer_SoundEnd);
 
@@ -193,7 +236,7 @@ void DisplayMainMenu(int client)
     Handle menu = CreateMenu(MenuHanlder_Main);
     
     if(g_bPlayed[client])
-        SetMenuTitle(menu, "正在播放▼\n \n歌名: %s\n歌手: %s\n专辑: %s\n ", g_Sound[szName], g_Sound[szSinger], g_Sound[szAlbum]); 
+        SetMenuTitle(menu, "正在播放▼\n \n歌名: %s\n歌手: %s\n专辑: %s\n ", g_Sound[client][szName], g_Sound[client][szSinger], g_Sound[client][szAlbum]); 
     else
         SetMenuTitle(menu, "[多媒体系统]  主菜单\n ");
 
@@ -202,7 +245,7 @@ void DisplayMainMenu(int client)
     AddMenuItemEx(menu, ITEMDRAW_DEFAULT, "lyrics", "歌词显示: %s", g_bLyrics[client] ? "开" : "关");
     AddMenuItemEx(menu, ITEMDRAW_DEFAULT, "volume", "点歌音量: %d", g_iVolume[client]);
     AddMenuItemEx(menu, ITEMDRAW_DEFAULT, "stop",   "停止播放");
-    AddMenuItemEx(menu, ITEMDRAW_DEFAULT, "mapbgm", "地图音量: %d", g_iBGMVol[client]);
+    AddMenuItemEx(menu, g_bMapMusicLib ? ITEMDRAW_DEFAULT : ITEMDRAW_DISABLED, "mapbgm", "地图音量: %d", g_iBGMVol[client]);
 
     DisplayMenu(menu, client, 30);
 }
@@ -271,28 +314,17 @@ public int MenuHanlder_Main(Handle menu, MenuAction action, int client, int item
         }
         else if(strcmp(info, "mapbgm") == 0)
         {
-            switch(g_iBGMVol[client])
+            if(g_bMapMusicLib)
             {
-                case 100: g_iBGMVol[client] =  90;
-                case  90: g_iBGMVol[client] =  80;
-                case  80: g_iBGMVol[client] =  70;
-                case  70: g_iBGMVol[client] =  60;
-                case  60: g_iBGMVol[client] =  50;
-                case  50: g_iBGMVol[client] =  40;
-                case  40: g_iBGMVol[client] =  30;
-                case  30: g_iBGMVol[client] =  20;
-                case  20: g_iBGMVol[client] =  10;
-                case  10:
-                {
-                    g_iBGMVol[client] = 0;
-                    PrintToChat(client, "%s  \x10地图背景音乐已\x07关闭", PREFIX);
-                }
-                default :
-                {
+                if(g_iBGMVol[client] >= 10)
+                    g_iBGMVol[client] -= 10;
+                else
                     g_iBGMVol[client] = 100;
-                    PrintToChat(client, "%s  \x10地图背景音乐已\x04开启", PREFIX);
-                }
+                
+                MapMusic_SetVolume(client, g_iBGMVol[client]);
             }
+            else
+                PrintToChat(client, "%s  \x04MapMusic库不存在,请联系管理员", PREFIX);
         }
 
         if(reply) DisplayMainMenu(client);
@@ -541,7 +573,7 @@ public int MenuHandler_Confirm(Handle menu, MenuAction action, int client, int i
     {
         char info[32];
         GetMenuItem(menu, itemNum, info, 32);
-        
+
         if(StringToInt(info) == 1)
             UTIL_InitPlayer(client);
         else if(StringToInt(info) == 2)
@@ -559,6 +591,8 @@ void UTIL_ListenMusic(int client)
         return;
     }
 
+    OnClientDisconnect(client);
+
     char path[128];
     BuildPath(Path_SM, path, 128, "data/music/search_%d.kv", GetClientUserId(client));
     
@@ -567,21 +601,59 @@ void UTIL_ListenMusic(int client)
 
     char key[32];
     IntToString(g_iSelect[client], key, 32);
+    
     _kv.JumpToKey(key, true);
-    int songid = _kv.GetNum("id");
+
+    _kv.GetString("name", g_Sound[client][szName], 128);
+
+    g_Sound[client][iSongId] = _kv.GetNum("id");
+    g_Sound[client][fLength] = _kv.GetNum("dt")*0.001;
+
+    if(_kv.JumpToKey("ar"))
+    {
+        if(_kv.GotoFirstSubKey(true))
+        {
+            do
+            {
+                char ar[32];
+                _kv.GetString("name", ar, 32);
+                if(g_Sound[client][szSinger][0] != '\0')
+                    Format(g_Sound[client][szSinger], 64, "%s/%s", g_Sound[client][szSinger], ar);
+                else
+                    FormatEx(g_Sound[client][szSinger], 64, "%s", ar);
+            } while (_kv.GotoNextKey(true));
+            _kv.GoBack();
+        }
+        _kv.GoBack();
+    }
+    else
+        strcopy(g_Sound[client][szSinger], 64, "unnamed");
+    
+    if(_kv.JumpToKey("al"))
+    {
+        _kv.GetString("name", g_Sound[client][szAlbum], 64);
+        _kv.GoBack();
+    }
+    else
+        strcopy(g_Sound[client][szAlbum], 64, "unknown");
+
     delete _kv;
 
 #if defined DEBUG
-    UTIL_DebugLog("UTIL_ListenMusic -> %N -> %d -> %d -> %.2f", client, songid);
+    UTIL_DebugLog("UTIL_ListenMusic -> %N -> %d -> %d -> %.2f", client, g_Sound[client][iSongId]);
 #endif
 
+    g_iSelect[client] = g_Sound[client][iSongId];
+
     char murl[192];
-    FormatEx(murl, 192, "%s%d&volume=%d", PLAYER, songid, g_iVolume[client]);
+    FormatEx(murl, 192, "%s%d&volume=%d", PLAYER, g_Sound[client][iSongId], g_iVolume[client]);
     DisplayMainMenu(client);
     CG_ShowHiddenMotd(client, murl);
-    
-    g_iSelect[client] = songid;
-    CreateTimer(0.1, Timer_GetLyric, client, TIMER_FLAG_NO_MAPCHANGE);
+
+    if(g_bLyrics[client])
+        CreateTimer(0.1, Timer_GetLyric, client, TIMER_FLAG_NO_MAPCHANGE);
+
+    g_tTimer[client] = CreateTimer(g_Sound[client][fLength]+0.1, Timer_SoundEnd, client);
 }
 
 void UTIL_InitPlayer(int client)
@@ -609,10 +681,10 @@ void UTIL_InitPlayer(int client)
     
     _kv.JumpToKey(key, true);
 
-    _kv.GetString("name", g_Sound[szName], 128);
+    _kv.GetString("name", g_Sound[PLAYALL][szName], 128);
 
-    g_Sound[iSongId] = _kv.GetNum("id");
-    g_Sound[fLength] = _kv.GetNum("dt")*0.001;
+    g_Sound[PLAYALL][iSongId] = _kv.GetNum("id");
+    g_Sound[PLAYALL][fLength] = _kv.GetNum("dt")*0.001;
 
     if(_kv.JumpToKey("ar"))
     {
@@ -622,41 +694,41 @@ void UTIL_InitPlayer(int client)
             {
                 char ar[32];
                 _kv.GetString("name", ar, 32);
-                if(g_Sound[szSinger][0] != '\0')
-                    Format(g_Sound[szSinger], 64, "%s/%s", g_Sound[szSinger], ar);
+                if(g_Sound[PLAYALL][szSinger][0] != '\0')
+                    Format(g_Sound[PLAYALL][szSinger], 64, "%s/%s", g_Sound[PLAYALL][szSinger], ar);
                 else
-                    FormatEx(g_Sound[szSinger], 64, "%s", ar);
+                    FormatEx(g_Sound[PLAYALL][szSinger], 64, "%s", ar);
             } while (_kv.GotoNextKey(true));
             _kv.GoBack();
         }
         _kv.GoBack();
     }
     else
-        strcopy(g_Sound[szSinger], 64, "unnamed");
+        strcopy(g_Sound[PLAYALL][szSinger], 64, "unnamed");
     
     if(_kv.JumpToKey("al"))
     {
-        _kv.GetString("name", g_Sound[szAlbum], 64);
+        _kv.GetString("name", g_Sound[PLAYALL][szAlbum], 64);
         _kv.GoBack();
     }
     else
-        strcopy(g_Sound[szAlbum], 64, "unknown");
+        strcopy(g_Sound[PLAYALL][szAlbum], 64, "unknown");
     
     delete _kv;
 
 #if defined DEBUG
-    UTIL_DebugLog("UTIL_InitPlayer -> %N -> %s -> %d -> %.2f", client, g_Sound[szName], g_Sound[iSongId], g_Sound[fLength]);
+    UTIL_DebugLog("UTIL_InitPlayer -> %N -> %s -> %d -> %.2f", client, g_Sound[PLAYALL][szName], g_Sound[PLAYALL][iSongId], g_Sound[PLAYALL][fLength]);
 #endif
 
     char reason[128];
-    FormatEx(reason, 128, "点歌系统点歌[%d.%s]", g_Sound[iSongId], g_Sound[szName]);
-    int cost = RoundFloat(g_Sound[fLength]*2.0);
+    FormatEx(reason, 128, "点歌系统点歌[%d.%s]", g_Sound[PLAYALL][iSongId], g_Sound[PLAYALL][szName]);
+    int cost = RoundFloat(g_Sound[PLAYALL][fLength]*2.0);
     Store_SetClientCredits(client, Store_GetClientCredits(client) - cost, reason);
-    PrintToChat(client, "%s  \x04您支付了\x10%d\x04信用点来点播[\x0C%s\x04].", PREFIX, cost, g_Sound[szName]);
-    PrintToChatAll("%s \x04%N\x01点播歌曲[\x0C%s\x01]", PREFIX, client, g_Sound[szName]);
-    LogToFileEx(logFile, "\"%L\" 点播了歌曲[%s - %s]", client, g_Sound[szName],  g_Sound[szSinger]);
+    PrintToChat(client, "%s  \x04您支付了\x10%d\x04信用点来点播[\x0C%s\x04].", PREFIX, cost, g_Sound[PLAYALL][szName]);
+    PrintToChatAll("%s \x04%N\x01点播歌曲[\x0C%s\x01]", PREFIX, client, g_Sound[PLAYALL][szName]);
+    LogToFileEx(logFile, "\"%L\" 点播了歌曲[%s - %s]", client, g_Sound[PLAYALL][szName],  g_Sound[PLAYALL][szSinger]);
 
-    g_fNextPlay = GetGameTime()+g_Sound[fLength];
+    g_fNextPlay = GetGameTime()+g_Sound[PLAYALL][fLength];
     
     UTIL_ClearAll();
 
@@ -673,33 +745,37 @@ void UTIL_InitPlayer(int client)
         g_bPlayed[i] = true;
 
         char murl[192];
-        FormatEx(murl, 192, "%s%d&volume=%d", PLAYER, g_Sound[iSongId], g_iVolume[i]);
+        FormatEx(murl, 192, "%s%d&volume=%d", PLAYER, g_Sound[PLAYALL][iSongId], g_iVolume[i]);
         DisplayMainMenu(i);
         CG_ShowHiddenMotd(i, murl);
+        
+        g_Sound[i] = g_Sound[PLAYALL];
 
 #if defined DEBUG
         UTIL_DebugLog("UTIL_InitPlayer -> %N -> %s", i, murl);
 #endif
     }
 
-    g_iSelect[PLAYALL] = g_Sound[iSongId];
+    g_iSelect[PLAYALL] = g_Sound[PLAYALL][iSongId];
     CreateTimer(0.1, Timer_GetLyric, PLAYALL, TIMER_FLAG_NO_MAPCHANGE);
-    CreateTimer(g_Sound[fLength]+0.1, Timer_SoundEnd, _, TIMER_FLAG_NO_MAPCHANGE);
+    g_tTimer[PLAYALL] = CreateTimer(g_Sound[PLAYALL][fLength]+0.1, Timer_SoundEnd, PLAYALL);
 }
 
-public Action Timer_SoundEnd(Handle timer)
+public Action Timer_SoundEnd(Handle timer, int index)
 {
-    g_Sound[iSongId] = 0;
-    g_Sound[fLength] = 0.0;
-    g_Sound[szName][0] = '\0';
-    g_Sound[szSinger][0] = '\0';
-    g_Sound[szAlbum][0] = '\0';
+    g_Sound[index][iSongId] = 0;
+    g_Sound[index][fLength] = 0.0;
+    g_Sound[index][szName][0] = '\0';
+    g_Sound[index][szSinger][0] = '\0';
+    g_Sound[index][szAlbum][0] = '\0';
 
-    for(int i = 1; i <= MaxClients; ++i)
-        if(IsClientInGame(i) && !g_bDiable[i] && g_bPlayed[i])
+    if(index == 0)
+        for(int i = 1; i <= MaxClients; ++i)
         {
             g_bPlayed[i] = false;
-            UTIL_LyricHud(i, ">>> 播放完毕 <<<");
+            g_Sound[i][iSongId] = 0;
+            if(IsClientInGame(i) && !g_bDiable[i] && g_bPlayed[i] && g_bLyrics[i])
+                UTIL_LyricHud(i, ">>> 播放完毕 <<<");
         }
 
     return Plugin_Stop;
