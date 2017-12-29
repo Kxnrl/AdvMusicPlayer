@@ -9,6 +9,8 @@
 //To do
 // Music Stop -> https://github.com/AgentWesker/StopMusic
 
+#define DEBUG
+
 #pragma semicolon 1
 #pragma newdecls required
 
@@ -120,6 +122,18 @@ public void OnMapStart()
     g_bMapMusicLib = LibraryExists("MapMusic");
 }
 
+public void OnLibraryAdded(const char[] name)
+{
+    if(strcmp(name, "MapMusic") == 0)
+        g_bMapMusicLib = true;
+}
+
+public void OnLibraryRemoved(const char[] name)
+{
+    if(strcmp(name, "MapMusic") == 0)
+        g_bMapMusicLib = false;
+}
+
 public void OnMapEnd()
 {
     g_fNextPlay = 0.0;
@@ -175,8 +189,8 @@ public void OnClientCookiesCached(int client)
     g_iVolume[client] = (StringToInt(buf[1]) >= 10) ? StringToInt(buf[1]) : 65;
     g_bBanned[client] = (StringToInt(buf[2]) ==  1);
     g_iBGMVol[client] = (strlen(buf[3]) >= 2) ? StringToInt(buf[3]) : 100;
-    g_bLyrics[client] = (buf[4][0] != '\0' && StringToInt(buf[4]) == 0);
-    
+    g_bLyrics[client] = (StringToInt(buf[4]) != 1);
+
     if(g_bMapMusicLib)
         MapMusic_SetVolume(client, g_iBGMVol[client]);
 }
@@ -235,7 +249,7 @@ void DisplayMainMenu(int client)
 {
     Handle menu = CreateMenu(MenuHanlder_Main);
     
-    if(g_bPlayed[client])
+    if(g_Sound[client][iSongId] > 0)
         SetMenuTitle(menu, "正在播放▼\n \n歌名: %s\n歌手: %s\n专辑: %s\n ", g_Sound[client][szName], g_Sound[client][szSinger], g_Sound[client][szAlbum]); 
     else
         SetMenuTitle(menu, "[多媒体系统]  主菜单\n ");
@@ -640,20 +654,23 @@ void UTIL_ListenMusic(int client)
     delete _kv;
 
 #if defined DEBUG
-    UTIL_DebugLog("UTIL_ListenMusic -> %N -> %d -> %d -> %.2f", client, g_Sound[client][iSongId]);
+    UTIL_DebugLog("UTIL_InitPlayer -> %N -> %s -> %d -> %.2f", client, g_Sound[client][szName], g_Sound[client][iSongId], g_Sound[client][fLength]);
 #endif
 
     g_iSelect[client] = g_Sound[client][iSongId];
 
     char murl[192];
     FormatEx(murl, 192, "%s%d&volume=%d", PLAYER, g_Sound[client][iSongId], g_iVolume[client]);
-    DisplayMainMenu(client);
     CG_ShowHiddenMotd(client, murl);
 
     if(g_bLyrics[client])
         CreateTimer(0.1, Timer_GetLyric, client, TIMER_FLAG_NO_MAPCHANGE);
 
     g_tTimer[client] = CreateTimer(g_Sound[client][fLength]+0.1, Timer_SoundEnd, client);
+    
+    PrintToChatAll("%s  \x04%N\x01正在收听[\x10%s\x01]", PREFIX, client, g_Sound[client][szName]);
+    
+    DisplayMainMenu(client);
 }
 
 void UTIL_InitPlayer(int client)
@@ -729,8 +746,6 @@ void UTIL_InitPlayer(int client)
     LogToFileEx(logFile, "\"%L\" 点播了歌曲[%s - %s]", client, g_Sound[PLAYALL][szName],  g_Sound[PLAYALL][szSinger]);
 
     g_fNextPlay = GetGameTime()+g_Sound[PLAYALL][fLength];
-    
-    UTIL_ClearAll();
 
     for(int i = 1; i <= MaxClients; ++i)
     {
@@ -738,18 +753,18 @@ void UTIL_InitPlayer(int client)
 
         if(!IsValidClient(i))
             continue;
-
+        
         if(g_bDiable[i])
             continue;
-
+        
+        OnClientDisconnect(i);
         g_bPlayed[i] = true;
+        g_Sound[i] = g_Sound[PLAYALL];
 
         char murl[192];
         FormatEx(murl, 192, "%s%d&volume=%d", PLAYER, g_Sound[PLAYALL][iSongId], g_iVolume[i]);
         DisplayMainMenu(i);
         CG_ShowHiddenMotd(i, murl);
-        
-        g_Sound[i] = g_Sound[PLAYALL];
 
 #if defined DEBUG
         UTIL_DebugLog("UTIL_InitPlayer -> %N -> %s", i, murl);
@@ -768,6 +783,8 @@ public Action Timer_SoundEnd(Handle timer, int index)
     g_Sound[index][szName][0] = '\0';
     g_Sound[index][szSinger][0] = '\0';
     g_Sound[index][szAlbum][0] = '\0';
+    
+    g_tTimer[index] = INVALID_HANDLE;
 
     if(index == 0)
         for(int i = 1; i <= MaxClients; ++i)
@@ -784,15 +801,15 @@ public Action Timer_SoundEnd(Handle timer, int index)
 public Action Timer_GetLyric(Handle timer, int client)
 {
     char path[128];
-    BuildPath(Path_SM, path, 128, "data/music/lyric_%d.lrc", g_iSelect[PLAYALL]);
+    BuildPath(Path_SM, path, 128, "data/music/lyric_%d.lrc", g_Sound[client][iSongId]);
     
     if(!FileExists(path))
     {
         char url[256];
-        FormatEx(url, 256, "%s%d", LYRICS, g_iSelect[PLAYALL]);
+        FormatEx(url, 256, "%s%d", LYRICS, g_Sound[client][iSongId]);
         
 #if defined DEBUG
-        UTIL_DebugLog("Timer_GetLyric -> %d -> %s", g_iSelect[PLAYALL], url);
+        UTIL_DebugLog("Timer_GetLyric -> %d -> %s", g_Sound[client][iSongId], url);
 #endif
 
         System2_DownloadFile(API_GetLyric, url, path, client);
@@ -876,8 +893,11 @@ void UTIL_ProcessLyric(int index)
 
         if(ExplodeString(data[0], ":", time, 2, 16) != 2)
             continue;
-
-        array_timer[index].Push(CreateTimer(StringToFloat(time[0])*60.0+StringToFloat(time[1]), Timer_Lyric, array_lyric[index].PushString(data[1]) | (index << 7), TIMER_FLAG_NO_MAPCHANGE));
+        
+#if defined DEBUG
+        UTIL_DebugLog("UTIL_ProcessLyric -> Index[%d] -> Delay[%.2f] -> Line -> %s", index, StringToFloat(time[0])*60.0+StringToFloat(time[1]), data[1]);
+#endif
+        array_timer[index].Push(CreateTimer(StringToFloat(time[0])*60.0+StringToFloat(time[1]), Timer_Lyric, (array_lyric[index].PushString(data[1])) | (index << 7), TIMER_FLAG_NO_MAPCHANGE));
     }
 
     delete hFile;
@@ -887,6 +907,10 @@ public Action Timer_Lyric(Handle timer, int values)
 {
     int lyrics_index = values & 0x7f;
     int player_index = values >> 7;
+    
+#if defined DEBUG
+    UTIL_DebugLog("Timer_Lyric -> lyrics_index[%d] -> player_index[%d]", lyrics_index, player_index);
+#endif
 
     int idx = array_timer[player_index].FindValue(timer);
     if(idx != -1)
