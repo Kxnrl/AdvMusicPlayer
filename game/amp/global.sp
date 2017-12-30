@@ -68,8 +68,8 @@ public void Global_OnConVarChanged(ConVar convar, const char[] oldValue, const c
 void Global_CheckLibrary()
 {
     // check library availavle
-    g_bCoreLib = LibraryExists("csgogamers") && (GetFeatureStatus(FeatureType_Native, "CG_ShowHiddenMotd") == FeatureStatus_Available);
-    g_bStoreLib = LibraryExists("Store") && (GetFeatureStatus(FeatureType_Native, "Store_GetClientCredits") == FeatureStatus_Available);
+    g_bCoreLib = LibraryExists("core") && (GetFeatureStatus(FeatureType_Native, "CG_ShowHiddenMotd") == FeatureStatus_Available);
+    g_bStoreLib = LibraryExists("store") && (GetFeatureStatus(FeatureType_Native, "Store_GetClientCredits") == FeatureStatus_Available);
     g_bMotdEx = LibraryExists("MotdEx") && (GetFeatureStatus(FeatureType_Native, "MotdEx_ShowHiddenMotd") == FeatureStatus_Available);
     g_bMapMusic = LibraryExists("MapMusic") && (GetFeatureStatus(FeatureType_Native, "MapMusic_SetStatus") == FeatureStatus_Available);
     g_bSystem2 = (GetFeatureStatus(FeatureType_Native, "System2_DownloadFile") == FeatureStatus_Available);
