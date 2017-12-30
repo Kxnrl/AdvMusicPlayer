@@ -5,7 +5,7 @@
 // author: Rossen Popov, 2015-2016
 function vdf_encode($arr, $pretty = false) {
     if(!is_array($arr)) {
-        trigger_error("vdf_encode expects parameter 1 to be an array, " . gettype($arr) . " given.", E_USER_NOTICE);
+        trigger_error("vdf_encode expects parameter 1 to be an array, " . gettype($arr) . " given. -> " . $arr, E_USER_NOTICE);
         return NULL;
     }
     $pretty = (boolean) $pretty;

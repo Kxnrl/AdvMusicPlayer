@@ -1,5 +1,5 @@
 # AdvMusicPlayer
-an advance music player in csgo.
+An advanced music player in csgo. [YouTube Video](https://www.youtube.com/watch?v=64FPl4TIMbc "YouTube")
 
 **stable** : [![Build Status](https://img.shields.io/travis/Kxnrl/AdvMusicPlayer/master.svg?style=flat-square)](https://travis-ci.org/Kxnrl/AdvMusicPlayer?branch=master) 　 　 　 **dev** : [![Build Status](https://img.shields.io/travis/Kxnrl/AdvMusicPlayer/dev.svg?style=flat-square)](https://travis-ci.org/Kxnrl/AdvMusicPlayer?branch=dev)  
 
