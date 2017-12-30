@@ -68,11 +68,19 @@ public void Global_OnConVarChanged(ConVar convar, const char[] oldValue, const c
 void Global_CheckLibrary()
 {
     // check library availavle
-    g_bMotdEx = LibraryExists("csgogamers") && (GetFeatureStatus(FeatureType_Native, "CG_ShowHiddenMotd") == FeatureStatus_Available);
-    g_bCoreLib = LibraryExists("Store") && (GetFeatureStatus(FeatureType_Native, "CG_ShowHiddenMotd") == FeatureStatus_Available);
+    g_bCoreLib = LibraryExists("csgogamers") && (GetFeatureStatus(FeatureType_Native, "CG_ShowHiddenMotd") == FeatureStatus_Available);
+    g_bStoreLib = LibraryExists("Store") && (GetFeatureStatus(FeatureType_Native, "Store_GetClientCredits") == FeatureStatus_Available);
     g_bMotdEx = LibraryExists("MotdEx") && (GetFeatureStatus(FeatureType_Native, "MotdEx_ShowHiddenMotd") == FeatureStatus_Available);
     g_bMapMusic = LibraryExists("MapMusic") && (GetFeatureStatus(FeatureType_Native, "MapMusic_SetStatus") == FeatureStatus_Available);
     g_bSystem2 = (GetFeatureStatus(FeatureType_Native, "System2_DownloadFile") == FeatureStatus_Available);
     if(!g_bSystem2 && GetFeatureStatus(FeatureType_Native, "SteamWorks_CreateHTTPRequest") != FeatureStatus_Available)
         SetFailState("Why you not install System2 or SteamWorks?");
+    
+#if defined DEBUG
+    UTIL_DebugLog("Global_CheckLibrary -> g_bCoreLib -> %s", g_bCoreLib ? "Loaded" : "Failed");
+    UTIL_DebugLog("Global_CheckLibrary -> g_bStoreLib -> %s", g_bStoreLib ? "Loaded" : "Failed");
+    UTIL_DebugLog("Global_CheckLibrary -> g_bMotdEx -> %s", g_bMotdEx ? "Loaded" : "Failed");
+    UTIL_DebugLog("Global_CheckLibrary -> g_bMapMusic -> %s", g_bMapMusic ? "Loaded" : "Failed");
+    UTIL_DebugLog("Global_CheckLibrary -> g_bSystem2 -> %s", g_bSystem2 ? "Loaded" : "Failed");
+#endif
 }

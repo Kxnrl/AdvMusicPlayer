@@ -45,7 +45,7 @@ public Action Command_Music(int client, int args)
 public Action Command_AdminStop(int client, int args)
 {
     // notify sound end
-    CreateTimer(0.1, Timer_SoundEnd);
+    CreateTimer(0.1, Timer_SoundEnd, BROADCAST);
     PrintToChatAll("%s \x02权限X强行停止了音乐播放!", PREFIX);
 
     return Plugin_Handled;
