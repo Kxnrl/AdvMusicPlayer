@@ -70,26 +70,12 @@ do
   sed -i "s%<commit_date>%$DATE%g" $file > output.txt
   rm output.txt
 done
-for file in game/advmusicplayer_system2.sp
-do
-  sed -i "s%<commit_count>%$COUNT%g" $file > output.txt
-  sed -i "s%<commit_branch>%$5%g" $file > output.txt
-  sed -i "s%<commit_date>%$DATE%g" $file > output.txt
-  rm output.txt
-done
-for file in game/advmusicplayer_steamworks.sp
-do
-  sed -i "s%<commit_count>%$COUNT%g" $file > output.txt
-  sed -i "s%<commit_branch>%$5%g" $file > output.txt
-  sed -i "s%<commit_date>%$DATE%g" $file > output.txt
-  rm output.txt
-done
 
 
 #拷贝文件到编译器文件夹
 echo -e "Copy scripts to compiler folder ..."
-cp -r game/* addons/sourcemod/scripting
-cp -r include/* addons/sourcemod/scripting/include
+cp -rf game/* addons/sourcemod/scripting
+cp -rf include/* addons/sourcemod/scripting/include
 
 
 #建立输出文件夹
@@ -99,22 +85,11 @@ mkdir build/scripts
 mkdir build/plugins
 mkdir build/webinterface
 
+
 #编译
-addons/sourcemod/scripting/spcomp -E -v0 addons/sourcemod/scripting/advmusicplayer.sp -o"build/plugins/advmusicplayer_dontusethis.smx"
-if [ ! -f "build/plugins/advmusicplayer_dontusethis.smx" ]; then
-    echo "Compile [test] failed!"
-    exit 1;
-fi
-
-addons/sourcemod/scripting/spcomp -E -v0 addons/sourcemod/scripting/advmusicplayer_system2.sp -o"build/plugins/advmusicplayer_system2.smx"
-if [ ! -f "build/plugins/advmusicplayer_system2.smx" ]; then
-    echo "Compile [SteamWorks] failed!"
-    exit 1;
-fi
-
-addons/sourcemod/scripting/spcomp -E -v0 addons/sourcemod/scripting/advmusicplayer_steamworks.sp -o"build/plugins/advmusicplayer_steamworks.smx"
-if [ ! -f "build/plugins/advmusicplayer_steamworks.smx" ]; then
-    echo "Compile [System2] failed!"
+addons/sourcemod/scripting/spcomp -E -v0 addons/sourcemod/scripting/advmusicplayer.sp -o"build/plugins/advmusicplayer.smx"
+if [ ! -f "build/plugins/advmusicplayer.smx" ]; then
+    echo "Compile failed!"
     exit 1;
 fi
 
@@ -144,6 +119,5 @@ lftp -c "open -u $FTP_USER,$FTP_PSWD $FTP_HOST; put -O /AMP/$5/$1/ $FILE"
 if [ "$1" = "1.8" ] && [ "$5" = "master" ]; then
     echo "Upload RAW..."
     cd plugins
-    mv advmusicplayer_dontusethis.smx advmusicplayer.smx
     lftp -c "open -u $FTP_USER,$FTP_PSWD $FTP_HOST; put -O /AMP/Raw/ advmusicplayer.smx"
 fi
