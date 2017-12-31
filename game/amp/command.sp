@@ -37,7 +37,7 @@ public Action Command_Music(int client, int args)
         return Plugin_Handled;
 
 #if defined DEBUG
-        UTIL_DebugLog("Command_Music -> %N", client);
+    UTIL_DebugLog("Command_Music -> %N", client);
 #endif
 
     // display main menu to client

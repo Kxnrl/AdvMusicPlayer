@@ -52,7 +52,7 @@ void UTIL_RemoveMotd(int index)
         UTIL_OpenMotd(index, "about:blank");
     
 #if defined DEBUG
-    UTIL_DebugLog("UTIL_RemoveMotd -> %N -> %s", index, url);
+    UTIL_DebugLog("UTIL_RemoveMotd -> %N -> %s", index);
 #endif
 }
 

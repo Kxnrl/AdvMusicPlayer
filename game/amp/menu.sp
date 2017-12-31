@@ -111,7 +111,7 @@ public int MenuHandler_DisplayList(Handle menu, MenuAction action, int client, i
     if(action == MenuAction_Select) 
     {
 #if defined DEBUG
-        UTIL_DebugLog("MenuHandler_DisplayList -> %N -> %d", client, slot);
+        UTIL_DebugLog("MenuHandler_DisplayList -> %N -> %d", client, itemNum);
 #endif
 
         g_iSelect[client] = itemNum;
