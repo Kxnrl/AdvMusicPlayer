@@ -119,7 +119,7 @@ public Plugin myinfo =
 {
     name        = "Advanced Music Player",
     author      = "Kyle",
-    description = "Media System , Powered by CG Community",
+    description = "Media System",
     version     = "2.0.<commit_count> - <commit_date>",
     url         = "https://ump45.moe"
 };

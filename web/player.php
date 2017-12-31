@@ -30,15 +30,12 @@ if(isset($_GET['cache']) && !empty($_GET['cache']) && $_GET['cache'] == 1 && fil
 }
 
 echo '<html>';
-
 echo '<head>';
-echo '<title>【CG】 Advance Music Player Motd</title>';
-echo '<meta name="keywords" content="CSGO社区,CSGO服务器,CSGO论坛,CG社区,CG论坛,CG服务器,CSGOGAMERS,CG,CSGO饥饿游戏,CSGO死亡奔跑,CSGO娱乐,CSGO僵尸" />';
-echo '<meta name="description" content="【CG】社区是一个新成立不久的CSGO游戏社区，以娱乐为主，涵盖了目前CSGO所有的娱乐模式，还有独家的CSGO饥饿游戏模式。我们用心打造一个国内优秀的良心的CSGO游戏社区。 " />';
+echo '<title>【CG】 Advanced Music Player Motd</title>';
+echo '<meta name="description" content="Advanced Music Player" />';
 echo '<meta name="author" content="Kyle" />';
-echo '<meta name="copyright" content="2015-2017 Kyle." />';
+echo '<meta name="copyright" content="2015-2018 Kyle" />';
 echo '</head>';
-
 echo '<body>';
 echo '<audio id="music" src="'.$url.'" autoplay="autoplay"></audio>';
 

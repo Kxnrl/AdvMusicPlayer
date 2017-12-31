@@ -1,15 +1,23 @@
 # AdvMusicPlayer
-An advanced music player in csgo. [YouTube Video](https://www.youtube.com/watch?v=64FPl4TIMbc "YouTube")
-
-**stable** : [![Build Status](https://img.shields.io/travis/Kxnrl/AdvMusicPlayer/master.svg?style=flat-square)](https://travis-ci.org/Kxnrl/AdvMusicPlayer?branch=master) 　 　 　 **dev** : [![Build Status](https://img.shields.io/travis/Kxnrl/AdvMusicPlayer/dev.svg?style=flat-square)](https://travis-ci.org/Kxnrl/AdvMusicPlayer?branch=dev)  
-
+An advanced music player in csgo.
+[YouTube Video](https://www.youtube.com/watch?v=64FPl4TIMbc "YouTube")
 [![Download](https://csgogamers.com/static/image/download.png)](https://plugins.csgogamers.com/AMP/)
 
 
-### Requirements (* select: choie one to install what u like, # depend: u must install)
-- *SteamWorks: 　 [github](https://github.com/KyleSanderson/SteamWorks/ "GitHub") | [forums](https://forums.alliedmods.net/showthread.php?t=229556 "AlliedModders")
-- *System2: 　 [github](https://github.com/dordnung/System2 "GitHub") | [forums](https://forums.alliedmods.net/showthread.php?t=146019 "AlliedModders")  [Recommend]
-- #MotdEx: 　[github](https://github.com/Kxnrl/MotdEx "GitHub")
+**stable** : [![Build Status](https://img.shields.io/travis/Kxnrl/AdvMusicPlayer/master.svg?style=flat-square)](https://travis-ci.org/Kxnrl/AdvMusicPlayer?branch=master) 　 　 　 **dev** : [![Build Status](https://img.shields.io/travis/Kxnrl/AdvMusicPlayer/dev.svg?style=flat-square)](https://travis-ci.org/Kxnrl/AdvMusicPlayer?branch=dev)  
+
+
+
+
+### Requirements:
+#### Extensions (Select one, if both were installed, priority use System2)
+- [SteamWorks](https://forums.alliedmods.net/showthread.php?t=229556 "AlliedModders") - Required to download anythings.
+- [System2]](https://forums.alliedmods.net/showthread.php?t=146019 "AlliedModders") - Required to download anythings or open page.
+#### Plugins
+- [MotdEx](https://github.com/Kxnrl/MotdEx "GitHub") - Required to open VGUI panel.
+
+### Recommend Plugins:
+- [MapMusic](https://github.com/Kxnrl/MapMusic-API/ "GitHub") - To control map music when player is playing.
 
 
 ### Installation
@@ -23,9 +31,15 @@ An advanced music player in csgo. [YouTube Video](https://www.youtube.com/watch?
 
 ### Commands
 - **sm_music** - Open main menu. [alias: ***sm_dj***]
+- **sm_adminmusicstop** - [Admin Command - Ban flag] Stop broadcasting.
+- **sm_musicban** - [Admin Command - Ban flag] Bans the selected player from broadcasting. [Usage: sm_musicban <player steamid|userid>]
 
 
 ### Console Variables
 - **amp_url_search** - url for searching music.
 - **amp_url_lyrics** - url for downloading lyric.
 - **amp_url_player** - url of motd player.
+- **amp_url_cached** - url for caching music.
+- **amp_url_cached_enable** - enable music cached in your web server.
+- **amp_player_proxy_enable** - enable proxy player.
+- **amp_cost_factor** - how much for broadcasting song (per second), allow float.
