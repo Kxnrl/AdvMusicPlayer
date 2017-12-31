@@ -1,7 +1,5 @@
 <?php
-
-ini_set("display_errors", "On");
-error_reporting(E_ALL | E_STRICT);
+error_reporting(E_ALL^E_WARNING^E_NOTICE);
 
 if(!isset($_GET['s']) || empty($_GET['s'])){
     die(404);
