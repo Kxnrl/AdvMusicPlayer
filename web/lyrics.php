@@ -1,4 +1,22 @@
 <?php
+/******************************************************************/
+/*                                                                */
+/*                     Advanced Music Player                      */
+/*                                                                */
+/*                                                                */
+/*  File:          lyrics.php                                     */
+/*  Description:   An advance music player in source engine game. */
+/*                                                                */
+/*                                                                */
+/*  Copyright (C) 2018  Kyle   https://ump45.moe                  */
+/*  2018/01/01 04:02:39                                           */
+/*                                                                */
+/*  This code is licensed under the MIT License (MIT).            */
+/*                                                                */
+/******************************************************************/
+
+
+
 error_reporting(E_ALL^E_WARNING^E_NOTICE);
 
 // library

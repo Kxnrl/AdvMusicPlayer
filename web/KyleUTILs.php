@@ -1,4 +1,30 @@
 <?php
+/******************************************************************/
+/*                                                                */
+/*                     Advanced Music Player                      */
+/*                                                                */
+/*                                                                */
+/*  File:          KyleUTILs.php                                  */
+/*  Description:   An advance music player in source engine game. */
+/*                                                                */
+/*                                                                */
+/*  Copyright (C) 2018  Kyle   https://ump45.moe                  */
+/*  2018/01/01 04:02:39                                           */
+/*                                                                */
+/*  This code is licensed under the MIT License (MIT).            */
+/*                                                                */
+/******************************************************************/
+
+
+
+function LogMessage($message)
+{
+    $fp = fopen( __DIR__ . "/errorlog.php", "a");
+    fputs($fp, "<?PHP exit;?>    ");
+    fputs($fp, $message);
+    fputs($fp, "\n");
+    fclose($fp);
+}
 // a simple parser for Valve's KeyValue format
 // https://developer.valvesoftware.com/wiki/KeyValues
 //
@@ -30,13 +56,5 @@ function vdf_encode_step($arr, $pretty, $level) {
         }
     }
     return $buf;
-}
-function LogMessage($message)
-{
-    $fp = fopen( __DIR__ . "/errorlog.php", "a");
-    fputs($fp, "<?PHP exit;?>    ");
-    fputs($fp, $message);
-    fputs($fp, "\n");
-    fclose($fp);
 }
 ?>
