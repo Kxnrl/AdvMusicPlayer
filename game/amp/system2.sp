@@ -52,6 +52,7 @@ public void API_CachedSong_System2(const char[] output, const int size, CMDRetur
     {
         case CMD_SUCCESS:
         {
+            // php echo "success!" mean preloading success. "file_exists!" mean we were precached.
             if(strcmp(output, "success!", false) == 0 || strcmp(output, "file_exists!", false) == 0)
             {
                 int client = values & 0x7f;
@@ -62,8 +63,9 @@ public void API_CachedSong_System2(const char[] output, const int size, CMDRetur
                     Player_ListenMusic(client, true);
             }
             else
-                LogError("API_CachedSong -> [%s]", output);
+                LogError("System2 -> API_CachedSong -> [%s]", output);
         }
-        case CMD_ERROR  : LogError("API_CachedSong -> [%s]", output);
+        case CMD_ERROR  : LogError("System2 -> API_CachedSong -> [%s]", output);
+        default: LogError("System2 -> API_CachedSong -> [%s]", output[0] ? output : "Error Unknown");
     }
 }

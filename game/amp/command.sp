@@ -36,6 +36,10 @@ public Action Command_Music(int client, int args)
     if(!IsValidClient(client))
         return Plugin_Handled;
 
+#if defined DEBUG
+        UTIL_DebugLog("Command_Music -> %N", client);
+#endif
+
     // display main menu to client
     DisplayMainMenu(client);
 
@@ -44,6 +48,11 @@ public Action Command_Music(int client, int args)
 
 public Action Command_AdminStop(int client, int args)
 {
+
+#if defined DEBUG
+    UTIL_DebugLog("Command_Music -> %N", client);
+#endif
+
     // notify sound end
     CreateTimer(0.1, Timer_SoundEnd, BROADCAST);
     PrintToChatAll("%s \x02权限X强行停止了音乐播放!", PREFIX);
@@ -69,6 +78,10 @@ public Action Command_MusicBan(int client, int args)
     g_bBanned[target] = !g_bBanned[target];
     SetClientCookie(target, g_cBanned, g_bBanned[target] ? "1" : "0");
     PrintToChatAll("%s \x02%N\x01%s", PREFIX, target, g_bBanned[target] ? "因为乱玩点歌系统,已被\x07封禁\x01点歌权限" : "点歌权限已被\x04解禁");
+    
+#if defined DEBUG
+    UTIL_DebugLog("Command_MusicBan -> \"%L\" %s \"%N\"", client, g_bBanned[target] ? "BAN" : "UNBAN", target);
+#endif
 
     return Plugin_Handled;
 }

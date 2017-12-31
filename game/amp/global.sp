@@ -63,6 +63,17 @@ public void Global_OnConVarChanged(ConVar convar, const char[] oldValue, const c
     g_iEnableCache = g_cvarECACHE.IntValue;
     g_iEnableProxy = g_cvarPROXYS.IntValue;
     g_fFactorCredits = g_cvarCREDIT.FloatValue;
+    
+#if defined DEBUG
+    UTIL_DebugLog("Global_OnConVarChanged -> amp_url_search -> %s", g_urlSearch);
+    UTIL_DebugLog("Global_OnConVarChanged -> amp_url_lyrics -> %s", g_urlLyrics);
+    UTIL_DebugLog("Global_OnConVarChanged -> amp_url_player -> %s", g_urlPlayer);
+    UTIL_DebugLog("Global_OnConVarChanged -> amp_url_cached -> %s", g_urlCached);
+    
+    UTIL_DebugLog("Global_OnConVarChanged -> amp_url_cached_enable -> %d", g_iEnableCache);
+    UTIL_DebugLog("Global_OnConVarChanged -> amp_player_proxy_enable -> %s", g_iEnableProxy);
+    UTIL_DebugLog("Global_OnConVarChanged -> amp_cost_factor -> %.2f", g_fFactorCredits);
+#endif
 }
 
 void Global_CheckLibrary()

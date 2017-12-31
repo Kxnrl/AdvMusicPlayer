@@ -66,7 +66,6 @@ echo -e "Prepare compile ..."
 for file in game/advmusicplayer.sp
 do
   sed -i "s%<commit_count>%$COUNT%g" $file > output.txt
-  sed -i "s%<commit_branch>%$5%g" $file > output.txt
   sed -i "s%<commit_date>%$DATE%g" $file > output.txt
   rm output.txt
 done

@@ -40,6 +40,10 @@ public int MenuHanlder_Main(Handle menu, MenuAction action, int client, int slot
     if(action == MenuAction_Select)
     {
         bool reply = true;
+        
+#if defined DEBUG
+        UTIL_DebugLog("MenuHanlder_Main -> %N -> %d", client, slot);
+#endif
 
         switch(slot)
         {
@@ -106,6 +110,10 @@ public int MenuHandler_DisplayList(Handle menu, MenuAction action, int client, i
 {
     if(action == MenuAction_Select) 
     {
+#if defined DEBUG
+        UTIL_DebugLog("MenuHandler_DisplayList -> %N -> %d", client, slot);
+#endif
+
         g_iSelect[client] = itemNum;
         
         int length, sid;
@@ -144,7 +152,11 @@ void DisplayConfirmMenu(int client, int cost, const char[] name, const char[] ar
 public int MenuHandler_Confirm(Handle menu, MenuAction action, int client, int slot)
 {
     if(action ==  MenuAction_Select)
-    {
+    { 
+#if defined DEBUG
+        UTIL_DebugLog("MenuHandler_Confirm -> %N -> %d", client, slot);
+#endif
+
         if(slot == 4)
             Player_BroadcastMusic(client, false);
         else if(slot == 5)

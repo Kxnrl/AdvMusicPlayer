@@ -34,6 +34,10 @@ void UTIL_OpenMotd(int index, const char[] url)
         ShowVGUIPanel(index, "info", m_hKv, false);
         CloseHandle(m_hKv);
     }
+
+#if defined DEBUG
+    UTIL_DebugLog("UTIL_OpenMotd -> %N -> %s", index, url);
+#endif
 }
 
 void UTIL_RemoveMotd(int index)
@@ -46,6 +50,10 @@ void UTIL_RemoveMotd(int index)
         MotdEx_RemoveMotd(index);
     else
         UTIL_OpenMotd(index, "about:blank");
+    
+#if defined DEBUG
+    UTIL_DebugLog("UTIL_RemoveMotd -> %N -> %s", index, url);
+#endif
 }
 
 void UTIL_ProcessResult(int userid)
@@ -89,6 +97,10 @@ void UTIL_ProcessResult(int userid)
     Handle menu = CreateMenu(MenuHandler_DisplayList);
     int count = 0;
     
+#if defined DEBUG
+    UTIL_DebugLog("UTIL_ProcessResult -> Start -> %N", client);
+#endif
+
     do
     {
         char key[32], name[64], arlist[128], album[128];
@@ -126,6 +138,10 @@ void UTIL_ProcessResult(int userid)
 
         // add song to menu
         AddMenuItemEx(menu, ITEMDRAW_DEFAULT, key, "%s\n歌手: %s\n专辑: %s", name, arlist, album);
+        
+#if defined DEBUG
+        UTIL_DebugLog("UTIL_ProcessResult -> %d[%s] - %s - %s", _kv.GetNum("id"), name, arlist, album);
+#endif
         
         // display 5 items per-page
         if(++count % 5 == 0)
@@ -246,13 +262,16 @@ void UTIL_ProcessLyric(int index)
 
         if(ExplodeString(data[0], ":", time, 2, 16) != 2)
             continue;
+        
+        // fix '\n'
+        data[1][strlen(data[1])-2] = '\0';
 
 #if defined DEBUG
         UTIL_DebugLog("UTIL_ProcessLyric -> Index[%d] -> Delay[%.2f] -> Line -> %s", index, StringToFloat(time[0])*60.0+StringToFloat(time[1]), data[1]);
 #endif
         array_timer[index].Push(CreateTimer(StringToFloat(time[0])*60.0+StringToFloat(time[1]), Timer_Lyric, (array_lyric[index].PushString(data[1])) | (index << 7), TIMER_FLAG_NO_MAPCHANGE));
     }
-    
+
     if(GetArraySize(array_lyric[index]) > 2)
         Player_LyricHud(index, "300.0", ">>> Music <<<");
 
@@ -263,7 +282,7 @@ void UTIL_CacheSong(int client, int index)
 {
     char url[192];
     FormatEx(url, 192, "%s%d", g_urlCached, g_Sound[index][iSongId]);
-    
+
     // 2 vars is one
     int values = client | (index << 7);
 

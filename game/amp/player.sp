@@ -70,12 +70,19 @@ void Player_Reset(int index, bool removeMotd = false)
             MapMusic_SetStatus(index, false);
     }
     
+#if defined DEBUG
+    UTIL_DebugLog("Player_Reset -> %N -> %b", index, removeMotd);
+#endif
 }
 
 public Action Timer_GetLyric(Handle timer, int index)
 {
     char path[128];
     BuildPath(Path_SM, path, 128, "data/music/lyric_%d.lrc", g_Sound[index][iSongId]);
+
+#if defined DEBUG
+    UTIL_DebugLog("Timer_GetLyric -> %N -> checking %s", index, path);
+#endif
 
     // checking lyric cache file.
     if(!FileExists(path))
@@ -84,10 +91,10 @@ public Action Timer_GetLyric(Handle timer, int index)
         FormatEx(url, 256, "%s%d", g_urlLyrics, g_Sound[index][iSongId]);
         
 #if defined DEBUG
-        UTIL_DebugLog("Timer_GetLyric -> %d -> %s", g_Sound[index][iSongId], url);
+        UTIL_DebugLog("Timer_GetLyric -> %N -> %d[%s] -> %s", index, g_Sound[index][iSongId], g_Sound[index][szName], url);
 #endif
 
-        if(!g_bSystem2)
+        if(g_bSystem2)
             System2_DownloadFile(API_GetLyric_System2, url, path, index);
         else
         {
@@ -107,10 +114,6 @@ public Action Timer_Lyric(Handle timer, int values)
     int lyrics_index = values & 0x7f;
     int player_index = values >> 7;
 
-#if defined DEBUG
-    UTIL_DebugLog("Timer_Lyric -> lyrics_index[%d] -> player_index[%d]", lyrics_index, player_index);
-#endif
-
     // find and erase index of timer in timer array
     int idx = array_timer[player_index].FindValue(timer);
     if(idx != -1)
@@ -128,6 +131,13 @@ public Action Timer_Lyric(Handle timer, int values)
     char buffer[384];
     FormatEx(buffer, 384, "%s%s%s", lyric[0], lyric[1], lyric[2]);
     Player_LyricHud(player_index, "30.0", buffer);
+    
+#if defined DEBUG
+    UTIL_DebugLog("Timer_Lyric -> lyrics_index[%d] -> player_index[%d]", lyrics_index, player_index);
+    UTIL_DebugLog("Timer_Lyric -> %s", lyric[0]);
+    UTIL_DebugLog("Timer_Lyric -> %s", lyric[1]);
+    UTIL_DebugLog("Timer_Lyric -> %s", lyric[2]);
+#endif
 }
 
 void Player_LyricHud(int index, const char[] life, const char[] message)
@@ -142,10 +152,18 @@ void Player_LyricHud(int index, const char[] life, const char[] message)
     }
     else
         UTIL_ShowLyric(index, message, life);
+    
+#if defined DEBUG
+    UTIL_DebugLog("Player_LyricHud -> %N -> %s -> %s", index, life, message);
+#endif
 }
 
 public Action Timer_SoundEnd(Handle timer, int index)
 {
+#if defined DEBUG
+    UTIL_DebugLog("Timer_SoundEnd -> %N -> %d[%s]", index, g_Sound[index][iSongId], g_Sound[index][szName]);
+#endif
+
     // reset timer
     g_tTimer[index] = INVALID_HANDLE;
     
@@ -159,7 +177,7 @@ public Action Timer_SoundEnd(Handle timer, int index)
             {
                 Player_Reset(i, true);
                 if(g_bLyrics[i])
-                    Player_LyricHud(i, "3.0", ">>> Music End <<<");
+                    Player_LyricHud(i, "2.0", ">>> Music End <<<");
             }
 
     return Plugin_Stop;
@@ -170,6 +188,9 @@ void Player_ListenMusic(int client, bool cached)
     // if enabled cache and not precache
     if(g_iEnableCache && !cached)
     {
+#if defined DEBUG
+        UTIL_DebugLog("Player_ListenMusic -> %N -> %d[%s] -> we need precache music", client, g_Sound[client][iSongId], g_Sound[client][szName]);
+#endif
         UTIL_CacheSong(client, client);
         return;
     }
@@ -182,15 +203,15 @@ void Player_ListenMusic(int client, bool cached)
     UTIL_ProcessSongInfo(client, g_Sound[client][szName], g_Sound[client][szSinger], g_Sound[client][szAlbum], iLength, g_Sound[client][iSongId]);
     g_Sound[client][fLength] = float(iLength);
 
-#if defined DEBUG
-    UTIL_DebugLog("Player_BroadcastMusic -> %N -> %s -> %d -> %.2f", client, g_Sound[client][szName], g_Sound[client][iSongId], g_Sound[client][fLength]);
-#endif
-
     // init player
     char murl[192];
     FormatEx(murl, 192, "%s%d&volume=%d&cache=%d&proxy=%d", g_urlPlayer, g_Sound[client][iSongId], g_iVolume[client], g_iEnableCache, g_iEnableProxy);
     UTIL_OpenMotd(client, murl);
     
+#if defined DEBUG
+    UTIL_DebugLog("Player_ListenMusic -> %N -> [%d]%s -> %.2f", client, g_Sound[client][iSongId], g_Sound[client][szName], g_Sound[client][fLength], murl);
+#endif
+
     // set listen flag
     g_bListen[client] = true;
 
@@ -213,23 +234,29 @@ void Player_ListenMusic(int client, bool cached)
 
 void Player_BroadcastMusic(int client, bool cached)
 {
-    // if timeout 
-    if(GetGameTime() < g_fNextPlay)
-    {
-        PrintToChat(client, "%s  \x10上次点歌未过期,请等待时间结束", PREFIX);
-        return;
-    }
-    
     // ban?
     if(g_bBanned[client])
     {
         PrintToChat(client, "%s  \x07你已被封禁点歌", PREFIX);
         return;
     }
-    
+
+    // if timeout 
+    if(GetGameTime() < g_fNextPlay)
+    {
+#if defined DEBUG
+        UTIL_DebugLog("Player_BroadcastMusic -> %N -> [%d]%s -> Time Out", client, g_Sound[client][iSongId], g_Sound[client][szName]);
+#endif
+        PrintToChat(client, "%s  \x10上次点歌未过期,请等待时间结束", PREFIX);
+        return;
+    }
+
     // if enabled cache and not precache
     if(g_iEnableCache && !cached)
     {
+#if defined DEBUG
+        UTIL_DebugLog("Player_BroadcastMusic -> %N -> [%d]%s -> we need precache music", client, g_Sound[client][iSongId], g_Sound[client][szName]);
+#endif
         UTIL_CacheSong(client, BROADCAST);
         return;
     }
@@ -240,7 +267,7 @@ void Player_BroadcastMusic(int client, bool cached)
     g_Sound[BROADCAST][fLength] = float(iLength);
 
 #if defined DEBUG
-    UTIL_DebugLog("Player_BroadcastMusic -> %N -> %s -> %d -> %.2f", client, g_Sound[BROADCAST][szName], g_Sound[BROADCAST][iSongId], g_Sound[BROADCAST][fLength]);
+    UTIL_DebugLog("Player_BroadcastMusic -> %N -> [%d]%s -> %.2f", client, g_Sound[BROADCAST][iSongId], g_Sound[BROADCAST][szName], g_Sound[BROADCAST][fLength]);
 #endif
 
     // if store is available, handle credits
@@ -291,7 +318,7 @@ void Player_BroadcastMusic(int client, bool cached)
             MapMusic_SetStatus(i, true);
 
 #if defined DEBUG
-        UTIL_DebugLog("Player_BroadcastMusic -> %N -> %s", i, murl);
+        UTIL_DebugLog("Player_BroadcastMusic -> Handle clients -> %N -> %s", i, murl);
 #endif
     }
 

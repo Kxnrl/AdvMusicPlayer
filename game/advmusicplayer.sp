@@ -120,7 +120,7 @@ public Plugin myinfo =
     name        = "Advanced Music Player",
     author      = "Kyle",
     description = "Media System , Powered by CG Community",
-    version     = "2.0.<commit_count>.<commit_branch> - <commit_date>",
+    version     = "2.0.<commit_count> - <commit_date>",
     url         = "https://ump45.moe"
 };
 
@@ -213,6 +213,10 @@ public void OnClientConnected(int client)
     g_bLyrics[client] = true;
     g_iVolume[client] = 100;
     g_iBGMVol[client] = 100;
+
+#if defined DEBUG
+    UTIL_DebugLog("OnClientConnected -> Init %N", client);
+#endif
 }
 
 public void OnClientDisconnect(int client)

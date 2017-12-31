@@ -46,4 +46,8 @@ public void OnClientCookiesCached(int client)
     // processing map music
     if(g_bMapMusic)
         MapMusic_SetVolume(client, g_iBGMVol[client]);
+    
+#if defined DEBUG
+    UTIL_DebugLog("OnClientCookiesCached -> %N -> %s | %s | %s | %s | %s", client, buf[0], buf[1], buf[2], buf[3], buf[4]);
+#endif
 }
