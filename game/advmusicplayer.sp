@@ -48,6 +48,11 @@
 #include <motdex>
 #define REQUIRE_PLUGIN
 
+// MaigcGirl library
+#undef REQUIRE_PLUGIN
+#include <MaigcGirl/motd>
+#define REQUIRE_PLUGIN
+
 // other stuff
 #define PREFIX            "[\x10Music\x01]  "
 #define logFile           "addons/sourcemod/logs/advmusicplayer.log"

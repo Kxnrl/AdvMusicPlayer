@@ -56,6 +56,12 @@ echo -e "Download steamworks.inc ..."
 wget "https://github.com/KyleSanderson/SteamWorks/raw/master/Pawn/includes/SteamWorks.inc" -q -O include/steamworks.inc
 
 
+#下载MagicGirl.NET头文件
+echo -e "Download MagicGirl/motd.inc"
+mkdir include/MagicGirl
+wget "https://github.com/PuellaMagi/Core/raw/master/Game/include/MagicGirl/motd.inc" -q -O include/MagicGirl/motd.inc
+
+
 #设置文件为可执行
 echo -e "Set compiler env ..."
 chmod +x addons/sourcemod/scripting/spcomp
