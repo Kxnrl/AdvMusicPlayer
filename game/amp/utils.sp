@@ -248,16 +248,14 @@ void UTIL_ProcessLyric(int index)
         // remove '['
         Format(fileline, 128, "%s", fileline[1]);
 
-        // finding end pos
-        int pos;
-        while((pos = FindCharInString(fileline, ']')) != -1)
-        {
-            fileline[pos] = '\\';
-            if(fileline[pos+1] == '\0')
-                fileline[pos+1] = '\n';
-        }
+        // fix line
+        int pos = FindCharInString(fileline, ']');
+        if(pos == -1) // wrong line
+            continue;
 
-        ReplaceString(fileline, 128, "\\", "]");
+        // it is ending
+        if(pos+1 == strlen(fileline))
+            StrCat(fileline, 128, "...Music...");
 
         // get lyric time and lyric string
         char data[2][128], time[2][16];
@@ -267,6 +265,10 @@ void UTIL_ProcessLyric(int index)
         if(ExplodeString(data[0], ":", time, 2, 16) != 2)
             continue;
         
+        // ignore message line
+        if(!IsCharNumeric(time[0][0]))
+            continue;
+
         // fix '\n'
         data[1][strlen(data[1])-2] = '\0';
 
