@@ -270,7 +270,7 @@ void UTIL_ProcessLyric(int index)
             continue;
 
         // fix '\n'
-        int pos = FindCharInString(data[1], '\n');
+        pos = FindCharInString(data[1], '\n');
         if(pos != -1)
             data[1][pos] = '\0';
 
