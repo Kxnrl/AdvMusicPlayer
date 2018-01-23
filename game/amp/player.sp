@@ -128,7 +128,7 @@ public Action Timer_Lyric(Handle timer, int values)
 
     // display lyric
     char buffer[384];
-    FormatEx(buffer, 384, "%s%s%s", lyric[0], lyric[1], lyric[2]);
+    FormatEx(buffer, 384, "  %s\n→%s\n  %s", lyric[0], lyric[1], lyric[2]);
     Player_LyricHud(player_index, "30.0", buffer);
     
 #if defined DEBUG

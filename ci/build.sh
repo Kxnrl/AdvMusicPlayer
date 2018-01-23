@@ -111,7 +111,6 @@ mv README.md build
 #打包
 echo -e "Compress file ..."
 cd build
-mv scripts/advmusicplayer.sp scripts/advmusicplayer_dontusethis.sp 
 7z a $FILE -t7z -mx9 LICENSE README.md scripts plugins webinterface >nul
 
 
