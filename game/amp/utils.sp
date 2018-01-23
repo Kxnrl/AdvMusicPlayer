@@ -153,7 +153,7 @@ void UTIL_ProcessResult(int userid)
     } while (_kv.GotoNextKey(true));
 
     // set title
-    SetMenuTitle(menu, "[CG] 音乐搜索结果 (找到 %d 首单曲)\n ", count);
+    SetMenuTitle(menu, "[AMP] 音乐搜索结果 (找到 %d 首单曲)\n ", count);
     DisplayMenu(menu, client, 60);
 
     delete _kv;

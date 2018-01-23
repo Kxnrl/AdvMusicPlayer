@@ -310,7 +310,7 @@ void Player_BroadcastMusic(int client, bool cached)
         char murl[192];
         FormatEx(murl, 192, "%s%d&volume=%d&cache=%d&proxy=%d", g_urlPlayer, g_Sound[BROADCAST][iSongId], g_iVolume[i], g_iEnableCache, g_iEnableProxy);
         DisplayMainMenu(i);
-        CG_ShowHiddenMotd(i, murl);
+        UTIL_OpenMotd(i, murl);
         
         // handle map music
         if(g_bMapMusic)
