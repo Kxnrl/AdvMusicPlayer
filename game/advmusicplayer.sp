@@ -48,9 +48,9 @@
 #include <motdex>
 #define REQUIRE_PLUGIN
 
-// MaigcGirl library
+// MagicGirl library
 #undef REQUIRE_PLUGIN
-#include <MaigcGirl/motd>
+#include <MagicGirl/motd>
 #define REQUIRE_PLUGIN
 
 // other stuff
