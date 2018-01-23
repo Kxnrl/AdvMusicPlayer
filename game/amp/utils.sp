@@ -49,10 +49,13 @@ void UTIL_RemoveMotd(int index)
     else if(g_bMotdEx)
         MotdEx_RemoveMotd(index);
     else
+    {
+        PrintToChat(client, " \x02关闭音乐发生异常错误");
         UTIL_OpenMotd(index, "about:blank");
-    
+    }
+
 #if defined DEBUG
-    UTIL_DebugLog("UTIL_RemoveMotd -> %N -> %s", index);
+    UTIL_DebugLog("UTIL_RemoveMotd -> %N", index);
 #endif
 }
 
