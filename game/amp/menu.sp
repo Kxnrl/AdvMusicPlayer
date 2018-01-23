@@ -143,7 +143,11 @@ void DisplayConfirmMenu(int client, int cost, const char[] name, const char[] ar
     AddMenuItemEx(menu, ITEMDRAW_DISABLED, " ", "专辑: %s", album);
     AddMenuItemEx(menu, ITEMDRAW_DISABLED, " ", "时长: %d分%d秒\n ", time/60, time%60);
 
-    AddMenuItemEx(menu, ITEMDRAW_DEFAULT, "1", "所有人[花费: %d信用点]", cost);
+    if(g_bStoreLib)
+        AddMenuItemEx(menu, ITEMDRAW_DEFAULT, "1", "所有人[花费: %d信用点]", cost);
+    else
+        AddMenuItemEx(menu, ITEMDRAW_DEFAULT, "1", "所有人[免费]");
+
     AddMenuItemEx(menu, ITEMDRAW_DEFAULT, "2", "自己听[免费]");
 
     DisplayMenu(menu, client, 15);
