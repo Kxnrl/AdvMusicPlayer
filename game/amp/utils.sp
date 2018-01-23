@@ -271,7 +271,8 @@ void UTIL_ProcessLyric(int index)
 
         // fix '\n'
         int pos = FindCharInString(data[1], '\n');
-        data[1][pos] = '\0';
+        if(pos != -1)
+            data[1][pos] = '\0';
 
 #if defined DEBUG
         UTIL_DebugLog("UTIL_ProcessLyric -> Index[%d] -> Delay[%.2f] -> Line -> %s", index, StringToFloat(time[0])*60.0+StringToFloat(time[1]), data[1]);
