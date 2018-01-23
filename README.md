@@ -1,6 +1,6 @@
 # AdvMusicPlayer  
   
-**stable** : [![Build Status](https://img.shields.io/travis/Kxnrl/AdvMusicPlayer/master.svg?style=flat-square)](https://travis-ci.org/Kxnrl/AdvMusicPlayer?branch=master) 　 　 　 **dev** : [![Build Status](https://img.shields.io/travis/Kxnrl/AdvMusicPlayer/dev.svg?style=flat-square)](https://travis-ci.org/Kxnrl/AdvMusicPlayer?branch=dev)  
+[![Build Status](https://img.shields.io/travis/Kxnrl/AdvMusicPlayer/master.svg?style=flat-square)](https://travis-ci.org/Kxnrl/AdvMusicPlayer?branch=master)  
   
 An advanced music player in csgo.  
 [YouTube Video](https://www.youtube.com/watch?v=64FPl4TIMbc "YouTube")  
@@ -10,13 +10,14 @@ An advanced music player in csgo.
 ## Requirements  
 #### Extensions (Select one, if both were installed, priority use System2)  
 - [SteamWorks](https://forums.alliedmods.net/showthread.php?t=229556 "AlliedModders") - Required to download anythings.  
-- [System2](https://forums.alliedmods.net/showthread.php?t=146019 "AlliedModders") - Required to download anythings or open page.  
+- [System2](https://forums.alliedmods.net/showthread.php?t=146019 "AlliedModders") - Required to download anythings or open page (v2.6).  
 #### Plugins  
 - [MotdEx](https://github.com/Kxnrl/MotdEx "GitHub") - Required to open VGUI panel.  
   
   
 ## Recommend Plugins  
-- [MapMusic](https://github.com/Kxnrl/MapMusic-API/ "GitHub") - To control map music when player is playing.  
+- [MapMusic](https://github.com/Kxnrl/MapMusic-API/ "GitHub") - To control map music when player is playing. 
+- [Store](https://github.com/Kxnrl/Store/ "GitHub") - Cost credits to broadcast music.  
   
   
 ## Installation  
