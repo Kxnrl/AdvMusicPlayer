@@ -51,7 +51,7 @@ void Global_CreateConVar()
     if(g_bCoreLib || g_bMGLibrary)
         return;
     
-    AutoExecConfig(true, "com.kxnrl.amp.config", "sourcemod/Kyle");
+    AutoExecConfig(true, "com.kxnrl.amp.config");
 }
 
 public void Global_OnConVarChanged(ConVar convar, const char[] oldValue, const char[] newValue)
