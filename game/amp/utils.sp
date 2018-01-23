@@ -18,8 +18,10 @@
 
 void UTIL_OpenMotd(int index, const char[] url)
 {
+    if(g_bMGLibrary)
+        MG_Motd_ShowHiddenMotd(index, url);
     // using corelib
-    if(g_bCoreLib)
+    else if(g_bCoreLib)
         CG_ShowHiddenMotd(index, url);
     // using motdex
     else if(g_bMotdEx)
@@ -42,8 +44,10 @@ void UTIL_OpenMotd(int index, const char[] url)
 
 void UTIL_RemoveMotd(int index)
 {
+    if(g_bMGLibrary)
+        MG_Motd_RemoveMotd(index);
     // using corelib
-    if(g_bCoreLib)
+    else if(g_bCoreLib)
         CG_RemoveMotd(index);
     // using motdex
     else if(g_bMotdEx)

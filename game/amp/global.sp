@@ -47,11 +47,16 @@ void Global_CreateConVar()
     HookConVarChange(g_cvarECACHE, Global_OnConVarChanged);
     HookConVarChange(g_cvarCREDIT, Global_OnConVarChanged);
     HookConVarChange(g_cvarPROXYS, Global_OnConVarChanged);
+    
+    if(g_bCoreLib || g_bMGLibrary)
+        return;
+    
+    AutoExecConfig(true, "com.kxnrl.amp.config", "sourcemod/Kyle");
 }
 
 public void Global_OnConVarChanged(ConVar convar, const char[] oldValue, const char[] newValue)
 {
-    if(g_bCoreLib)
+    if(g_bCoreLib || g_bMGLibrary)
         return;
 
     // get cvars value
@@ -83,6 +88,7 @@ void Global_CheckLibrary()
     g_bStoreLib = LibraryExists("store") && (GetFeatureStatus(FeatureType_Native, "Store_GetClientCredits") == FeatureStatus_Available);
     g_bMotdEx = LibraryExists("MotdEx") && (GetFeatureStatus(FeatureType_Native, "MotdEx_ShowHiddenMotd") == FeatureStatus_Available);
     g_bMapMusic = LibraryExists("MapMusic") && (GetFeatureStatus(FeatureType_Native, "MapMusic_SetStatus") == FeatureStatus_Available);
+    g_bMGLibrary = LibraryExists("mg-motd") && (GetFeatureStatus(FeatureType_Native, "MG_Motd_ShowHiddenMotd") == FeatureStatus_Available);
     g_bSystem2 = (GetFeatureStatus(FeatureType_Native, "System2_DownloadFile") == FeatureStatus_Available);
     if(!g_bSystem2 && GetFeatureStatus(FeatureType_Native, "SteamWorks_CreateHTTPRequest") != FeatureStatus_Available)
         SetFailState("Why you not install System2 or SteamWorks?");
@@ -92,6 +98,7 @@ void Global_CheckLibrary()
     UTIL_DebugLog("Global_CheckLibrary -> g_bStoreLib -> %s", g_bStoreLib ? "Loaded" : "Failed");
     UTIL_DebugLog("Global_CheckLibrary -> g_bMotdEx -> %s", g_bMotdEx ? "Loaded" : "Failed");
     UTIL_DebugLog("Global_CheckLibrary -> g_bMapMusic -> %s", g_bMapMusic ? "Loaded" : "Failed");
+    UTIL_DebugLog("Global_CheckLibrary -> g_bMGLibrary -> %s", g_bMGLibrary ? "Loaded" : "Failed");
     UTIL_DebugLog("Global_CheckLibrary -> g_bSystem2 -> %s", g_bSystem2 ? "Loaded" : "Failed");
 #endif
 }

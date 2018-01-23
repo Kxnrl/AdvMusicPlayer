@@ -31,6 +31,10 @@
 // CG library
 #undef REQUIRE_PLUGIN
 #include <cg_core>
+#define REQUIRE_PLUGIN
+
+// Store library
+#undef REQUIRE_PLUGIN
 #include <store>
 #define REQUIRE_PLUGIN
 
@@ -60,6 +64,7 @@ bool g_bMapMusic;
 bool g_bSystem2;
 bool g_bCoreLib;
 bool g_bStoreLib;
+bool g_bMGLibrary;
 
 // convar values
 int g_iEnableProxy = 0;
@@ -131,13 +136,19 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
     MarkNativeAsOptional("CG_RemoveMotd");
     MarkNativeAsOptional("CG_ShowGameText");
     MarkNativeAsOptional("CG_ShowGameTextToClient");
+    
+    // Store
     MarkNativeAsOptional("Store_GetClientCredits");
     MarkNativeAsOptional("Store_SetClientCredits");
     
+    // MG
+    MarkNativeAsOptional("MG_Motd_ShowHiddenMotd");
+    MarkNativeAsOptional("MG_Motd_RemoveMotd");
+
     // System2
     MarkNativeAsOptional("System2_GetPage");
     MarkNativeAsOptional("System2_DownloadFile");
-    
+
     // SteamWorks
     MarkNativeAsOptional("SteamWorks_CreateHTTPRequest");
     MarkNativeAsOptional("SteamWorks_SetHTTPRequestContextValue");
@@ -145,11 +156,11 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
     MarkNativeAsOptional("SteamWorks_SendHTTPRequest");
     MarkNativeAsOptional("SteamWorks_WriteHTTPResponseBodyToFile");
     MarkNativeAsOptional("SteamWorks_GetHTTPResponseBodyCallback");
-    
+
     // MotdEx
     MarkNativeAsOptional("MotdEx_ShowHiddenMotd");
     MarkNativeAsOptional("MotdEx_RemoveMotd");
-    
+
     // MapMusic
     MarkNativeAsOptional("MapMusic_SetStatus");
     MarkNativeAsOptional("MapMusic_SetVolume");

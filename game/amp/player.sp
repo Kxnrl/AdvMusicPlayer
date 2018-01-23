@@ -44,7 +44,7 @@ void Player_Reset(int index, bool removeMotd = false)
         KillTimer(timer);
         array_timer[index].Erase(0);
     }
-    
+
     // player status
     g_bPlayed[index] = false;
     g_bListen[index] = false;
@@ -57,8 +57,7 @@ void Player_Reset(int index, bool removeMotd = false)
     g_Sound[index][szAlbum][0] = '\0';
     array_timer[index].Clear();
     array_lyric[index].Clear();
-    
-    
+
     if(IsValidClient(index))
     {
         // need remove motd?
@@ -166,7 +165,7 @@ public Action Timer_SoundEnd(Handle timer, int index)
 
     // reset timer
     g_tTimer[index] = INVALID_HANDLE;
-    
+
     // reset player of index
     Player_Reset(index);
 

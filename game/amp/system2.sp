@@ -14,7 +14,7 @@
 /*                                                                */
 /******************************************************************/
 
-
+// system2 v2.6 or later
 
 public void API_SearchMusic_System2(bool finished, const char[] error, float dltotal, float dlnow, float ultotal, float ulnow, int userid)
 {
