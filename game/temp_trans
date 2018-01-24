@@ -1,0 +1,151 @@
+chi "%s  \x04%N\x01正在收听[\x10%s\x01]"
+en  "%s  \x04%N\x01Playing[\x10%s\x01]"
+zho "%s  \x04%N\x01正在收听[\x10%s\x01]"
+
+chi "%s  \x07你已被封禁点歌"
+en  "%s  \x07You have been banned from using Music player"
+zho "%s  \x07你已经俾点歌功能ban咗"
+
+chi "%s  \x10上次点歌未过期,请等待时间结束"
+en  "%s  \x10Last-picked song still active. Please return when expired."
+zho "%s  \x10上次點嘅歌尚未過期,請等過咗再來"
+
+chi "点歌系统点歌[%d.%s]"
+en  "AMP Order song[%d.%s]"
+zho "點歌系統點歌[%d.%s]"
+
+chi "%s  \x04您支付了\x10%d\x04信用点来点播[\x0C%s\x04]."
+en  "%s  \x04You paid \x10%d\x04credits for order song:[\x0C%s\x04]."
+zho "%s  \x04你俾咗\x10%d\x04信用點,點咗[\x0C%s\x04]."
+
+chi "%s \x04%N\x01点播歌曲[\x0C%s\x01]"
+en  "%s \x04%N\x01Play song[\x0C%s\x01]"
+zho "%s \x04%N\x01點播歌曲[\x0C%s\x01]"
+
+chi "\"%L\" 点播了歌曲[%s - %s]"
+en  "\"%L\" Ordered song:[%s - %s]"
+zho "\"%L\" 點播歌曲[%s - %s]"
+
+chi "%s\n歌手: %s\n专辑: %s"
+en  "%s\nArtist: %s\nAlbum: %s"
+zho "%s\n藝人: %s\n專輯: %s"
+
+chi "[AMP] 音乐搜索结果 (找到 %d 首单曲)\n "
+en  "[AMP] Search result ( %d singles found)\n "
+zho "[AMP] 音樂搜索結果 (搵到 %d 首單曲)\n "
+
+chi ".....等待歌词中....."
+en  ".....Loading lyrics....."
+zho ".....等待歌詞中....."
+
+chi "%s \x02权限X强行停止了音乐播放!"
+en  "%s \x02Playing song was interrupted by admin!"
+zho "%s \x02admin切咗歌!"
+
+chi "因为乱玩点歌系统,已被\x07封禁\x01点歌权限" : "点歌权限已被\x04解禁"
+en  "Your access of song ordering was \x07BANNED\x01 due to abusing AMP" : "AMP access \x04 RESTORED"
+zho "因為亂搞點歌系統,俾\x07BAN咗\x01點歌權限" : "點歌權限已被\x04解除"
+
+chi "%s  \x04正在搜索音乐(当前引擎: 网易云音乐)..."
+en  "%s  \x04Searching(through Netease Cloudmusic)..."
+zho "%s  \x04正在搜索(當前使用: Netease Cloudmusic)..."
+
+chi "正在播放▼\n \n歌名: %s\n歌手: %s\n专辑: %s\n "
+en  "Now playing▼\n \nTitle: %s\nArtist: %s\nAlbum: %s\n "
+zho "現正播放▼\n \n歌名: %s\n歌手: %s\n專輯: %s\n "
+
+chi "[多媒体系统]  主菜单\n "
+en  "[AMP]  Main Memu\n "
+zho "[多媒體系統]  主菜單\n "
+
+chi "搜索音乐"
+en  "Search song"
+zho "搜索音樂"
+
+chi "开"
+en  "On"
+zho "開"
+
+chi "关"
+en  "Off"
+zho "關"
+
+chi "点歌接收: %s"
+en  "Receive song: %s"
+zho "點歌接收: %s"
+
+chi "歌词显示: %s"
+en  "Lyrics: %s"
+zho "歌詞顯示: %s"
+
+chi "点歌音量: %d"
+en  "Volume: %d"
+zho "點歌音量: %d"
+
+chi "停止播放"
+en  "Stop"
+zho "停止播放"
+
+chi "%s  按Y输入 歌名( - 歌手) [小括号内选填]"
+en  "%s  Input Title( - Artist) in chat [Artist is optional]"
+zho "%s  聊天中輸入 歌名( - 歌手) [小括號內選填]"
+
+chi "%s  \x10点歌接收已%s"
+en  "%s  \x10Song receive:%s"
+zho "%s  \x10點歌接收已%s"
+
+chi "\x07关闭"
+en  "\x07DISABLED"
+zho "\x07關閉"
+
+chi "\x04开启"
+en  "\x04ENABLED"
+zho "\x04開啟"
+
+chi "%s  \x10歌词显示已%s"
+en  "%s  \x10Lyric:%s"
+zho "%s  \x10歌詞顯示已%s"
+
+chi "%s  \x10音量设置将在下次播放时生效"
+en  "%s  \x10Volume adjustment will effect on next song"
+zho "%s  \x10音量設置將在下次播放前生效"
+
+chi "%s  \x04音乐已停止播放"
+en  "%s  \x04Music stopped."
+zho "%s  \x04音樂已停止播放"
+
+chi "%s  \x07你的信用点不足\x04%d\x07!"
+en  "%s  \x07Insufficient credits\x04%d\x07!"
+zho "%s  \x07你嘅信用點唔夠\x04%d\x07!"
+
+chi "您确定要点播以下歌曲吗\n "
+en  "You sure to order these song below?\n "
+zho "您是否確定點播呢D歌曲\n "
+
+chi "歌名: %s"
+en  "Title: %s"
+zho "歌名: %s"
+
+chi "歌手: %s"
+en  "Artist: %s"
+zho "歌手: %s"
+
+chi "专辑: %s"
+en  "Album: %s"
+zho "专辑: %s"
+
+chi "时长: %d分%d秒\n "
+en  "Length: %d分%d秒\n "
+zho "时长: %d分%d秒\n "
+
+chi "所有人[花费: %d信用点]"
+en  "To all[Cost: %d credits]"
+zho "所有人[花费: %d信用点]"
+
+chi "所有人[免费]"
+en  "To all[Free]"
+zho "所有人[免费]"
+
+chi "自己听[免费]"
+en  "To self[Free]"
+zho "自己听[免费]"
