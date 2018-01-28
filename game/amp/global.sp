@@ -128,7 +128,7 @@ void Global_DownloadTranslations(const char[] path)
     else
     {
         Handle hRequest = SteamWorks_CreateHTTPRequest(k_EHTTPMethodGET, url);
-        SteamWorks_SetHTTPRequestContextValue(hRequest, 0;
+        SteamWorks_SetHTTPRequestContextValue(hRequest, 0);
         SteamWorks_SetHTTPCallbacks(hRequest, API_DownloadTranslations_SteamWorks);
         SteamWorks_SendHTTPRequest(hRequest);
     }
