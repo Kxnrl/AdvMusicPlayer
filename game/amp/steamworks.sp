@@ -77,3 +77,21 @@ public int API_CachedSong_SteamWorks(const char[] sData, int values)
     else
         LogError("SteamWorks -> API_CachedSong -> [%s]", sData);
 }
+
+
+public int API_DownloadTranslations_SteamWorks(Handle hRequest, bool bFailure, bool bRequestSuccessful, EHTTPStatusCode eStatusCode)
+{
+    if(!bFailure && bRequestSuccessful && eStatusCode == k_EHTTPStatusCode200OK)
+    {
+        char path[128];
+        BuildPath(Path_SM, path, 128, "translations/com.kxnrl.amp.translations.txt");
+        if(SteamWorks_WriteHTTPResponseBodyToFile(hRequest, path) && FileExists(path) && FileSize(path) > 2048)
+            LoadTranslations("com.kxnrl.amp.translations");
+        else
+            SetFailState("SteamWorks -> API_DownloadTranslations -> SteamWorks_WriteHTTPResponseBodyToFile failed");
+    }
+    else
+        SetFailState("SteamWorks -> API_DownloadTranslations -> HTTP Response failed: %d", eStatusCode);
+
+    CloseHandle(hRequest);
+}

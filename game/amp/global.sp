@@ -102,3 +102,34 @@ void Global_CheckLibrary()
     UTIL_DebugLog("Global_CheckLibrary -> g_bSystem2 -> %s", g_bSystem2 ? "Loaded" : "Failed");
 #endif
 }
+
+void Global_CheckTranslations()
+{
+    char path[128];
+    BuildPath(Path_SM, path, 128, "translations/com.kxnrl.amp.translations.txt");
+
+    if(FileExists(path) && FileSize(path) > 2048)
+    {
+        LoadTranslations("com.kxnrl.amp.translations");
+        return;
+    }
+
+    Global_CheckLibrary();
+    Global_DownloadTranslations(path);
+}
+
+void Global_DownloadTranslations(const char[] path)
+{
+    char url[128];
+    FormatEx(url, 128, "https://github.com/Kxnrl/AdvMusicPlayer/Raw/master/game/com.kxnrl.amp.translations.txt");
+
+    if(g_bSystem2)
+        System2_DownloadFile(API_DownloadTranslations_System2, url, path);
+    else
+    {
+        Handle hRequest = SteamWorks_CreateHTTPRequest(k_EHTTPMethodGET, url);
+        SteamWorks_SetHTTPRequestContextValue(hRequest, 0;
+        SteamWorks_SetHTTPCallbacks(hRequest, API_DownloadTranslations_SteamWorks);
+        SteamWorks_SendHTTPRequest(hRequest);
+    }
+}

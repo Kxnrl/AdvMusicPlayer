@@ -69,3 +69,29 @@ public void API_CachedSong_System2(const char[] output, const int size, CMDRetur
         default: LogError("System2 -> API_CachedSong -> [%s]", output[0] ? output : "Error Unknown");
     }
 }
+
+public void API_DownloadTranslations_System2(bool finished, const char[] error, float dltotal, float dlnow, float ultotal, float ulnow, int index)
+{
+    if(finished)
+    {
+        if(!StrEqual(error, ""))
+            SetFailState("System2 -> API_DownloadTranslations -> Download Translations Error: %s", error);
+
+        char path[128];
+        BuildPath(Path_SM, path, 128, "translations/com.kxnrl.amp.translations.txt");
+
+        if(!FileExists(path))
+            SetFailState("System2 -> API_DownloadTranslations -> Download Translations Error: File does not exists!");
+
+        if(FileSize(path) < 2048)
+        {
+            char content[2048];
+            File file = OpenFile(path, "r+");
+            ReadFileString(file, content, 2048);
+            delete file;
+            SetFailState("Download Translations Error: %s", content);
+        }
+
+        LoadTranslations("com.kxnrl.amp.translations");
+    }
+}

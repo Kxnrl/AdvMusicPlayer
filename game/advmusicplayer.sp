@@ -182,6 +182,7 @@ public void OnPluginStart()
     Cookie_RegisterCookie();
     Command_CreateCommand();
     Player_InitPlayer();
+    Global_CheckTranslations();
 
     // We need check all client
     for(int client = 1; client <= MaxClients; ++client)
