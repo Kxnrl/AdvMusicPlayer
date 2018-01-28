@@ -265,7 +265,7 @@ void Chat(int client, const char[] chat, any ...)
     SetGlobalTransTarget(LANG_SERVER);
 }
 
-void ChatAll(const char[] chat, any)
+void ChatAll(const char[] chat, any ...)
 {
     char vf[256];
     for(int client = 1; client <= MaxClients; ++client)
