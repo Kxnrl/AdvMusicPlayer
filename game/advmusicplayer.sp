@@ -54,7 +54,7 @@
 #define REQUIRE_PLUGIN
 
 // other stuff
-#define PREFIX            "[\x10Music\x01]  "
+#define PREFIX            "[\x10AMP\x01]  "
 #define logFile           "addons/sourcemod/logs/advmusicplayer.log"
 #define BROADCAST         0
 
@@ -245,7 +245,7 @@ public void OnClientDisconnect(int client)
 bool IsValidClient(int client)
 {
     // valid client
-    return (1 <= client <= MaxClients && IsClientInGame(client) && !IsFakeClient(client));
+    return (1 <= client <= MaxClients && IsClientInGame(client) && !IsFakeClient(client) && !IsClientSourceTV(client));
 }
 
 bool AddMenuItemEx(Handle menu, int style, const char[] info, const char[] display, any ...)
@@ -253,4 +253,59 @@ bool AddMenuItemEx(Handle menu, int style, const char[] info, const char[] displ
 	char m_szBuffer[256];
 	VFormat(m_szBuffer, 256, display, 5);
 	return AddMenuItem(menu, info, m_szBuffer, style);
+}
+
+void Chat(int client, const char[] chat, any ...)
+{
+    char vf[256];
+    SetGlobalTransTarget(client);
+    VFormat(vf, 256, chat, 3);
+    ReplaceColor(vf, 256);
+    PrintToChat(client, "%s   %s", PREFIX, vf);
+    SetGlobalTransTarget(LANG_SERVER);
+}
+
+void ChatAll(const char[] chat, any)
+{
+    char vf[256];
+    for(int client = 1; client <= MaxClients; ++client)
+        if(IsValidClient(client))
+        {
+            SetGlobalTransTarget(client);
+            VFormat(vf, 256, chat, 2);
+            ReplaceColor(vf, 256);
+            PrintToChat(client, "%s   %s", PREFIX, vf);
+        }
+    SetGlobalTransTarget(LANG_SERVER);
+}
+
+void ReplaceColor(char[] message, int maxLen, int team = 0)
+{
+    ReplaceString(message, maxLen, "{normal}", "\x01", false);
+    ReplaceString(message, maxLen, "{default}", "\x01", false);
+    ReplaceString(message, maxLen, "{white}", "\x01", false);
+    ReplaceString(message, maxLen, "{darkred}", "\x02", false);
+    switch(team)
+    {
+        case 3 : ReplaceString(message, maxLen, "{teamcolor}", "\x0B", false);
+        case 2 : ReplaceString(message, maxLen, "{teamcolor}", "\x05", false);
+        default: ReplaceString(message, maxLen, "{teamcolor}", "\x01", false);
+    }
+    ReplaceString(message, maxLen, "{pink}", "\x03", false);
+    ReplaceString(message, maxLen, "{green}", "\x04", false);
+    ReplaceString(message, maxLen, "{highlight}", "\x04", false);
+    ReplaceString(message, maxLen, "{yellow}", "\x05", false);
+    ReplaceString(message, maxLen, "{lightgreen}", "\x05", false);
+    ReplaceString(message, maxLen, "{lime}", "\x06", false);
+    ReplaceString(message, maxLen, "{lightred}", "\x07", false);
+    ReplaceString(message, maxLen, "{red}", "\x07", false);
+    ReplaceString(message, maxLen, "{gray}", "\x08", false);
+    ReplaceString(message, maxLen, "{grey}", "\x08", false);
+    ReplaceString(message, maxLen, "{olive}", "\x09", false);
+    ReplaceString(message, maxLen, "{orange}", "\x10", false);
+    ReplaceString(message, maxLen, "{silver}", "\x0A", false);
+    ReplaceString(message, maxLen, "{lightblue}", "\x0B", false);
+    ReplaceString(message, maxLen, "{blue}", "\x0C", false);
+    ReplaceString(message, maxLen, "{purple}", "\x0E", false);
+    ReplaceString(message, maxLen, "{darkorange}", "\x0F", false);
 }

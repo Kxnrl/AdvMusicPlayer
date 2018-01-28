@@ -221,7 +221,7 @@ void Player_ListenMusic(int client, bool cached)
     // set song end timer
     g_tTimer[client] = CreateTimer(g_Sound[client][fLength]+0.1, Timer_SoundEnd, client);
 
-    PrintToChatAll("%s  \x04%N\x01正在收听[\x10%s\x01]", PREFIX, client, g_Sound[client][szName]);
+    ChatAll("%t", "client current playing", client, g_Sound[client][szName]);
 
     // re-display menu
     DisplayMainMenu(client);
@@ -236,7 +236,7 @@ void Player_BroadcastMusic(int client, bool cached)
     // ban?
     if(g_bBanned[client])
     {
-        PrintToChat(client, "%s  \x07你已被封禁点歌", PREFIX);
+        Chat(client, "%t", "banned notice");
         return;
     }
 
@@ -246,7 +246,7 @@ void Player_BroadcastMusic(int client, bool cached)
 #if defined DEBUG
         UTIL_DebugLog("Player_BroadcastMusic -> %N -> [%d]%s -> Time Out", client, g_Sound[client][iSongId], g_Sound[client][szName]);
 #endif
-        PrintToChat(client, "%s  \x10上次点歌未过期,请等待时间结束", PREFIX);
+        Chat(client, "%t", "last timeout");
         return;
     }
 
@@ -276,10 +276,10 @@ void Player_BroadcastMusic(int client, bool cached)
         char reason[128];
         FormatEx(reason, 128, "点歌系统点歌[%d.%s]", g_Sound[BROADCAST][iSongId], g_Sound[BROADCAST][szName]);
         Store_SetClientCredits(client, Store_GetClientCredits(client) - cost, reason);
-        PrintToChat(client, "%s  \x04您支付了\x10%d\x04信用点来点播[\x0C%s\x04].", PREFIX, cost, g_Sound[BROADCAST][szName]);
+        Chat(client, "%t", "cost to broadcast", cost, g_Sound[BROADCAST][szName]);
     }
 
-    PrintToChatAll("%s \x04%N\x01点播歌曲[\x0C%s\x01]", PREFIX, client, g_Sound[BROADCAST][szName]);
+    ChatAll("%t", "broadcast", client, g_Sound[BROADCAST][szName]);
     LogToFileEx(logFile, "\"%L\" 点播了歌曲[%s - %s]", client, g_Sound[BROADCAST][szName],  g_Sound[BROADCAST][szSinger]);
 
     // set timeout

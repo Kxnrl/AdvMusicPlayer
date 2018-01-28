@@ -71,8 +71,9 @@
 
     "music ban chat"
     {
-        "en"    "Your access of song ordering was {red}BANNED{default} due to abusing AMP!"
-        "chi"   "因为乱玩点歌系统,你已被{red}封禁{default}点歌权限."
+        "#format" "{1:N},{2:s}"
+        "en"    "{orange}{1}{default} got music {red}{2}{default}."
+        "chi"   "因为乱玩点歌系统,{orange}{1}{default}已被{red}封禁{default}点歌权限."
     }
 
     "searching"
@@ -150,7 +151,7 @@
     "volume chat"
     {
         "en"    "{orange}Volume adjustment will effect on next song."
-        "chi"   "{orange}音量设置将在下次播放时生"
+        "chi"   "{orange}音量设置将在下次播放时生效."
     }
 
     "stop chat"

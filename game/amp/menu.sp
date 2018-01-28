@@ -21,15 +21,15 @@ void DisplayMainMenu(int client)
     Handle menu = CreateMenu(MenuHanlder_Main);
     
     if(g_bPlayed[client] || g_bListen[client])
-        SetMenuTitle(menu, "正在播放▼\n \n歌名: %s\n歌手: %s\n专辑: %s\n ", g_Sound[client][szName], g_Sound[client][szSinger], g_Sound[client][szAlbum]); 
+        SetMenuTitle(menu, "%T", "player info", client, g_Sound[client][szName], g_Sound[client][szSinger], g_Sound[client][szAlbum]); 
     else
-        SetMenuTitle(menu, "[多媒体系统]  主菜单\n ");
+        SetMenuTitle(menu, "%T", "player title", client);
 
-    AddMenuItemEx(menu, g_bPlayed[client] ? ITEMDRAW_DISABLED : ITEMDRAW_DEFAULT, "search",  "搜索音乐");
-    AddMenuItemEx(menu, ITEMDRAW_DEFAULT, "toggle", "点歌接收: %s", g_bDiable[client] ? "关" : "开");
-    AddMenuItemEx(menu, ITEMDRAW_DEFAULT, "lyrics", "歌词显示: %s", g_bLyrics[client] ? "开" : "关");
-    AddMenuItemEx(menu, ITEMDRAW_DEFAULT, "volume", "点歌音量: %d", g_iVolume[client]);
-    AddMenuItemEx(menu, ITEMDRAW_DEFAULT, "stop",   "停止播放");
+    AddMenuItemEx(menu, g_bPlayed[client] ? ITEMDRAW_DISABLED : ITEMDRAW_DEFAULT, "search",  "%T", "search", client);
+    AddMenuItemEx(menu, ITEMDRAW_DEFAULT, "toggle", "%T", "receive", client, g_bDiable[client] ? "OFF" : "ON");
+    AddMenuItemEx(menu, ITEMDRAW_DEFAULT, "lyrics", "%T", "lyrics",  client, g_bLyrics[client] ? "ON" : "OFF");
+    AddMenuItemEx(menu, ITEMDRAW_DEFAULT, "volume", "%T", "volume",  client, g_iVolume[client]);
+    AddMenuItemEx(menu, ITEMDRAW_DEFAULT, "stop",   "%T", "stop playing", client);
     AddMenuItemEx(menu, g_bMapMusic ? ITEMDRAW_DEFAULT : ITEMDRAW_DISABLED, "mapbgm", "地图音量: %d", g_iBGMVol[client]);
 
     DisplayMenu(menu, client, 30);
@@ -51,13 +51,13 @@ public int MenuHanlder_Main(Handle menu, MenuAction action, int client, int slot
             {
                 reply = false;
                 g_bHandle[client] = true;
-                PrintToChat(client, "%s  按Y输入 歌名( - 歌手) [小括号内选填]", PREFIX);
+                Chat(client, "%t", "search help");
             }
             case 1:
             {
                 g_bDiable[client] = !g_bDiable[client];
                 SetClientCookie(client, g_cDisable, g_bDiable[client] ? "1" : "0");
-                PrintToChat(client, "%s  \x10点歌接收已%s", PREFIX, g_bDiable[client] ? "\x07关闭" : "\x04开启");
+                Chat(client, "%t", "receive chat", g_bDiable[client] ? "\x07OFF" : "\x04ON");
                 if(g_bDiable[client] && g_bPlayed[client] && !g_bListen[client])
                 {
                     Player_Reset(client, true);
@@ -68,7 +68,7 @@ public int MenuHanlder_Main(Handle menu, MenuAction action, int client, int slot
             {
                 g_bLyrics[client] = !g_bLyrics[client];
                 SetClientCookie(client, g_cLyrics, g_bLyrics[client] ? "0" : "1");
-                PrintToChat(client, "%s  \x10歌词显示已%s", PREFIX, g_bLyrics[client] ? "\x04开启" : "\x07关闭");
+                Chat(client, "%t", "receive chat", g_bLyrics[client] ? "\x04ON" : "\x07OFF");
             }
             case 3:
             {
@@ -79,12 +79,12 @@ public int MenuHanlder_Main(Handle menu, MenuAction action, int client, int slot
                 char buf[4];
                 IntToString(g_iVolume[client], buf, 4);
                 SetClientCookie(client, g_cVolume, buf);
-                PrintToChat(client, "%s  \x10音量设置将在下次播放时生效", PREFIX);
+                Chat(client, "%t", "volume chat");
             }
             case 4:
             {
                 Player_Reset(client, true);
-                PrintToChat(client, "%s  \x04音乐已停止播放", PREFIX);
+                Chat(client, "%t", "stop chat");
             }
             case 5:
             {
@@ -123,7 +123,7 @@ public int MenuHandler_DisplayList(Handle menu, MenuAction action, int client, i
         int cost = RoundFloat(length*g_fFactorCredits);
         if(g_bStoreLib && Store_GetClientCredits(client) < cost)
         {
-            PrintToChat(client, "%s  \x07你的信用点不足\x04%d\x07!", PREFIX, cost);
+            Chat(client, "%t", "no enough money", cost);
             return;
         }
 
@@ -136,19 +136,19 @@ public int MenuHandler_DisplayList(Handle menu, MenuAction action, int client, i
 void DisplayConfirmMenu(int client, int cost, const char[] name, const char[] arlist, const char[] album, int time)
 {
     Handle menu = CreateMenu(MenuHandler_Confirm);
-    SetMenuTitle(menu, "您确定要点播以下歌曲吗\n ");
+    SetMenuTitle(menu, "%T", "confirm broadcast", client);
     
-    AddMenuItemEx(menu, ITEMDRAW_DISABLED, " ", "歌名: %s", name);
-    AddMenuItemEx(menu, ITEMDRAW_DISABLED, " ", "歌手: %s", arlist);
-    AddMenuItemEx(menu, ITEMDRAW_DISABLED, " ", "专辑: %s", album);
-    AddMenuItemEx(menu, ITEMDRAW_DISABLED, " ", "时长: %d分%d秒\n ", time/60, time%60);
+    AddMenuItemEx(menu, ITEMDRAW_DISABLED, " ", "%T", "song title",  client, name);
+    AddMenuItemEx(menu, ITEMDRAW_DISABLED, " ", "%T", "song artist", client, arlist);
+    AddMenuItemEx(menu, ITEMDRAW_DISABLED, " ", "%T", "song album",  client, album);
+    AddMenuItemEx(menu, ITEMDRAW_DISABLED, " ", "%T", "song length", client, time/60, time%60);
 
     if(g_bStoreLib)
-        AddMenuItemEx(menu, ITEMDRAW_DEFAULT, "1", "所有人[花费: %d信用点]", cost);
+        AddMenuItemEx(menu, ITEMDRAW_DEFAULT, "1", "%T", "cost money", client, cost);
     else
-        AddMenuItemEx(menu, ITEMDRAW_DEFAULT, "1", "所有人[免费]");
+        AddMenuItemEx(menu, ITEMDRAW_DEFAULT, "1", "%T", "cost free", client);
 
-    AddMenuItemEx(menu, ITEMDRAW_DEFAULT, "2", "自己听[免费]");
+    AddMenuItemEx(menu, ITEMDRAW_DEFAULT, "2", "%T", "cost self", client);
 
     DisplayMenu(menu, client, 15);
 }

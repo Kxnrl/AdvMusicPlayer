@@ -141,7 +141,7 @@ void UTIL_ProcessResult(int userid)
             strcopy(album, 128, "unknown");
 
         // add song to menu
-        AddMenuItemEx(menu, ITEMDRAW_DEFAULT, key, "%s\n歌手: %s\n专辑: %s", name, arlist, album);
+        AddMenuItemEx(menu, ITEMDRAW_DEFAULT, key, "%T", "search result songs", client, name, arlist, album);
         
 #if defined DEBUG
         UTIL_DebugLog("UTIL_ProcessResult -> %d[%s] - %s - %s", _kv.GetNum("id"), name, arlist, album);
@@ -153,7 +153,7 @@ void UTIL_ProcessResult(int userid)
     } while (_kv.GotoNextKey(true));
 
     // set title
-    SetMenuTitle(menu, "[AMP] 音乐搜索结果 (找到 %d 首单曲)\n ", count);
+    SetMenuTitle(menu, "%T", "search result title", client, count);
     DisplayMenu(menu, client, 60);
 
     delete _kv;
@@ -235,7 +235,7 @@ void UTIL_ProcessLyric(int index)
     }
 
     // pre-line
-    Player_LyricHud(index, "5.0", ".....等待歌词中.....");
+    Player_LyricHud(index, "5.0", ".....Lyric.....");
     array_lyric[index].PushString(">>> Music <<<\n");
 
     // processing lyric
@@ -308,9 +308,9 @@ void UTIL_CacheSong(int client, int index)
     }
 
     if(index)
-        PrintToChat(index, "%s  Song is precaching now...", PREFIX);
+        Chat(index, "Song is precaching now...", PREFIX);
     else
-        PrintToChatAll("%s  Song is precaching now...", PREFIX);
+        ChatAll("Song is precaching now...", PREFIX);
 
 #if defined DEBUG
     UTIL_DebugLog("UTIL_CacheSong -> %N -> %s", index, url);
