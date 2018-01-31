@@ -130,8 +130,8 @@
 
     "search help"
     {
-        "en"    "按Y输入 歌名( - 歌手) [小括号内选填]"
-        "chi"   "Input Title( - Artist) in chat [Artist is optional]"
+        "en"   "Input Title( - Artist) in chat [Artist is optional]"
+        "chi"    "按Y输入 歌名( - 歌手) [小括号内选填]"
     }
 
     "receive chat"

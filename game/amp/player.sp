@@ -299,7 +299,7 @@ void Player_BroadcastMusic(int client, bool cached)
 
         // reset player
         Player_Reset(i, false);
-        
+
         // set playing flag
         g_bPlayed[i] = true;
         
