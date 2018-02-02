@@ -105,6 +105,8 @@ public Action Timer_GetLyric(Handle timer, int index)
     }
     else
         UTIL_ProcessLyric(index);
+
+    return Plugin_Stop;
 }
 
 public Action Timer_Lyric(Handle timer, int values)
@@ -137,6 +139,8 @@ public Action Timer_Lyric(Handle timer, int values)
     UTIL_DebugLog("Timer_Lyric -> %s", lyric[1]);
     UTIL_DebugLog("Timer_Lyric -> %s", lyric[2]);
 #endif
+
+    return Plugin_Stop;
 }
 
 void Player_LyricHud(int index, const char[] life, const char[] message)
