@@ -117,8 +117,13 @@ public Action Timer_Lyric(Handle timer, int values)
 
     // find and erase index of timer in timer array
     int idx = array_timer[player_index].FindValue(timer);
-    if(idx != -1)
-        array_timer[player_index].Erase(idx);
+    if(idx == -1)
+    {
+        LogError("Timer_Lyric -> Exception -> lyrics_index[%d] -> player_index[%d]", lyrics_index, player_index);
+        return Plugin_Stop;
+    }
+
+    array_timer[player_index].Erase(idx);
 
     // get lyric in array
     char lyric[3][128];
