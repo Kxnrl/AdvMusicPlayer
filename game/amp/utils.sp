@@ -277,7 +277,7 @@ void UTIL_ProcessLyric(int index)
 #if defined DEBUG
         UTIL_DebugLog("UTIL_ProcessLyric -> Index[%d] -> Delay[%.2f] -> Line -> %s", index, StringToFloat(time[0])*60.0+StringToFloat(time[1]), data[1]);
 #endif
-        array_timer[index].Push(CreateTimer(StringToFloat(time[0])*60.0+StringToFloat(time[1]), Timer_Lyric, (array_lyric[index].PushString(data[1])) | (index << 7)));
+        array_timer[index].Push(CreateTimer(StringToFloat(time[0])*60.0+StringToFloat(time[1]), Timer_Lyric, array_lyric[index].PushString(data[1]) | (index << 7)));
     }
 
     if(GetArraySize(array_lyric[index]) > 2)

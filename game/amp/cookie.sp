@@ -40,7 +40,7 @@ public void OnClientCookiesCached(int client)
     g_bDiable[client] = (StringToInt(buf[0]) ==  1);
     g_iVolume[client] = (StringToInt(buf[1]) >= 10) ? StringToInt(buf[1]) : 65;
     g_bBanned[client] = (StringToInt(buf[2]) ==  1);
-    g_iBGMVol[client] = (strlen(buf[3]) >= 2) ? StringToInt(buf[3]) : 100;
+    g_iBGMVol[client] = (strlen(buf[3]) > 0) ? StringToInt(buf[3]) : 100;
     g_bLyrics[client] = (StringToInt(buf[4]) != 1);
 
     // processing map music
