@@ -106,7 +106,7 @@ public Action Timer_GetLyric(Handle timer, int index)
     else
     {
 #if defined DEBUG
-        UTIL_DebugLog("Timer_GetLyric -> Loading Local Lyrics -> %N -> %d[%s] -> %s", index, g_Sound[index][iSongId], g_Sound[index][szName], url);
+        UTIL_DebugLog("Timer_GetLyric -> Loading Local Lyrics -> %N -> %d[%s] -> %s", index, g_Sound[index][iSongId], g_Sound[index][szName], path);
 #endif
         UTIL_ProcessLyric(index);
     }
