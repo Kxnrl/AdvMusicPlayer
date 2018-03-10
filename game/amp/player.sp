@@ -90,7 +90,7 @@ public Action Timer_GetLyric(Handle timer, int index)
         FormatEx(url, 256, "%s%d", g_urlLyrics, g_Sound[index][iSongId]);
         
 #if defined DEBUG
-        UTIL_DebugLog("Timer_GetLyric -> %N -> %d[%s] -> %s", index, g_Sound[index][iSongId], g_Sound[index][szName], url);
+        UTIL_DebugLog("Timer_GetLyric -> Downloading Lyrics -> %N -> %d[%s] -> %s", index, g_Sound[index][iSongId], g_Sound[index][szName], url);
 #endif
 
         if(g_bSystem2)
@@ -104,7 +104,12 @@ public Action Timer_GetLyric(Handle timer, int index)
         }
     }
     else
+    {
+#if defined DEBUG
+        UTIL_DebugLog("Timer_GetLyric -> Loading Local Lyrics -> %N -> %d[%s] -> %s", index, g_Sound[index][iSongId], g_Sound[index][szName], url);
+#endif
         UTIL_ProcessLyric(index);
+    }
 
     return Plugin_Stop;
 }
@@ -331,8 +336,8 @@ void Player_BroadcastMusic(int client, bool cached)
     }
 
     // load lyric
-    CreateTimer(0.1, Timer_GetLyric, BROADCAST, TIMER_FLAG_NO_MAPCHANGE);
-    
+    CreateTimer(0.5, Timer_GetLyric, BROADCAST, TIMER_FLAG_NO_MAPCHANGE);
+
     // set song end timer
     g_tTimer[BROADCAST] = CreateTimer(g_Sound[BROADCAST][fLength]+0.1, Timer_SoundEnd, BROADCAST);
 }
