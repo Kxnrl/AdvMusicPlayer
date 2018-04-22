@@ -8,10 +8,10 @@
 /*  Description:   An advance music player in source engine game. */
 /*                                                                */
 /*                                                                */
-/*  Copyright (C) 2018  Kyle   https://ump45.moe                  */
+/*  Copyright (C) 2018  Kyle                                      */
 /*  2018/01/01 04:02:39                                           */
 /*                                                                */
-/*  This code is licensed under the MIT License (MIT).            */
+/*  This code is licensed under the GPLv3 License.                */
 /*                                                                */
 /******************************************************************/
 

@@ -7,10 +7,10 @@
 /*  Description:   An advance music player in source engine game. */
 /*                                                                */
 /*                                                                */
-/*  Copyright (C) 2017  Kyle   https://ump45.moe                  */
+/*  Copyright (C) 2017  Kyle                                      */
 /*  2017/12/30 22:06:14                                           */
 /*                                                                */
-/*  This code is licensed under the MIT License (MIT).            */
+/*  This code is licensed under the GPLv3 License    .            */
 /*                                                                */
 /******************************************************************/
 
@@ -336,7 +336,7 @@ void Player_BroadcastMusic(int client, bool cached)
     }
 
     // load lyric
-    CreateTimer(0.5, Timer_GetLyric, BROADCAST, TIMER_FLAG_NO_MAPCHANGE);
+    CreateTimer(0.1, Timer_GetLyric, BROADCAST, TIMER_FLAG_NO_MAPCHANGE);
 
     // set song end timer
     g_tTimer[BROADCAST] = CreateTimer(g_Sound[BROADCAST][fLength]+0.1, Timer_SoundEnd, BROADCAST);
