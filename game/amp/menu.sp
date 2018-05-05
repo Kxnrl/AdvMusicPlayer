@@ -114,7 +114,7 @@ public int MenuHandler_DisplayList(Handle menu, MenuAction action, int client, i
         UTIL_DebugLog("MenuHandler_DisplayList -> %N -> %d", client, itemNum);
 #endif
 
-        g_iSelect[client] = itemNum;
+        g_iSelect[client] = itemNum - (itemNum/6);
         
         int length, sid;
         char name[128], arlist[64], album[64];
