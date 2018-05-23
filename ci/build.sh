@@ -49,7 +49,7 @@ wget "https://github.com/Kxnrl/MapMusic-API/raw/master/include/mapmusic.inc" -q 
 echo "Download system2.inc ..."
 wget "https://github.com/dordnung/System2/raw/master/sourcemod/scripting/include/system2.inc" -q -O include/system2.inc
 echo "Download system2/request.inc ..."
-mkdir include/request
+mkdir include/system2
 wget "https://github.com/dordnung/System2/raw/master/sourcemod/scripting/include/system2/request.inc" -q -O include/system2/request.inc
 
 
@@ -120,7 +120,7 @@ echo "Upload file RSYNC ..."
 RSYNC_PASSWORD=$RSYNC_PSWD rsync -avzP --port $RSYNC_PORT ./$FILE $RSYNC_USER@$RSYNC_HOST::TravisCI/AdvMusicPlayer/$1
 
 #RAW
-if [ "$1" = "1.8" ] && [ "$5" = "master" ]; then
+if [ "$1" = "1.8" ]; then
     echo "Upload RAW..."
     RSYNC_PASSWORD=$RSYNC_PSWD rsync -avzP --port $RSYNC_PORT ./plugins/advmusicplayer.smx $RSYNC_USER@$RSYNC_HOST::TravisCI/_Raw
 fi
