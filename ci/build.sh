@@ -51,6 +51,7 @@ wget "https://github.com/dordnung/System2/raw/master/sourcemod/scripting/include
 echo "Download system2/request.inc ..."
 mkdir include/system2
 wget "https://github.com/dordnung/System2/raw/master/sourcemod/scripting/include/system2/request.inc" -q -O include/system2/request.inc
+wget "https://github.com/dordnung/System2/raw/master/sourcemod/scripting/include/system2/legacy.inc" -q -O include/system2/legacy.inc
 
 
 #下载SteamWorks头文件

@@ -51,6 +51,7 @@ wget "https://github.com/dordnung/System2/raw/master/sourcemod/scripting/include
 echo "Download system2/request.inc ..."
 mkdir include/system2
 wget "https://github.com/dordnung/System2/raw/master/sourcemod/scripting/include/system2/request.inc" -q -O include/system2/request.inc
+wget "https://github.com/dordnung/System2/raw/master/sourcemod/scripting/include/system2/legacy.inc" -q -O include/system2/legacy.inc
 
 
 #下载SteamWorks头文件
@@ -74,8 +75,6 @@ echo "Prepare compile ..."
 for file in game/advmusicplayer.sp
 do
   sed -i "s%<commit_count>%$COUNT%g" $file > output.txt
-  sed -i "s%<commit_branch>%$5%g" $file > output.txt
-  sed -i "s%<commit_date>%$DATE%g" $file > output.txt
   rm output.txt
 done
 
