@@ -218,7 +218,7 @@ void Player_ListenMusic(int client, bool cached)
 
     // init player
     char murl[192];
-    FormatEx(murl, 192, "%s%d&volume=%d&cache=%d&proxy=%d", g_urlPlayer, g_Sound[client][iSongId], g_iVolume[client], g_iEnableCache, g_iEnableProxy);
+    FormatEx(murl, 192, "%s%d&volume=%d&cache=%d", g_urlPlayer, g_Sound[client][iSongId], g_iVolume[client], g_iEnableCache);
     UTIL_OpenMotd(client, murl);
     
 #if defined DEBUG
@@ -322,7 +322,7 @@ void Player_BroadcastMusic(int client, bool cached)
 
         // init player
         char murl[192];
-        FormatEx(murl, 192, "%s%d&volume=%d&cache=%d&proxy=%d", g_urlPlayer, g_Sound[BROADCAST][iSongId], g_iVolume[i], g_iEnableCache, g_iEnableProxy);
+        FormatEx(murl, 192, "%s%d&volume=%d&cache=%d", g_urlPlayer, g_Sound[BROADCAST][iSongId], g_iVolume[i], g_iEnableCache);
         DisplayMainMenu(i);
         UTIL_OpenMotd(i, murl);
         

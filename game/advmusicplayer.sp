@@ -72,13 +72,12 @@ bool g_bStoreLib;
 bool g_bMGLibrary;
 
 // convar values
-int g_iEnableProxy = 0;
 int g_iEnableCache = 0;
 float g_fFactorCredits = 2.0;
-char g_urlSearch[192] = "https://csgogamers.com/musicserver/api/search.php?s=";
-char g_urlLyrics[192] = "https://csgogamers.com/musicserver/api/lyrics.php?id=";
-char g_urlPlayer[192] = "https://csgogamers.com/musicserver/api/player.php?id=";
-char g_urlCached[192] = "https://csgogamers.com/musicserver/api/cached.php?id=";
+char g_urlSearch[192] = "https://api.kxnrl.com/music/search.php?sc=";
+char g_urlLyrics[192] = "https://api.kxnrl.com/music/lyrics.php?id=";
+char g_urlPlayer[192] = "https://api.kxnrl.com/music/player.php?id=";
+char g_urlCached[192] = "https://api.kxnrl.com/music/cached.php?id=";
 
 // client variables
 bool g_bLyrics[MAXPLAYERS+1];
@@ -130,8 +129,8 @@ public Plugin myinfo =
     name        = "Advanced Music Player",
     author      = "Kyle",
     description = "Media System",
-    version     = "2.0.<commit_count> - <commit_date>",
-    url         = "https://ump45.moe"
+    version     = "2.0.<commit_count>",
+    url         = "https://kxnrl.com"
 };
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)

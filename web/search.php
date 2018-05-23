@@ -23,14 +23,14 @@ error_reporting(E_ALL^E_WARNING^E_NOTICE);
 require_once 'NeteaseMusicAPI.php';
 require_once 'KyleUTILs.php';
 
-if(!isset($_GET['s']) || empty($_GET['s'])){
+if(!isset($_GET['sc']) || empty($_GET['sc'])){
     LogMessage("Search -> WTF YOU DOING? EMPTY PARAM!");
     die(404);
 }
 
 // require api
 $api = new NeteaseMusicAPI();
-$data = $api->search($_GET['s']);
+$data = $api->search($_GET['sc']);
 
 // processing result
 $result = json_decode($data);
