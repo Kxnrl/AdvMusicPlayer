@@ -12,11 +12,11 @@ DATE=$(date +"%Y/%m/%d %H:%M:%S")
 
 
 #INFO
-echo -e "*** Trigger build ***"
+echo "*** Trigger build ***"
 
 
 #下载SM
-echo -e "Download sourcemod ..."
+echo "Download sourcemod ..."
 wget "http://www.sourcemod.net/latest.php?version=$1&os=linux" -q -O sourcemod.tar.gz
 tar -xzf sourcemod.tar.gz
 
@@ -26,49 +26,49 @@ mkdir include
 
 
 #下载CG头文件
-echo -e "Download cg_core.inc ..."
+echo "Download cg_core.inc ..."
 wget "https://github.com/Kxnrl/Core/raw/master/include/cg_core.inc" -q -O include/cg_core.inc
 
 
 #下载Store头文件
-echo -e "Download store.inc ..."
+echo "Download store.inc ..."
 wget "https://github.com/Kxnrl/Store/raw/master/include/store.inc" -q -O include/store.inc
 
 
 #下载MotdEx头文件
-echo -e "Download motdex.inc ..."
+echo "Download motdex.inc ..."
 wget "https://github.com/Kxnrl/MotdEx/raw/master/include/motdex.inc" -q -O include/motdex.inc
 
 
 #下载MapMusic头文件
-echo -e "Downlaod mapmusic.inc ..."
+echo "Downlaod mapmusic.inc ..."
 wget "https://github.com/Kxnrl/MapMusic-API/raw/master/include/mapmusic.inc" -q -O include/mapmusic.inc
 
 
 #下载System2头文件
-echo -e "Download system2.inc ..."
+echo "Download system2.inc ..."
 #wget "https://github.com/dordnung/System2/raw/master/system2.inc" -q -O include/system2.inc
 wget "https://github.com/dordnung/System2/raw/v2.6/system2.inc" -q -O include/system2.inc
 
 
 #下载SteamWorks头文件
-echo -e "Download steamworks.inc ..."
+echo "Download steamworks.inc ..."
 wget "https://github.com/KyleSanderson/SteamWorks/raw/master/Pawn/includes/SteamWorks.inc" -q -O include/steamworks.inc
 
 
 #下载MagicGirl.NET头文件
-echo -e "Download MagicGirl/motd.inc"
+echo "Download MagicGirl/motd.inc"
 mkdir include/MagicGirl
 wget "https://github.com/PuellaMagi/Core/raw/master/Game/include/MagicGirl/motd.inc" -q -O include/MagicGirl/motd.inc
 
 
 #设置文件为可执行
-echo -e "Set compiler env ..."
+echo "Set compiler env ..."
 chmod +x addons/sourcemod/scripting/spcomp
 
 
 #更改版本信息
-echo -e "Prepare compile ..."
+echo "Prepare compile ..."
 for file in game/advmusicplayer.sp
 do
   sed -i "s%<commit_count>%$COUNT%g" $file > output.txt
@@ -78,13 +78,13 @@ done
 
 
 #拷贝文件到编译器文件夹
-echo -e "Copy scripts to compiler folder ..."
+echo "Copy scripts to compiler folder ..."
 cp -rf game/* addons/sourcemod/scripting
 cp -rf include/* addons/sourcemod/scripting/include
 
 
 #建立输出文件夹
-echo -e "Check build folder ..."
+echo "Check build folder ..."
 mkdir build
 mkdir build/scripts
 mkdir build/plugins
@@ -100,7 +100,7 @@ fi
 
 
 #移动文件
-echo -e "Move files to build folder ..."
+echo "Move files to build folder ..."
 mv include build/scripts
 mv game/* build/scripts
 mv web/* build/webinterface
@@ -109,19 +109,17 @@ mv README.md build
 
 
 #打包
-echo -e "Compress file ..."
+echo "Compress file ..."
 cd build
 7z a $FILE -t7z -mx9 LICENSE README.md scripts plugins webinterface >nul
 
 
 #上传
-echo -e "Upload file ..."
-lftp -c "open -u $FTP_USER,$FTP_PSWD $FTP_HOST; put -O /AMP/$5/$1/ $FILE"
-
+echo "Upload file RSYNC ..."
+RSYNC_PASSWORD=$RSYNC_PSWD rsync -avzP --port $RSYNC_PORT ./$FILE $RSYNC_USER@$RSYNC_HOST::TravisCI/AdvMusicPlayer/$1
 
 #RAW
 if [ "$1" = "1.8" ] && [ "$5" = "master" ]; then
     echo "Upload RAW..."
-    cd plugins
-    lftp -c "open -u $FTP_USER,$FTP_PSWD $FTP_HOST; put -O /AMP/Raw/ advmusicplayer.smx"
+    RSYNC_PASSWORD=$RSYNC_PSWD rsync -avzP --port $RSYNC_PORT ./plugins/advmusicplayer.smx $RSYNC_USER@$RSYNC_HOST::TravisCI/_Raw
 fi

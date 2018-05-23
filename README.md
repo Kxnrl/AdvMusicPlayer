@@ -4,7 +4,7 @@
   
 An advanced music player in csgo.  
 [YouTube Video](https://www.youtube.com/watch?v=64FPl4TIMbc "YouTube")  
-[![Download](https://csgogamers.com/static/image/download.png)](https://plugins.csgogamers.com/AMP/)  
+[![Download](https://csgogamers.com/static/image/download.png)](https://build.kxnrl.com/AdvMusicPlayer/)  
   
   
 ## Requirements  
@@ -22,7 +22,7 @@ An advanced music player in csgo.
   
 ## Installation  
 - Download and install requirements.  
-- Download latest build from [![Download](https://csgogamers.com/static/image/download.png)](https://plugins.csgogamers.com/AMP/) .  
+- Download latest build from [![Download](https://csgogamers.com/static/image/download.png)](https://build.kxnrl.com/AdvMusicPlayer/) .  
 - Upload web patch to your web host. (u can use csgogamers musicserver, if u want, ignore this step)  
 - Upload smx plugin to your {game dir}/addons/sourcemod/plugins .  
 - Make sure url in your {game dir}/cfg/com.kxnrl.amp.config.cfg .
