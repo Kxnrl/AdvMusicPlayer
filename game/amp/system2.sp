@@ -88,6 +88,7 @@ public void API_DownloadTranslations_System2(bool success, const char[] error, S
         SetFailState("System2 -> API_DownloadTranslations -> Download Translations Error: %s -> HttpCode: %d -> %s", error, response.StatusCode, url);
     }
 
+    char path[128];
     request.GetOutputFile(path, 128);
 
     if(!FileExists(path))

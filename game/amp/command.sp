@@ -124,7 +124,7 @@ public Action OnClientSayCommand(int client, const char[] command, const char[] 
         SteamWorks_SetHTTPRequestContextValue(hRequest, GetClientUserId(client));
         SteamWorks_SetHTTPCallbacks(hRequest, API_SearchMusic_SteamWorks);
         SteamWorks_SendHTTPRequest(hRequest);
-        delete hRequest
+        delete hRequest;
     }
 
     return Plugin_Stop;

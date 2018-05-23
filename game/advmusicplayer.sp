@@ -129,7 +129,7 @@ public Plugin myinfo =
     name        = "Advanced Music Player",
     author      = "Kyle",
     description = "Media System",
-    version     = "2.0.<commit_count>",
+    version     = "2.1.<commit_count>",
     url         = "https://kxnrl.com"
 };
 
