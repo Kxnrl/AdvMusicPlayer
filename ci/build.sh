@@ -47,8 +47,10 @@ wget "https://github.com/Kxnrl/MapMusic-API/raw/master/include/mapmusic.inc" -q 
 
 #下载System2头文件
 echo "Download system2.inc ..."
-#wget "https://github.com/dordnung/System2/raw/master/system2.inc" -q -O include/system2.inc
-wget "https://github.com/dordnung/System2/raw/v2.6/system2.inc" -q -O include/system2.inc
+wget "https://github.com/dordnung/System2/raw/master/sourcemod/scripting/include/system2.inc" -q -O include/system2.inc
+echo "Download system2/request.inc ..."
+mkdir include/request
+wget "https://github.com/dordnung/System2/raw/master/sourcemod/scripting/include/system2/request.inc" -q -O include/system2/request.inc
 
 
 #下载SteamWorks头文件
@@ -72,7 +74,6 @@ echo "Prepare compile ..."
 for file in game/advmusicplayer.sp
 do
   sed -i "s%<commit_count>%$COUNT%g" $file > output.txt
-  sed -i "s%<commit_date>%$DATE%g" $file > output.txt
   rm output.txt
 done
 

@@ -94,13 +94,20 @@ public Action Timer_GetLyric(Handle timer, int index)
 #endif
 
         if(g_bSystem2)
-            System2_DownloadFile(API_GetLyric_System2, url, path, index);
+        {
+            System2HTTPRequest hRequest = new System2HTTPRequest(API_GetLyric_System2, url);
+            hRequest.SetOutputFile(path);
+            hRequest.Any = index;
+            hRequest.GET();
+            delete hRequest;
+        }
         else
         {
-            Handle hHandle = SteamWorks_CreateHTTPRequest(k_EHTTPMethodGET, url);
-            SteamWorks_SetHTTPCallbacks(hHandle, API_GetLyric_SteamWorks);
-            SteamWorks_SetHTTPRequestContextValue(hHandle, index);
-            SteamWorks_SendHTTPRequest(hHandle);
+            Handle hRequest = SteamWorks_CreateHTTPRequest(k_EHTTPMethodGET, url);
+            SteamWorks_SetHTTPCallbacks(hRequest, API_GetLyric_SteamWorks);
+            SteamWorks_SetHTTPRequestContextValue(hRequest, index);
+            SteamWorks_SendHTTPRequest(hRequest);
+            delete hRequest;
         }
     }
     else

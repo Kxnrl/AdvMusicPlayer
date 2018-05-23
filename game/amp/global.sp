@@ -103,10 +103,15 @@ void Global_CheckTranslations()
     char path[128];
     BuildPath(Path_SM, path, 128, "translations/com.kxnrl.amp.translations.txt");
 
-    if(FileExists(path) && FileSize(path) > 2048)
+    if(FileExists(path))
     {
-        LoadTranslations("com.kxnrl.amp.translations");
-        return;
+        if(FileSize(path) > 2048)
+        {
+            LoadTranslations("com.kxnrl.amp.translations");
+            return;
+        }
+        else
+            DeleteFile(path);
     }
 
     Global_CheckLibrary();
@@ -119,12 +124,18 @@ void Global_DownloadTranslations(const char[] path)
     FormatEx(url, 128, "https://github.com/Kxnrl/AdvMusicPlayer/raw/master/game/com.kxnrl.amp.translations.txt");
 
     if(g_bSystem2)
-        System2_DownloadFile(API_DownloadTranslations_System2, url, path);
+    {
+        System2HTTPRequest hRequest = new System2HTTPRequest(API_DownloadTranslations_System2, url);
+        hRequest.SetOutputFile(path);
+        hRequest.GET();
+        delete hRequest;
+    }
     else
     {
         Handle hRequest = SteamWorks_CreateHTTPRequest(k_EHTTPMethodGET, url);
         SteamWorks_SetHTTPRequestContextValue(hRequest, 0);
         SteamWorks_SetHTTPCallbacks(hRequest, API_DownloadTranslations_SteamWorks);
         SteamWorks_SendHTTPRequest(hRequest);
+        delete hRequest;
     }
 }

@@ -298,13 +298,19 @@ void UTIL_CacheSong(int client, int index)
     g_fNextPlay = GetGameTime()+9999.9;
 
     if(g_bSystem2)
-        System2_GetPage(API_CachedSong_System2, url, "", "", values);
+    {
+        System2HTTPRequest hRequest = new System2HTTPRequest(API_PrepareSong_System2, url);
+        hRequest.Any = values;
+        hRequest.GET();
+        delete hRequest;
+    }
     else
     {
         Handle hRequest = SteamWorks_CreateHTTPRequest(k_EHTTPMethodGET, url);
         SteamWorks_SetHTTPRequestContextValue(hRequest, values);
         SteamWorks_SetHTTPCallbacks(hRequest, API_PrepareSong_SteamWorks);
         SteamWorks_SendHTTPRequest(hRequest);
+        delete hRequest;
     }
 
     if(index)

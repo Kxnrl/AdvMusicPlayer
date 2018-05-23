@@ -111,13 +111,20 @@ public Action OnClientSayCommand(int client, const char[] command, const char[] 
     
     // processing search
     if(g_bSystem2)
-        System2_DownloadFile(API_SearchMusic_System2, url, path, GetClientUserId(client));
+    {
+        System2HTTPRequest hRequest = new System2HTTPRequest(API_SearchMusic_System2, url);
+        hRequest.SetOutputFile(path);
+        hRequest.Any = GetClientUserId(client);
+        hRequest.GET();
+        delete hRequest;
+    }
     else
     {
         Handle hRequest = SteamWorks_CreateHTTPRequest(k_EHTTPMethodGET, url);
         SteamWorks_SetHTTPRequestContextValue(hRequest, GetClientUserId(client));
         SteamWorks_SetHTTPCallbacks(hRequest, API_SearchMusic_SteamWorks);
         SteamWorks_SendHTTPRequest(hRequest);
+        delete hRequest
     }
 
     return Plugin_Stop;
