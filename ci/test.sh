@@ -51,7 +51,11 @@ wget "https://github.com/dordnung/System2/raw/master/sourcemod/scripting/include
 
 #下载SteamWorks头文件
 echo "Download steamworks.inc ..."
-wget "https://github.com/KyleSanderson/SteamWorks/raw/master/Pawn/includes/SteamWorks.inc" -q -O include/steamworks.inc
+if [ "$1" = "1.10" ]; then
+    wget "https://github.com/Kxnrl/SteamWorks/raw/master/Pawn/includes/SteamWorks.inc" -q -O include/steamworks.inc
+else 
+    wget "https://github.com/KyleSanderson/SteamWorks/raw/master/Pawn/includes/SteamWorks.inc" -q -O include/steamworks.inc
+fi 
 
 
 #下载MagicGirl.NET头文件
