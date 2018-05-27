@@ -18,7 +18,14 @@
 
 public void API_SearchMusic_System2(bool success, const char[] error, System2HTTPRequest request, System2HTTPResponse response, HTTPRequestMethod method)
 {
-    if(!success || response.StatusCode != 200)
+    if(!success)
+    {
+        char url[192];
+        request.GetURL(url, 192);
+        LogError("System2 -> API_SearchMusic -> Download result Error: %s -> %s", error, url);
+        return;
+    }
+    else if(response.StatusCode != 200)
     {
         char url[192];
         response.GetLastURL(url, 192);
@@ -31,7 +38,14 @@ public void API_SearchMusic_System2(bool success, const char[] error, System2HTT
 
 public void API_GetLyric_System2(bool success, const char[] error, System2HTTPRequest request, System2HTTPResponse response, HTTPRequestMethod method)
 {
-    if(!success || response.StatusCode != 200)
+    if(!success)
+    {
+        char url[192];
+        request.GetURL(url, 192);
+        LogError("System2 -> API_GetLyric -> Download lyric Error: %s -> %s", error, url);
+        return;
+    }
+    else if(response.StatusCode != 200)
     {
         char url[192];
         response.GetLastURL(url, 192);
@@ -49,39 +63,46 @@ public void API_PrepareSong_System2(bool success, const char[] error, System2HTT
     if(!success)
     {
         char url[192];
-        response.GetLastURL(url, 192);
+        request.GetURL(url, 192);
         LogError("System2 -> API_CachedSong -> [%s] -> %s", error, url);
+        return;
     }
     else if(response.StatusCode != 200)
     {
         char url[192];
         response.GetLastURL(url, 192);
         LogError("System2 -> API_CachedSong -> HttpCode: %d -> %s -> %s", response.StatusCode, error, url);
+        return;
+    }
+
+    char[] output = new char[response.ContentLength+1];
+    response.GetContent(output, response.ContentLength+1);
+
+    // php echo "success!" mean preloading success. "file_exists!" mean we were precached.
+    if(strcmp(output, "success!", false) == 0 || strcmp(output, "file_exists!", false) == 0)
+    {
+        int values = view_as<int>(request.Any);
+        int client = values & 0x7f;
+        int target  = values >> 7;
+        if(target == 0)
+            Player_BroadcastMusic(client, true);
+        else
+            Player_ListenMusic(client, true);
     }
     else
-    {
-        char[] output = new char[response.ContentLength+1];
-        response.GetContent(output, response.ContentLength+1);
-
-        // php echo "success!" mean preloading success. "file_exists!" mean we were precached.
-        if(strcmp(output, "success!", false) == 0 || strcmp(output, "file_exists!", false) == 0)
-        {
-            int values = view_as<int>(request.Any);
-            int client = values & 0x7f;
-            int target  = values >> 7;
-            if(target == 0)
-                Player_BroadcastMusic(client, true);
-            else
-                Player_ListenMusic(client, true);
-        }
-        else
-            LogError("System2 -> API_CachedSong -> [%s]", output);
-    }
+        LogError("System2 -> API_CachedSong -> [%s]", output);
 }
 
 public void API_DownloadTranslations_System2(bool success, const char[] error, System2HTTPRequest request, System2HTTPResponse response, HTTPRequestMethod method)
 {
-    if(!success || response.StatusCode != 200)
+    if(!success)
+    {
+        char url[192];
+        request.GetURL(url, 192);
+        SetFailState("System2 -> API_DownloadTranslations -> Download Translations Error: %s -> %s", error, url);
+    }
+    
+    if(response.StatusCode != 200)
     {
         char url[192];
         response.GetLastURL(url, 192);
