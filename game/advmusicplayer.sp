@@ -28,11 +28,6 @@
 // Cookies
 #include <clientprefs>
 
-// CG library
-#undef REQUIRE_PLUGIN
-#include <cg_core>
-#define REQUIRE_PLUGIN
-
 // Store library
 #undef REQUIRE_PLUGIN
 #include <store>
@@ -46,11 +41,6 @@
 // MotdEx library
 #undef REQUIRE_PLUGIN
 #include <motdex>
-#define REQUIRE_PLUGIN
-
-// MagicGirl library
-#undef REQUIRE_PLUGIN
-#include <MagicGirl/motd>
 #define REQUIRE_PLUGIN
 
 // other stuff
@@ -67,9 +57,7 @@ float g_fNextPlay;
 bool g_bMotdEx;
 bool g_bMapMusic;
 bool g_bSystem2;
-bool g_bCoreLib;
 bool g_bStoreLib;
-bool g_bMGLibrary;
 
 // convar values
 int g_iEnableCache = 0;

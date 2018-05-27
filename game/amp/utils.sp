@@ -18,13 +18,7 @@
 
 void UTIL_OpenMotd(int index, const char[] url)
 {
-    if(g_bMGLibrary)
-        MG_Motd_ShowHiddenMotd(index, url);
-    // using corelib
-    else if(g_bCoreLib)
-        CG_ShowHiddenMotd(index, url);
-    // using motdex
-    else if(g_bMotdEx)
+    if(g_bMotdEx)
         MotdEx_ShowHiddenMotd(index, url);
     else
     {
@@ -44,13 +38,7 @@ void UTIL_OpenMotd(int index, const char[] url)
 
 void UTIL_RemoveMotd(int index)
 {
-    if(g_bMGLibrary)
-        MG_Motd_RemoveMotd(index);
-    // using corelib
-    else if(g_bCoreLib)
-        CG_RemoveMotd(index);
-    // using motdex
-    else if(g_bMotdEx)
+    if(g_bMotdEx)
         MotdEx_RemoveMotd(index);
     else
         UTIL_OpenMotd(index, "about:blank");
@@ -325,13 +313,6 @@ void UTIL_CacheSong(int client, int index)
 
 void UTIL_ShowLyric(int client, const char[] message, const char[] life)
 {
-    // using corelib
-    if(g_bCoreLib)
-    {
-        CG_ShowGameTextToClient(message, life, "57 197 187", "-1.0", "0.8", client);
-        return;
-    }
-
     // we use sync hud
     static Handle hSync;
     if(hSync == INVALID_HANDLE)
