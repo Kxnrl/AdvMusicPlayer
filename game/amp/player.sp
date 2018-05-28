@@ -284,21 +284,27 @@ void Player_BroadcastMusic(int client, bool cached)
     // get song info
     int iLength;
     UTIL_ProcessSongInfo(client, g_Sound[BROADCAST][szName], g_Sound[BROADCAST][szSinger], g_Sound[BROADCAST][szAlbum], iLength, g_Sound[BROADCAST][iSongId]);
-    g_Sound[BROADCAST][fLength] = float(iLength);
-
-#if defined DEBUG
-    UTIL_DebugLog("Player_BroadcastMusic -> %N -> [%d]%s -> %.2f", client, g_Sound[BROADCAST][iSongId], g_Sound[BROADCAST][szName], g_Sound[BROADCAST][fLength]);
-#endif
-
+    
     // if store is available, handle credits
     if(g_bStoreLib)
     {
-        int cost = RoundFloat(g_Sound[BROADCAST][fLength]*g_fFactorCredits);
+        int cost = RoundFloat(iLength*g_fFactorCredits);
+        if(Store_GetClientCredits(client) < cost)
+        {
+            Chat(client, "%t", "no enough money", cost);
+            return;
+        }
         char reason[128];
         FormatEx(reason, 128, "点歌系统点歌[%d.%s]", g_Sound[BROADCAST][iSongId], g_Sound[BROADCAST][szName]);
         Store_SetClientCredits(client, Store_GetClientCredits(client) - cost, reason);
         Chat(client, "%t", "cost to broadcast", cost, g_Sound[BROADCAST][szName]);
     }
+
+    g_Sound[BROADCAST][fLength] = float(iLength);
+
+#if defined DEBUG
+    UTIL_DebugLog("Player_BroadcastMusic -> %N -> [%d]%s -> %.2f", client, g_Sound[BROADCAST][iSongId], g_Sound[BROADCAST][szName], g_Sound[BROADCAST][fLength]);
+#endif
 
     ChatAll("%t", "broadcast", client, g_Sound[BROADCAST][szName]);
     LogToFileEx(logFile, "\"%L\" 点播了歌曲[%s - %s]", client, g_Sound[BROADCAST][szName],  g_Sound[BROADCAST][szSinger]);
