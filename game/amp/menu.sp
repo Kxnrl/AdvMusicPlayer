@@ -120,6 +120,7 @@ public int MenuHandler_DisplayList(Handle menu, MenuAction action, int client, i
         char name[128], arlist[64], album[64];
         UTIL_ProcessSongInfo(client, name, arlist, album, length, sid);
 
+        int cost = RoundFloat(length*g_fFactorCredits);
         DisplayConfirmMenu(client, cost, name, arlist, album, length);
     }
     else if(action == MenuAction_End)
