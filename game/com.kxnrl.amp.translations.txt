@@ -21,18 +21,21 @@
         "#format" "{1:N},{2:s}"
         "en"    "{green}{1} {default} Playing [{orange}{2}{default}]"
         "chi"   "{green}{1}{default}正在收听[{orange}{2}{default}]"
+        "fr"    "{green}{1} {default} Joué [{orange}{2}{default}]"
     }
 
     "banned notice"
     {
         "en"    "{red}You have been banned from using Music player"
         "chi"   "{red}你已被封禁点歌"
+        "fr"    "{red}Vous avez été banni d'utiliser le lecteur de musique"
     }
 
     "last timeout"
     {
         "en"    "{orange}Last-picked song still active. Please return when expired."
         "chi"   "{orange}上次点歌未过期,请等待时间结束"
+        "fr"    "{orange}La dernière chanson est toujours active. S'il vous plaît réessayer quand elle sera fini."
     }
 
     "cost to broadcast"
@@ -40,6 +43,7 @@
         "#format" "{1:d},{2:s}"
         "en"    "{green}You paid {orange}{1}{green}credits for order song:[{blue}{2}{green}]."
         "chi"   "{green}您支付了{orange}{1}{green}信用点来点播[{blue}{2}{green}]."
+        "fr"    "{green}Vous avez payé {orange}{1}{green}crédits pour la chanson d'ordre:[{blue}{2}{green}]."
     }
 
     "broadcast"
@@ -47,6 +51,7 @@
         "#format" "{1:N},{2:s}"
         "en"    "{green}{1}{default}Play song[{blue}{2}{default}]"
         "chi"   "{green}{1}{default}点播歌曲[{blue}{2}{default}]"
+        "fr"    "{green}{1}{default}Musique jouer actuellement[{blue}{2}{default}]"
     }
 
     "search result songs"
@@ -54,19 +59,22 @@
         "#format" "{1:s},{2:s},{3:s}"
         "en"    "{1}\nArtist: {2}\nAlbum: {3}"
         "chi"   "{1}\n歌手: {2}\n专辑: {3}"
+        "fr"    "{1}\nArtiste: {2}\nAlbum: {3}"
     }
 
     "search result title"
     {
         "#format" "{1:d}"
         "en"    "[AMP] Search result ( {1} singles found)\n "
-        "chi"   "AMP] 音乐搜索结果 (找到 {1} 首单曲)\n "
+        "chi"   "[AMP] 音乐搜索结果 (找到 {1} 首单曲)\n "
+        "fr"    "[AMP] Résultat de la recherche ( {1} musiques trouvés)\n "
     }
 
     "admin force stop"
     {
         "en"    "{darkred}Playing song was interrupted by admin!"
         "chi"   "{darkred}权限X强行停止了音乐播放!"
+        "fr"    "{darkred}La lecture de la chanson a été interrompue par l'admin!"
     }
 
     "music ban chat"
@@ -74,12 +82,14 @@
         "#format" "{1:N},{2:s}"
         "en"    "{orange}{1}{default} got music {red}{2}{default}."
         "chi"   "因为乱玩点歌系统,{orange}{1}{default}已被{red}封禁{default}点歌权限."
+        "fr"    "{orange}{1}{default} a de la musique {red}{2}{default}."
     }
 
     "searching"
     {
         "en"    "{green}Searching(through Netease Cloudmusic)..."
         "chi"   "{green}正在搜索音乐(当前引擎: 网易云音乐)..."
+        "fr"    "{green}Recherche(par Netease Cloudmusic)..."
     }
 
     "player info"
@@ -87,18 +97,21 @@
         "#format" "{1:s},{2:s},{3:s}"
         "en"    "Now playing▼\n \nTitle: {1}\nArtist: {2}\nAlbum: {3}\n "
         "chi"   "正在播放▼\n \n歌名: {1}\n歌手: {2}\n专辑: {3}\n "
+        "fr"    "Lecture en cours▼\n \nTitre: {1}\nArtiste: {2}\nAlbum: {3}\n "
     }
 
     "player title"
     {
-        "en"    "[AMP]  Main Memu\n "
+        "en"    "[AMP]  Main Menu\n "
         "chi"   "[多媒体系统]  主菜单\n "
+        "fr"    "[AMP]  Menu principal\n "
     }
 
     "search"
     {
         "en"    "Search song"
         "chi"   "搜索音乐"
+        "fr"    "Rechercher une chanson"
     }
 
     "receive"
@@ -106,6 +119,7 @@
         "#format" "{1:s}"
         "en"    "Receive song: {1}"
         "chi"   "点歌接收: {1}"
+        "fr"    "Recevoir une chanson: {1}"
     }
 
     "lyrics"
@@ -113,6 +127,7 @@
         "#format" "{1:s}"
         "en"    "Lyrics: {1}"
         "chi"   "歌词显示: {1}"
+        "fr"    "Paroles: {1}"
     }
 
     "volume"
@@ -120,18 +135,21 @@
         "#format" "{1:d}"
         "en"    "Volume: {1}"
         "chi"   "点歌音量: {1}"
+        "fr"    "Volume: {1}"
     }
 
     "stop playing"
     {
         "en"    "Stop"
         "chi"   "停止播放"
+        "fr"    "Arrêtez"
     }
 
     "search help"
     {
-        "en"   "Input Title( - Artist) in chat [Artist is optional]"
-        "chi"    "按Y输入 歌名( - 歌手) [小括号内选填]"
+        "en"    "Input Title( - Artist) in chat [Artist is optional]"
+        "chi"   "按Y输入 歌名( - 歌手) [小括号内选填]"
+        "fr"    "Titre d'entrée (- Artiste) dans le chat [L'artiste est optionnel]"
     }
 
     "receive chat"
@@ -139,6 +157,7 @@
         "#format" "{1:s}"
         "en"    "{orange}Song receive: {1}"
         "chi"   "{orange}点歌接收已{1}"
+        "fr"    "{orange}Musique recu: {1}"
     }
 
     "lyrics chat"
@@ -146,18 +165,21 @@
         "#format" "{1:s}"
         "en"    "{orange}Lyrics: {1}"
         "chi"   "{orange}歌词显示已{1}"
+        "fr"    "{orange}Paroles: {1}"
     }
 
     "volume chat"
     {
         "en"    "{orange}Volume adjustment will effect on next song."
         "chi"   "{orange}音量设置将在下次播放时生效."
+        "fr"    "{orange}Le réglage du volume affectera la chanson suivante."
     }
 
     "stop chat"
     {
         "en"    "{green}Music stopped."
         "chi"   "{green}音乐已停止播放."
+        "fr"    "{green}Musique arrêtée."
     }
 
     "no enough money"
@@ -165,12 +187,14 @@
         "#format" "{1:d}"
         "en"    "{red}Insufficient credits{green}{1}{red}!"
         "chi"   "{red}你的信用点不足{green}{1}{red}!"
+        "fr"    "{red}Crédits insuffisants{green}{1}{red}!"
     }
 
     "confirm broadcast"
     {
         "en"    "You sure to order these song below?"
         "chi"   "您确定要点播以下歌曲吗\n "
+        "fr"    "Vous êtes sûr de commander cette chanson ci-dessous?"
     }
 
     "song title"
@@ -178,6 +202,7 @@
         "#format" "{1:s}"
         "en"    "Title: {1}"
         "chi"   "歌名: {1}"
+        "fr"    "Titre: {1}"
     }
 
     "song artist"
@@ -185,6 +210,7 @@
         "#format" "{1:s}"
         "en"    "Artist: {1}"
         "chi"   "歌手: {1}"
+        "fr"    "Artiste: {1}"
     }
 
     "song album"
@@ -192,6 +218,7 @@
         "#format" "{1:s}"
         "en"    "Album: {1}"
         "chi"   "专辑: {1}"
+        "fr"    "Album: {1}"
     }
 
     "song length"
@@ -199,6 +226,7 @@
         "#format" "{1:d},{2:d}"
         "en"    "Length: %d分%d秒\n "
         "chi"   "时长: %d分%d秒\n "
+        "fr"    "Longueur: %d分%d秒\n "
     }
 
     "cost money"
@@ -206,17 +234,20 @@
         "#format" "{1:d}"
         "en"    "To all[Cost: {1}credits]"
         "chi"   "所有人[花费: {1}用点]"
+        "fr"    "Pour tous[Coût: {1}crédits]"
     }
 
     "cost free"
     {
         "en"    "To all[Free]"
         "chi"   "所有人[免费]"
+        "fr"    "Pour tous[Gratuit]"
     }
 
     "cost self"
     {
         "en"    "To self[Free]"
         "chi"   "自己听[免费]"
+        "fr"    "Pour soi[Gratuit]"
     }
 }
