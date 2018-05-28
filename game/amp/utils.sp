@@ -363,6 +363,6 @@ void UTIL_DebugLog(const char[] log, any ...)
 {
     char buffer[512];
     VFormat(buffer, 512, log, 2);
-    LogToFileEx("addons/sourcemod/logs/mediasystem.debug.log", buffer);
+    LogToFileEx("addons/sourcemod/logs/advmusicplayer.debug.log", buffer);
 }
 #endif
