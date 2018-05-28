@@ -111,8 +111,9 @@ void Global_CheckTranslations()
 void Global_DownloadTranslations(const char[] path)
 {
     char url[128];
-    FormatEx(url, 128, "https://github.com/Kxnrl/AdvMusicPlayer/raw/master/game/com.kxnrl.amp.translations.txt");
-
+    //FormatEx(url, 128, "https://github.com/Kxnrl/AdvMusicPlayer/raw/master/game/com.kxnrl.amp.translations.txt");
+    FormatEx(url, 128, "https://build.kxnrl.com/_Raw/translations/com.kxnrl.amp.translations.txt");
+    
     if(g_bSystem2)
     {
         System2HTTPRequest hRequest = new System2HTTPRequest(API_DownloadTranslations_System2, url);
