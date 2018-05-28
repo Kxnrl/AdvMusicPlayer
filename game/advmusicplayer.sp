@@ -138,8 +138,15 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
     MarkNativeAsOptional("MG_Motd_RemoveMotd");
 
     // System2
-    MarkNativeAsOptional("System2_GetPage");
-    MarkNativeAsOptional("System2_DownloadFile");
+    MarkNativeAsOptional("System2HTTPRequest.System2HTTPRequest");
+    MarkNativeAsOptional("System2HTTPRequest.GET");
+    MarkNativeAsOptional("System2Request.SetOutputFile");
+    MarkNativeAsOptional("System2Request.GetOutputFile");
+    MarkNativeAsOptional("System2Request.Any.get");
+    MarkNativeAsOptional("System2Request.Any.set");
+    MarkNativeAsOptional("System2Request.GetURL");
+    MarkNativeAsOptional("System2Response.StatusCode.get");
+    MarkNativeAsOptional("System2Response.GetLastURL");
 
     // SteamWorks
     MarkNativeAsOptional("SteamWorks_CreateHTTPRequest");
