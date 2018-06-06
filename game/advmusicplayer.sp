@@ -38,11 +38,6 @@
 #include <mapmusic>
 #define REQUIRE_PLUGIN
 
-// MotdEx library
-#undef REQUIRE_PLUGIN
-#include <motdex>
-#define REQUIRE_PLUGIN
-
 // other stuff
 #define PREFIX            "[\x10AMP\x01]  "
 #define logFile           "addons/sourcemod/logs/advmusicplayer.log"
