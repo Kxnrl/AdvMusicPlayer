@@ -14,8 +14,6 @@ An advanced music player in csgo.
 #### Extensions (Select one, if both were installed, priority use System2)  
 - [SteamWorks](https://forums.alliedmods.net/showthread.php?t=229556 "AlliedModders") - Required to download anythings.  
 - [System2](https://forums.alliedmods.net/showthread.php?t=146019 "AlliedModders") - Required to download anythings or open page (>= 3.0).  
-#### Plugins  
-- [MotdEx](https://github.com/Kxnrl/MotdEx "GitHub") - Required to open VGUI panel.  
   
   
 ## Recommend Plugins  

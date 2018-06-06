@@ -18,18 +18,13 @@
 
 void UTIL_OpenMotd(int index, const char[] url)
 {
-    if(g_bMotdEx)
-        MotdEx_ShowHiddenMotd(index, url);
-    else
-    {
-        Handle m_hKv = CreateKeyValues("data");
-        KvSetString(m_hKv, "title", "Kyle feat. UMP45");
-        KvSetNum(m_hKv, "type", MOTDPANEL_TYPE_URL);
-        KvSetString(m_hKv, "msg", url);
-        KvSetNum(m_hKv, "cmd", 0);
-        ShowVGUIPanel(index, "info", m_hKv, false);
-        CloseHandle(m_hKv);
-    }
+    KeyValues kv = new KeyValues("data");
+    kv.SetString("title", "Advanced Music Player");
+    kv.SetNum("type", MOTDPANEL_TYPE_URL);
+    kv.SetString("msg", url);
+    kv.SetNum("cmd", 0);
+    ShowVGUIPanel(index, "info", m_hKv, false);
+    delete m_hKv;
 
 #if defined DEBUG
     UTIL_DebugLog("UTIL_OpenMotd -> %N -> %s", index, url);
@@ -38,10 +33,7 @@ void UTIL_OpenMotd(int index, const char[] url)
 
 void UTIL_RemoveMotd(int index)
 {
-    if(g_bMotdEx)
-        MotdEx_RemoveMotd(index);
-    else
-        UTIL_OpenMotd(index, "about:blank");
+    UTIL_OpenMotd(index, "about:blank");
 
 #if defined DEBUG
     UTIL_DebugLog("UTIL_RemoveMotd -> %N", index);

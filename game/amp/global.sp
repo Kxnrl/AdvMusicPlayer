@@ -74,7 +74,6 @@ void Global_CheckLibrary()
 {
     // check library availavle
     g_bStoreLib = LibraryExists("store") && (GetFeatureStatus(FeatureType_Native, "Store_GetClientCredits") == FeatureStatus_Available);
-    g_bMotdEx = LibraryExists("MotdEx") && (GetFeatureStatus(FeatureType_Native, "MotdEx_ShowHiddenMotd") == FeatureStatus_Available);
     g_bMapMusic = LibraryExists("MapMusic") && (GetFeatureStatus(FeatureType_Native, "MapMusic_SetStatus") == FeatureStatus_Available);
     g_bSystem2 = LibraryExists("system2");
     if(!g_bSystem2 && GetFeatureStatus(FeatureType_Native, "SteamWorks_CreateHTTPRequest") != FeatureStatus_Available)
@@ -82,7 +81,6 @@ void Global_CheckLibrary()
     
 #if defined DEBUG
     UTIL_DebugLog("Global_CheckLibrary -> g_bStoreLib -> %s", g_bStoreLib ? "Loaded" : "Failed");
-    UTIL_DebugLog("Global_CheckLibrary -> g_bMotdEx -> %s", g_bMotdEx ? "Loaded" : "Failed");
     UTIL_DebugLog("Global_CheckLibrary -> g_bMapMusic -> %s", g_bMapMusic ? "Loaded" : "Failed");
     UTIL_DebugLog("Global_CheckLibrary -> g_bSystem2 -> %s", g_bSystem2 ? "Loaded" : "Failed");
 #endif

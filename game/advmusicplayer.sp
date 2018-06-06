@@ -54,7 +54,6 @@
 
 // global variables
 float g_fNextPlay;
-bool g_bMotdEx;
 bool g_bMapMusic;
 bool g_bSystem2;
 bool g_bStoreLib;
