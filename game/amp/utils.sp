@@ -23,8 +23,8 @@ void UTIL_OpenMotd(int index, const char[] url)
     kv.SetNum("type", MOTDPANEL_TYPE_URL);
     kv.SetString("msg", url);
     kv.SetNum("cmd", 0);
-    ShowVGUIPanel(index, "info", m_hKv, false);
-    delete m_hKv;
+    ShowVGUIPanel(index, "info", kv, false);
+    delete kv;
 
 #if defined DEBUG
     UTIL_DebugLog("UTIL_OpenMotd -> %N -> %s", index, url);
