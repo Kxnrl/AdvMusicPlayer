@@ -31,7 +31,7 @@ An advanced music player in csgo.
   
   
 ## Commands  
-- **sm_music** - Open main menu. [alias: ***sm_dj***]  
+- **sm_music** - Open main menu. [alias: ***sm_dj*** / ***sm_media***]  
 - **sm_adminmusicstop** - [Admin Command - Ban flag] Stop broadcasting.  
 - **sm_musicban** - [Admin Command - Ban flag] Bans the selected player from broadcasting. [Usage: sm_musicban <player steamid|userid>] 
   

@@ -21,9 +21,7 @@ void Command_CreateCommand()
     // console command
     RegConsoleCmd("sm_music",        Command_Music);
     RegConsoleCmd("sm_dj",           Command_Music);
-    RegConsoleCmd("sm_stop",         Command_Music);
-    RegConsoleCmd("sm_stopmusic",    Command_Music);
-    RegConsoleCmd("sm_mapmusic",     Command_Music);
+    RegConsoleCmd("sm_media",        Command_Music);
 
     // admin command
     RegAdminCmd("sm_adminmusicstop", Command_AdminStop, ADMFLAG_BAN);
