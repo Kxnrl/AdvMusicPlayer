@@ -66,7 +66,7 @@ void Player_Reset(int index, bool removeMotd = false)
     
         // handle map music
         if(g_bMapMusic)
-            MapMusic_SetStatus(index, false);
+            MapMusic_SetStatus(index, g_bStatus[index]);
     }
     
 #if defined DEBUG
@@ -249,7 +249,10 @@ void Player_ListenMusic(int client, bool cached)
     
     // handle map music
     if(g_bMapMusic)
+    {
+        g_bStatus[client] = MapMusic_GetStatus(client);
         MapMusic_SetStatus(client, true);
+    }
 }
 
 void Player_BroadcastMusic(int client, bool cached)
@@ -341,7 +344,10 @@ void Player_BroadcastMusic(int client, bool cached)
         
         // handle map music
         if(g_bMapMusic)
+        {
+            g_bStatus[i] = MapMusic_GetStatus(i);
             MapMusic_SetStatus(i, true);
+        }
 
 #if defined DEBUG
         UTIL_DebugLog("Player_BroadcastMusic -> Handle clients -> %N -> %s", i, murl);

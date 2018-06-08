@@ -30,7 +30,7 @@ void DisplayMainMenu(int client)
     AddMenuItemEx(menu, ITEMDRAW_DEFAULT, "lyrics", "%T", "lyrics",  client, g_bLyrics[client] ? "ON" : "OFF");
     AddMenuItemEx(menu, ITEMDRAW_DEFAULT, "volume", "%T", "volume",  client, g_iVolume[client]);
     AddMenuItemEx(menu, ITEMDRAW_DEFAULT, "stop",   "%T", "stop playing", client);
-    AddMenuItemEx(menu, g_bMapMusic ? ITEMDRAW_DEFAULT : ITEMDRAW_DISABLED, "mapbgm", "地图音量: %d", g_iBGMVol[client]);
+    AddMenuItemEx(menu, g_bMapMusic ? ITEMDRAW_DEFAULT : ITEMDRAW_DISABLED, "mapbgm", "%T: %d", g_bMapMusic ? "map bgm a" : "map bgm ua", g_bMapMusic ? MapMusic_GetVolume(client) : 100);
 
     DisplayMenu(menu, client, 30);
 }
@@ -85,18 +85,6 @@ public int MenuHanlder_Main(Handle menu, MenuAction action, int client, int slot
             {
                 Player_Reset(client, true);
                 Chat(client, "%t", "stop chat");
-            }
-            case 5:
-            {
-                if(g_iBGMVol[client] >= 10)
-                    g_iBGMVol[client] -= 10;
-                else
-                    g_iBGMVol[client] = 100;
-
-                char buf[4];
-                IntToString(g_iBGMVol[client], buf, 4);
-                SetClientCookie(client, g_cBGMVol, buf);
-                MapMusic_SetVolume(client, g_iBGMVol[client]);
             }
         }
 

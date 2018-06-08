@@ -62,6 +62,7 @@ char g_urlPlayer[192] = "https://api.kxnrl.com/music/player.php?id=";
 char g_urlCached[192] = "https://api.kxnrl.com/music/cached.php?id=";
 
 // client variables
+bool g_bStatus[MAXPLAYERS+1];
 bool g_bLyrics[MAXPLAYERS+1];
 bool g_bDiable[MAXPLAYERS+1];
 bool g_bBanned[MAXPLAYERS+1];
@@ -69,7 +70,6 @@ bool g_bHandle[MAXPLAYERS+1];
 bool g_bPlayed[MAXPLAYERS+1];
 bool g_bListen[MAXPLAYERS+1];
 int  g_iVolume[MAXPLAYERS+1];
-int  g_iBGMVol[MAXPLAYERS+1];
 int  g_iSelect[MAXPLAYERS+1];
 Handle g_tTimer[MAXPLAYERS+1];
 
@@ -82,13 +82,12 @@ enum songinfo
     String:szAlbum[64],
     Float:fLength
 }
-songinfo g_Sound[MAXPLAYERS+1][songinfo];
+any g_Sound[MAXPLAYERS+1][songinfo];
 
 // cookies
 Handle g_cDisable;
 Handle g_cVolume;
 Handle g_cBanned;
-Handle g_cBGMVol;
 Handle g_cLyrics;
 
 // lyric array
@@ -156,7 +155,9 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 
     // MapMusic
     MarkNativeAsOptional("MapMusic_SetStatus");
+    MarkNativeAsOptional("MapMusic_GetStatus");
     MarkNativeAsOptional("MapMusic_SetVolume");
+    MarkNativeAsOptional("MapMusic_GetVolume");
 
     return APLRes_Success;
 }
@@ -217,7 +218,6 @@ public void OnClientConnected(int client)
     g_bHandle[client] = false;
     g_bLyrics[client] = true;
     g_iVolume[client] = 100;
-    g_iBGMVol[client] = 100;
 
 #if defined DEBUG
     UTIL_DebugLog("OnClientConnected -> Init %N", client);
