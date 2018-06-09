@@ -30,7 +30,7 @@ void DisplayMainMenu(int client)
     AddMenuItemEx(menu, ITEMDRAW_DEFAULT, "lyrics", "%T", "lyrics",  client, g_bLyrics[client] ? "ON" : "OFF");
     AddMenuItemEx(menu, ITEMDRAW_DEFAULT, "volume", "%T", "volume",  client, g_iVolume[client]);
     AddMenuItemEx(menu, ITEMDRAW_DEFAULT, "stop",   "%T", "stop playing", client);
-    AddMenuItemEx(menu, g_bMapMusic ? ITEMDRAW_DEFAULT : ITEMDRAW_DISABLED, "mapbgm", "%T: %d", g_bMapMusic ? "map bgm a" : "map bgm ua", g_bMapMusic ? MapMusic_GetVolume(client) : 100);
+    AddMenuItemEx(menu, g_bMapMusic ? ITEMDRAW_DEFAULT : ITEMDRAW_DISABLED, "mapbgm", "%T: %d", g_bMapMusic ? "map bgm a" : "map bgm ua", client, g_bMapMusic ? MapMusic_GetVolume(client) : 100);
 
     DisplayMenu(menu, client, 30);
 }
