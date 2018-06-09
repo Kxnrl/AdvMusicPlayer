@@ -23,6 +23,7 @@ public void API_SearchMusic_System2(bool success, const char[] error, System2HTT
         char url[192];
         request.GetURL(url, 192);
         LogError("System2 -> API_SearchMusic -> Download result Error: %s -> %s", error, url);
+        UTIL_NotifyFailure(GetClientOfUserId(view_as<int>(request.Any)), "failed to search music");
         return;
     }
     else if(response.StatusCode != 200)
@@ -30,6 +31,7 @@ public void API_SearchMusic_System2(bool success, const char[] error, System2HTT
         char url[192];
         response.GetLastURL(url, 192);
         LogError("System2 -> API_SearchMusic -> Download result Error: %s -> HttpCode: %d -> %s", error, response.StatusCode, url);
+        UTIL_NotifyFailure(GetClientOfUserId(view_as<int>(request.Any)), "failed to search music");
         return;
     }
 
@@ -53,18 +55,22 @@ public void API_GetLyric_System2(bool success, const char[] error, System2HTTPRe
         return;
     }
 
-    UTIL_ProcessLyric(view_as<int>(request.Any));
+    CreateTimer(0.1, UTIL_ProcessLyric, view_as<int>(request.Any));
 }
 
 public void API_PrepareSong_System2(bool success, const char[] error, System2HTTPRequest request, System2HTTPResponse response, HTTPRequestMethod method)
 {
     g_fNextPlay = 0.0;
+    int values = view_as<int>(request.Any);
+    int client = values & 0x7f;
+    int target  = values >> 7;
     
     if(!success)
     {
         char url[192];
         request.GetURL(url, 192);
         LogError("System2 -> API_CachedSong -> [%s] -> %s", error, url);
+        UTIL_NotifyFailure(client, "failed to precache song");
         return;
     }
     else if(response.StatusCode != 200)
@@ -72,6 +78,7 @@ public void API_PrepareSong_System2(bool success, const char[] error, System2HTT
         char url[192];
         response.GetLastURL(url, 192);
         LogError("System2 -> API_CachedSong -> HttpCode: %d -> %s -> %s", response.StatusCode, error, url);
+        UTIL_NotifyFailure(client, "failed to precache song");
         return;
     }
 
@@ -81,16 +88,16 @@ public void API_PrepareSong_System2(bool success, const char[] error, System2HTT
     // php echo "success!" mean preloading success. "file_exists!" mean we were precached.
     if(strcmp(output, "success!", false) == 0 || strcmp(output, "file_exists!", false) == 0)
     {
-        int values = view_as<int>(request.Any);
-        int client = values & 0x7f;
-        int target  = values >> 7;
         if(target == 0)
             Player_BroadcastMusic(client, true);
         else
             Player_ListenMusic(client, true);
     }
     else
+    {
+        UTIL_NotifyFailure(client, "failed to precache song");
         LogError("System2 -> API_CachedSong -> [%s]", output);
+    }
 }
 
 public void API_DownloadTranslations_System2(bool success, const char[] error, System2HTTPRequest request, System2HTTPResponse response, HTTPRequestMethod method)

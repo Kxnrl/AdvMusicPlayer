@@ -133,9 +133,9 @@
     "volume"
     {
         "#format" "{1:d}"
-        "en"    "Volume: {1}"
+        "en"    "Song volume: {1}"
         "chi"   "点歌音量: {1}"
-        "fr"    "Volume: {1}"
+        "fr"    "Song volume: {1}"
     }
 
     "stop playing"
@@ -224,9 +224,9 @@
     "song length"
     {
         "#format" "{1:d},{2:d}"
-        "en"    "Length: %d分%d秒\n "
-        "chi"   "时长: %d分%d秒\n "
-        "fr"    "Longueur: %d分%d秒\n "
+        "en"    "Length: {1}:{2}\n "
+        "chi"   "时长: {1}分{2}秒\n "
+        "fr"    "Longueur: {1}:{2}\n "
     }
 
     "cost money"
@@ -261,5 +261,29 @@
     {
         "en"    "BGM controller is unavailable"
         "chi"   "地图音乐不可用"
+    }
+    
+    "precaching song"
+    {
+        "en"    "{green}Precaching music ..."
+        "chi"   "{green}缓冲歌曲..."
+    }
+
+    "failed to precache song"
+    {
+        "en"    "{red}Failed to prepare song ..."
+        "chi"   "{red}缓冲歌曲失败..."
+    }
+    
+    "failed to search music"
+    {
+        "en"    "{red}Failed to search song ..."
+        "chi"   "{red}搜索歌曲发生异常错误..."
+    }
+    
+    "failed to process searching results"
+    {
+        "en"    "{red}Failed to process searching results ..."
+        "chi"   "{red}处理搜索结果发生异常错误..."
     }
 }

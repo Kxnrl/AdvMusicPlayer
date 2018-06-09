@@ -17,7 +17,7 @@
 
 
 // DEBUG?
-#define DEBUG
+//#define DEBUG
 
 // Require Extensions (System2 or SteamWorks)
 #undef REQUIRE_EXTENSIONS
@@ -39,7 +39,6 @@
 #define REQUIRE_PLUGIN
 
 // other stuff
-#define PREFIX            "[\x10AMP\x01]  "
 #define logFile           "addons/sourcemod/logs/advmusicplayer.log"
 #define BROADCAST         0
 
@@ -53,13 +52,13 @@ bool g_bMapMusic;
 bool g_bSystem2;
 bool g_bStoreLib;
 
-// convar values
-int g_iEnableCache = 0;
-float g_fFactorCredits = 2.0;
-char g_urlSearch[192] = "https://api.kxnrl.com/music/search.php?sc=";
-char g_urlLyrics[192] = "https://api.kxnrl.com/music/lyrics.php?id=";
-char g_urlPlayer[192] = "https://api.kxnrl.com/music/player.php?id=";
-char g_urlCached[192] = "https://api.kxnrl.com/music/cached.php?id=";
+// Console variables
+ConVar g_cvarSEARCH;
+ConVar g_cvarLYRICS;
+ConVar g_cvarPLAYER;
+ConVar g_cvarCACHED;
+ConVar g_cvarECACHE;
+ConVar g_cvarCREDIT;
 
 // client variables
 bool g_bStatus[MAXPLAYERS+1];
@@ -73,7 +72,7 @@ int  g_iVolume[MAXPLAYERS+1];
 int  g_iSelect[MAXPLAYERS+1];
 Handle g_tTimer[MAXPLAYERS+1];
 
-// enum type
+// enum songinfo
 enum songinfo
 {
     iSongId,
@@ -93,6 +92,7 @@ Handle g_cLyrics;
 // lyric array
 ArrayList array_timer[MAXPLAYERS+1];
 ArrayList array_lyric[MAXPLAYERS+1];
+float delay_lyric[MAXPLAYERS+1][128];
 
 // files
 #include "amp/command.sp"
@@ -110,25 +110,15 @@ public Plugin myinfo =
     name        = "Advanced Music Player",
     author      = "Kyle",
     description = "Media System",
-    version     = "2.1.<commit_count>",
+    version     = "2.2.<commit_count>",
     url         = "https://kxnrl.com"
 };
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
 {
-    // CG
-    MarkNativeAsOptional("CG_ShowHiddenMotd");
-    MarkNativeAsOptional("CG_RemoveMotd");
-    MarkNativeAsOptional("CG_ShowGameText");
-    MarkNativeAsOptional("CG_ShowGameTextToClient");
-    
     // Store
     MarkNativeAsOptional("Store_GetClientCredits");
     MarkNativeAsOptional("Store_SetClientCredits");
-    
-    // MG
-    MarkNativeAsOptional("MG_Motd_ShowHiddenMotd");
-    MarkNativeAsOptional("MG_Motd_RemoveMotd");
 
     // System2
     MarkNativeAsOptional("System2HTTPRequest.System2HTTPRequest");
@@ -148,10 +138,6 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
     MarkNativeAsOptional("SteamWorks_SendHTTPRequest");
     MarkNativeAsOptional("SteamWorks_WriteHTTPResponseBodyToFile");
     MarkNativeAsOptional("SteamWorks_GetHTTPResponseBodyCallback");
-
-    // MotdEx
-    MarkNativeAsOptional("MotdEx_ShowHiddenMotd");
-    MarkNativeAsOptional("MotdEx_RemoveMotd");
 
     // MapMusic
     MarkNativeAsOptional("MapMusic_SetStatus");
@@ -236,64 +222,88 @@ bool IsValidClient(int client)
     return (1 <= client <= MaxClients && IsClientInGame(client) && !IsFakeClient(client) && !IsClientSourceTV(client));
 }
 
-bool AddMenuItemEx(Handle menu, int style, const char[] info, const char[] display, any ...)
+bool AddMenuItemEx(Menu menu, int style, const char[] info, const char[] display, any ...)
 {
 	char m_szBuffer[256];
 	VFormat(m_szBuffer, 256, display, 5);
-	return AddMenuItem(menu, info, m_szBuffer, style);
+	return menu.AddItem(info, m_szBuffer, style);
 }
 
 void Chat(int client, const char[] chat, any ...)
 {
-    char vf[256];
-    SetGlobalTransTarget(client);
-    VFormat(vf, 256, chat, 3);
-    ReplaceColor(vf, 256);
-    PrintToChat(client, "%s   %s", PREFIX, vf);
-    SetGlobalTransTarget(LANG_SERVER);
+    Protobuf SayText2 = view_as<Protobuf>(StartMessageOne("SayText2", client, USERMSG_RELIABLE|USERMSG_BLOCKHOOKS));
+    if(SayText2 == null)
+    {
+        LogError("StartMessageOne -> SayText2 is null");
+        return;
+    }
+
+    char msg[256];
+    VFormat(msg, 256, chat, 3);
+    Format(msg, 256, "[\x10AMP\x01]   %s", msg);
+    ProcessColorString(msg, 256);
+    SayText2.SetInt("ent_idx", 0);
+    SayText2.SetBool("chat", false);
+    SayText2.SetString("msg_name", msg);
+    SayText2.AddString("params", "");
+    SayText2.AddString("params", "");
+    SayText2.AddString("params", "");
+    SayText2.AddString("params", "");
+    EndMessage();
 }
 
 void ChatAll(const char[] chat, any ...)
 {
-    char vf[256];
+    char msg[256];
     for(int client = 1; client <= MaxClients; ++client)
         if(IsValidClient(client))
         {
             SetGlobalTransTarget(client);
-            VFormat(vf, 256, chat, 2);
-            ReplaceColor(vf, 256);
-            PrintToChat(client, "%s   %s", PREFIX, vf);
+
+            VFormat(msg, 256, chat, 2);
+            Format(msg, 256, "[\x10AMP\x01]   %s", msg);
+            ProcessColorString(msg, 256);
+
+            Protobuf SayText2 = view_as<Protobuf>(StartMessageOne("SayText2", client, USERMSG_RELIABLE|USERMSG_BLOCKHOOKS));
+            if(SayText2 == null)
+            {
+                LogError("StartMessageOne -> SayText2 is null");
+                continue;
+            }
+
+            SayText2.SetInt("ent_idx", 0);
+            SayText2.SetBool("chat", false);
+            SayText2.SetString("msg_name", msg);
+            SayText2.AddString("params", "");
+            SayText2.AddString("params", "");
+            SayText2.AddString("params", "");
+            SayText2.AddString("params", "");
+            EndMessage();
         }
+
     SetGlobalTransTarget(LANG_SERVER);
 }
 
-void ReplaceColor(char[] message, int maxLen, int team = 0)
+static void ProcessColorString(char[] message, int maxLen)
 {
-    ReplaceString(message, maxLen, "{normal}", "\x01", false);
-    ReplaceString(message, maxLen, "{default}", "\x01", false);
-    ReplaceString(message, maxLen, "{white}", "\x01", false);
-    ReplaceString(message, maxLen, "{darkred}", "\x02", false);
-    switch(team)
-    {
-        case 3 : ReplaceString(message, maxLen, "{teamcolor}", "\x0B", false);
-        case 2 : ReplaceString(message, maxLen, "{teamcolor}", "\x05", false);
-        default: ReplaceString(message, maxLen, "{teamcolor}", "\x01", false);
-    }
-    ReplaceString(message, maxLen, "{pink}", "\x03", false);
-    ReplaceString(message, maxLen, "{green}", "\x04", false);
-    ReplaceString(message, maxLen, "{highlight}", "\x04", false);
-    ReplaceString(message, maxLen, "{yellow}", "\x05", false);
-    ReplaceString(message, maxLen, "{lightgreen}", "\x05", false);
-    ReplaceString(message, maxLen, "{lime}", "\x06", false);
-    ReplaceString(message, maxLen, "{lightred}", "\x07", false);
-    ReplaceString(message, maxLen, "{red}", "\x07", false);
-    ReplaceString(message, maxLen, "{gray}", "\x08", false);
-    ReplaceString(message, maxLen, "{grey}", "\x08", false);
-    ReplaceString(message, maxLen, "{olive}", "\x09", false);
-    ReplaceString(message, maxLen, "{orange}", "\x10", false);
-    ReplaceString(message, maxLen, "{silver}", "\x0A", false);
-    ReplaceString(message, maxLen, "{lightblue}", "\x0B", false);
-    ReplaceString(message, maxLen, "{blue}", "\x0C", false);
-    ReplaceString(message, maxLen, "{purple}", "\x0E", false);
-    ReplaceString(message, maxLen, "{darkorange}", "\x0F", false);
+    ReplaceString(message, maxLen, "{normal}",      "\x01", false);
+    ReplaceString(message, maxLen, "{default}",     "\x01", false);
+    ReplaceString(message, maxLen, "{white}",       "\x01", false);
+    ReplaceString(message, maxLen, "{darkred}",     "\x02", false);
+    ReplaceString(message, maxLen, "{pink}",        "\x03", false);
+    ReplaceString(message, maxLen, "{green}",       "\x04", false);
+    ReplaceString(message, maxLen, "{lime}",        "\x05", false);
+    ReplaceString(message, maxLen, "{yellow}",      "\x05", false);
+    ReplaceString(message, maxLen, "{lightgreen}",  "\x06", false);
+    ReplaceString(message, maxLen, "{lightred}",    "\x07", false);
+    ReplaceString(message, maxLen, "{red}",         "\x07", false);
+    ReplaceString(message, maxLen, "{gray}",        "\x08", false);
+    ReplaceString(message, maxLen, "{grey}",        "\x08", false);
+    ReplaceString(message, maxLen, "{olive}",       "\x09", false);
+    ReplaceString(message, maxLen, "{orange}",      "\x10", false);
+    ReplaceString(message, maxLen, "{silver}",      "\x0A", false);
+    ReplaceString(message, maxLen, "{lightblue}",   "\x0B", false);
+    ReplaceString(message, maxLen, "{blue}",        "\x0C", false);
+    ReplaceString(message, maxLen, "{purple}",      "\x0E", false);
+    ReplaceString(message, maxLen, "{darkorange}",  "\x0F", false);
 }

@@ -16,13 +16,6 @@
 
 
 
-ConVar g_cvarSEARCH;
-ConVar g_cvarLYRICS;
-ConVar g_cvarPLAYER;
-ConVar g_cvarCACHED;
-ConVar g_cvarECACHE;
-ConVar g_cvarCREDIT;
-
 void Global_CreateConVar()
 {
     /* register console variables*/
@@ -37,37 +30,7 @@ void Global_CreateConVar()
     g_cvarECACHE = CreateConVar("amp_url_cached_enable",   "0",   "enable music cached in your web server (0 = disabled, 1 = enabled). In some areas, player can not connect to music server directly. use ur web server to cache music", _, true, 0.0, true, 1.0);
     g_cvarCREDIT = CreateConVar("amp_cost_factor",         "2.0", "how much for broadcasting song (if store is availavle). song length(sec) * this value = cost credits.", _, true, 0.000001, true, 100000.0);
 
-    // hook cvars
-    g_cvarSEARCH.AddChangeHook(Global_OnConVarChanged);
-    g_cvarLYRICS.AddChangeHook(Global_OnConVarChanged);
-    g_cvarPLAYER.AddChangeHook(Global_OnConVarChanged);
-    g_cvarCACHED.AddChangeHook(Global_OnConVarChanged);
-    g_cvarECACHE.AddChangeHook(Global_OnConVarChanged);
-    g_cvarCREDIT.AddChangeHook(Global_OnConVarChanged);
-
     AutoExecConfig(true, "com.kxnrl.advmusicplayer");
-}
-
-public void Global_OnConVarChanged(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-    // get cvars value
-    g_cvarSEARCH.GetString(g_urlSearch, 192);
-    g_cvarLYRICS.GetString(g_urlLyrics, 192);
-    g_cvarPLAYER.GetString(g_urlPlayer, 192);
-    g_cvarCACHED.GetString(g_urlCached, 192);
-    
-    g_iEnableCache = g_cvarECACHE.IntValue;
-    g_fFactorCredits = g_cvarCREDIT.FloatValue;
-    
-#if defined DEBUG
-    UTIL_DebugLog("Global_OnConVarChanged -> amp_url_search -> %s", g_urlSearch);
-    UTIL_DebugLog("Global_OnConVarChanged -> amp_url_lyrics -> %s", g_urlLyrics);
-    UTIL_DebugLog("Global_OnConVarChanged -> amp_url_player -> %s", g_urlPlayer);
-    UTIL_DebugLog("Global_OnConVarChanged -> amp_url_cached -> %s", g_urlCached);
-    
-    UTIL_DebugLog("Global_OnConVarChanged -> amp_url_cached_enable -> %d", g_iEnableCache);
-    UTIL_DebugLog("Global_OnConVarChanged -> amp_cost_factor -> %.2f", g_fFactorCredits);
-#endif
 }
 
 void Global_CheckLibrary()
@@ -98,8 +61,7 @@ void Global_CheckTranslations()
             LoadTranslations("com.kxnrl.amp.translations");
             return;
         }
-        else
-            DeleteFile(path);
+        else DeleteFile(path);
     }
 
     Global_CheckLibrary();
@@ -109,9 +71,8 @@ void Global_CheckTranslations()
 void Global_DownloadTranslations(const char[] path)
 {
     char url[128];
-    //FormatEx(url, 128, "https://github.com/Kxnrl/AdvMusicPlayer/raw/master/game/com.kxnrl.amp.translations.txt");
-    FormatEx(url, 128, "https://build.kxnrl.com/_Raw/translations/com.kxnrl.amp.translations.txt");
-    
+    FormatEx(url, 128, "https://github.com/Kxnrl/AdvMusicPlayer/raw/master/game/com.kxnrl.amp.translations.txt");
+
     if(g_bSystem2)
     {
         System2HTTPRequest hRequest = new System2HTTPRequest(API_DownloadTranslations_System2, url);

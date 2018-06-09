@@ -18,12 +18,12 @@
 
 void DisplayMainMenu(int client)
 {
-    Handle menu = CreateMenu(MenuHanlder_Main);
+    Menu menu = new Menu(MenuHanlder_Main);
     
     if(g_bPlayed[client] || g_bListen[client])
-        SetMenuTitle(menu, "%T", "player info", client, g_Sound[client][szName], g_Sound[client][szSinger], g_Sound[client][szAlbum]); 
+        menu.SetTitle("%T", "player info", client, g_Sound[client][szName], g_Sound[client][szSinger], g_Sound[client][szAlbum]); 
     else
-        SetMenuTitle(menu, "%T", "player title", client);
+        menu.SetTitle("%T", "player title", client);
 
     AddMenuItemEx(menu, g_bPlayed[client] ? ITEMDRAW_DISABLED : ITEMDRAW_DEFAULT, "search",  "%T", "search", client);
     AddMenuItemEx(menu, ITEMDRAW_DEFAULT, "toggle", "%T", "receive", client, g_bDiable[client] ? "OFF" : "ON");
@@ -32,14 +32,14 @@ void DisplayMainMenu(int client)
     AddMenuItemEx(menu, ITEMDRAW_DEFAULT, "stop",   "%T", "stop playing", client);
     AddMenuItemEx(menu, g_bMapMusic ? ITEMDRAW_DEFAULT : ITEMDRAW_DISABLED, "mapbgm", "%T: %d", g_bMapMusic ? "map bgm a" : "map bgm ua", client, g_bMapMusic ? MapMusic_GetVolume(client) : 100);
 
-    DisplayMenu(menu, client, 30);
+    menu.Display(client, 30);
 }
 
-public int MenuHanlder_Main(Handle menu, MenuAction action, int client, int slot)
+public int MenuHanlder_Main(Menu menu, MenuAction action, int client, int slot)
 {
     if(action == MenuAction_Select)
     {
-        bool reply = true;
+        bool reply = false;
         
 #if defined DEBUG
         UTIL_DebugLog("MenuHanlder_Main -> %N -> %d", client, slot);
@@ -49,26 +49,27 @@ public int MenuHanlder_Main(Handle menu, MenuAction action, int client, int slot
         {
             case 0:
             {
-                reply = false;
                 g_bHandle[client] = true;
-                Chat(client, "%t", "search help");
+                Chat(client, "%T", "search help", client);
             }
             case 1:
             {
+                reply = true;
                 g_bDiable[client] = !g_bDiable[client];
                 SetClientCookie(client, g_cDisable, g_bDiable[client] ? "1" : "0");
-                Chat(client, "%t", "receive chat", g_bDiable[client] ? "\x07OFF" : "\x04ON");
+                Chat(client, "%T", "receive chat", client, g_bDiable[client] ? "\x07OFF" : "\x04ON");
                 if(g_bDiable[client] && g_bPlayed[client] && !g_bListen[client])
                 {
                     Player_Reset(client, true);
-                    Player_LyricHud(client, "0.5", "");
+                    Player_LyricHud(client, 0.5, 0.0, "");
                 }
             }
             case 2:
             {
+                reply = true;
                 g_bLyrics[client] = !g_bLyrics[client];
                 SetClientCookie(client, g_cLyrics, g_bLyrics[client] ? "0" : "1");
-                Chat(client, "%t", "receive chat", g_bLyrics[client] ? "\x04ON" : "\x07OFF");
+                Chat(client, "%T", "receive chat", client, g_bLyrics[client] ? "\x04ON" : "\x07OFF");
             }
             case 3:
             {
@@ -79,22 +80,25 @@ public int MenuHanlder_Main(Handle menu, MenuAction action, int client, int slot
                 char buf[4];
                 IntToString(g_iVolume[client], buf, 4);
                 SetClientCookie(client, g_cVolume, buf);
-                Chat(client, "%t", "volume chat");
+                Chat(client, "%T", "volume chat", client);
+                reply = true;
             }
             case 4:
             {
                 Player_Reset(client, true);
-                Chat(client, "%t", "stop chat");
+                Chat(client, "%T", "stop chat", client);
+                reply = true;
             }
+            case 5: FakeClientCommandEx(client, "sm_mapmusic");
         }
 
         if(reply) DisplayMainMenu(client);
     }
     else if(action == MenuAction_End)
-        CloseHandle(menu);
+        delete menu;
 }
 
-public int MenuHandler_DisplayList(Handle menu, MenuAction action, int client, int itemNum)
+public int MenuHandler_DisplayList(Menu menu, MenuAction action, int client, int itemNum)
 {
     if(action == MenuAction_Select) 
     {
@@ -103,23 +107,23 @@ public int MenuHandler_DisplayList(Handle menu, MenuAction action, int client, i
 #endif
 
         g_iSelect[client] = itemNum - (itemNum/6);
-        
+
         int length, sid;
         char name[128], arlist[64], album[64];
         UTIL_ProcessSongInfo(client, name, arlist, album, length, sid);
 
-        int cost = RoundFloat(length*g_fFactorCredits);
+        int cost = RoundFloat(length*g_cvarCREDIT.FloatValue);
         DisplayConfirmMenu(client, cost, name, arlist, album, length);
     }
     else if(action == MenuAction_End)
-        CloseHandle(menu);
+        delete menu;
 }
 
 void DisplayConfirmMenu(int client, int cost, const char[] name, const char[] arlist, const char[] album, int time)
 {
-    Handle menu = CreateMenu(MenuHandler_Confirm);
-    SetMenuTitle(menu, "%T", "confirm broadcast", client);
-    
+    Menu menu = new Menu(MenuHandler_Confirm);
+    menu.SetTitle("%T", "confirm broadcast", client);
+
     AddMenuItemEx(menu, ITEMDRAW_DISABLED, " ", "%T", "song title",  client, name);
     AddMenuItemEx(menu, ITEMDRAW_DISABLED, " ", "%T", "song artist", client, arlist);
     AddMenuItemEx(menu, ITEMDRAW_DISABLED, " ", "%T", "song album",  client, album);
@@ -132,10 +136,10 @@ void DisplayConfirmMenu(int client, int cost, const char[] name, const char[] ar
 
     AddMenuItemEx(menu, ITEMDRAW_DEFAULT, "2", "%T", "cost self", client);
 
-    DisplayMenu(menu, client, 15);
+    menu.Display(client, 15);
 }
 
-public int MenuHandler_Confirm(Handle menu, MenuAction action, int client, int slot)
+public int MenuHandler_Confirm(Menu menu, MenuAction action, int client, int slot)
 {
     if(action ==  MenuAction_Select)
     { 
@@ -149,5 +153,5 @@ public int MenuHandler_Confirm(Handle menu, MenuAction action, int client, int s
             Player_ListenMusic(client, false);
     }
     else if(action == MenuAction_End)
-        CloseHandle(menu);
+        delete menu;
 }

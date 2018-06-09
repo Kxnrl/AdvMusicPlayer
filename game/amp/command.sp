@@ -93,10 +93,11 @@ public Action OnClientSayCommand(int client, const char[] command, const char[] 
     g_bHandle[client] = false;
 
     // ToDo: will add tencent QQ music
-    Chat(client, "%t", "searching");
+    Chat(client, "%T", "searching", client);
 
     char url[256];
-    FormatEx(url, 256, "%s%s", g_urlSearch, sArgs);
+    g_cvarSEARCH.GetString(url, 256);
+    Format(url, 256, "%s%s", url, sArgs);
     //i dont want to urlencode. xD
     ReplaceString(url, 256, " ", "+", false);
 

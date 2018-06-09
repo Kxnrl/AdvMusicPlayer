@@ -19,11 +19,15 @@
 void Player_InitPlayer()
 {
     // create array for each client
+    int size = ByteCountToCells(128);
     for(int index = 0; index <= MaxClients; ++index)
     {
         array_timer[index] = new ArrayList();
-        array_lyric[index] = new ArrayList(ByteCountToCells(128));
-    }
+        array_lyric[index] = new ArrayList(size);
+        
+        for(int lyric = 0; lyric < 128; ++lyric)
+            delay_lyric[index][lyric] = -1.0;
+    } 
 }
 
 void Player_Reset(int index, bool removeMotd = false)
@@ -33,12 +37,12 @@ void Player_Reset(int index, bool removeMotd = false)
         g_fNextPlay = 0.0;
 
     // clear song end timer
-    if(g_tTimer[index] != INVALID_HANDLE)
+    if(g_tTimer[index] != null)
         KillTimer(g_tTimer[index]);
-    g_tTimer[index] = INVALID_HANDLE;
+    g_tTimer[index] = null;
 
     // clear lyric timer
-    while(GetArraySize(array_timer[index]))
+    while(array_timer[index].Length > 0)
     {
         Handle timer = array_timer[index].Get(0);
         KillTimer(timer);
@@ -87,8 +91,9 @@ public Action Timer_GetLyric(Handle timer, int index)
     if(!FileExists(path))
     {
         char url[256];
-        FormatEx(url, 256, "%s%d", g_urlLyrics, g_Sound[index][iSongId]);
-        
+        g_cvarLYRICS.GetString(url, 256);
+        Format(url, 256, "%s%d", url, g_Sound[index][iSongId]);
+
 #if defined DEBUG
         UTIL_DebugLog("Timer_GetLyric -> Downloading Lyrics -> %N -> %d[%s] -> %s", index, g_Sound[index][iSongId], g_Sound[index][szName], url);
 #endif
@@ -115,8 +120,29 @@ public Action Timer_GetLyric(Handle timer, int index)
 #if defined DEBUG
         UTIL_DebugLog("Timer_GetLyric -> Loading Local Lyrics -> %N -> %d[%s] -> %s", index, g_Sound[index][iSongId], g_Sound[index][szName], path);
 #endif
-        UTIL_ProcessLyric(index);
+        CreateTimer(0.2, UTIL_ProcessLyric, index);
     }
+
+    return Plugin_Stop;
+}
+
+public Action Timer_Clear(Handle timer, int player_index)
+{
+    // find and erase index of timer in timer array
+    int idx = array_timer[player_index].FindValue(timer);
+    if(idx == -1)
+    {
+        LogError("Timer_Clear -> Exception -> player_index[%d]", player_index);
+        return Plugin_Stop;
+    }
+
+    array_timer[player_index].Erase(idx);
+
+    Player_LyricHud(player_index, 0.0, 0.0, "");
+
+#if defined DEBUG
+    UTIL_DebugLog("Timer_Clear -> player_index[%d]", player_index);
+#endif
 
     return Plugin_Stop;
 }
@@ -138,29 +164,29 @@ public Action Timer_Lyric(Handle timer, int values)
     array_timer[player_index].Erase(idx);
 
     // get lyric in array
-    char lyric[3][128];
-    array_lyric[player_index].GetString(lyrics_index-1, lyric[0], 128);
-    array_lyric[player_index].GetString(lyrics_index-0, lyric[1], 128);
-    if(lyrics_index+1 < GetArraySize(array_lyric[player_index]))
-    array_lyric[player_index].GetString(lyrics_index+1, lyric[2], 128);
-    else strcopy(lyric[2], 128, " >>> End <<< ");
+    char lyric[128];
+    array_lyric[player_index].GetString(lyrics_index, lyric, 128);
+    
+    // lyric timer
+    float time = UTIL_GetCurtLyricTime(player_index, lyrics_index);
+    float next = UTIL_GetNextLyricTime(player_index, lyrics_index);
 
     // display lyric
-    char buffer[384];
-    FormatEx(buffer, 384, "  %s\n→  %s\n  %s", lyric[0], lyric[1], lyric[2]);
-    Player_LyricHud(player_index, "30.0", buffer);
-    
+    int bytes = UTIL_GetCol(lyric);
+    float kp = next-time;
+    float fx = (kp-1.0)/float(bytes);
+
+    Player_LyricHud(player_index, kp, fx, lyric);
+
 #if defined DEBUG
     UTIL_DebugLog("Timer_Lyric -> lyrics_index[%d] -> player_index[%d]", lyrics_index, player_index);
-    UTIL_DebugLog("Timer_Lyric -> %s", lyric[0]);
-    UTIL_DebugLog("Timer_Lyric -> %s", lyric[1]);
-    UTIL_DebugLog("Timer_Lyric -> %s", lyric[2]);
+    UTIL_DebugLog("Timer_Lyric -> %.2f:%.2f -> %.2f:%.2f ->%s", time, next, fx, kp, lyric);
 #endif
 
     return Plugin_Stop;
 }
 
-void Player_LyricHud(int index, const char[] life, const char[] message)
+void Player_LyricHud(int index, float hold, float fx, const char[] message)
 {
     // if broadcast
     if(index == BROADCAST)
@@ -168,13 +194,12 @@ void Player_LyricHud(int index, const char[] life, const char[] message)
         // loop all client who is playing
         for(int client = 1; client <= MaxClients; ++client)
             if(IsValidClient(client) && g_bPlayed[client] && g_bLyrics[client])
-                UTIL_ShowLyric(client, message, life);
+                UTIL_ShowLyric(client, message, hold, fx);
     }
-    else
-        UTIL_ShowLyric(index, message, life);
-    
+    else UTIL_ShowLyric(index, message, hold, fx);
+
 #if defined DEBUG
-    UTIL_DebugLog("Player_LyricHud -> %N -> %s -> %s", index, life, message);
+    UTIL_DebugLog("Player_LyricHud -> %N -> %.1f -> %.1f -> %s", index, hold, fx, message);
 #endif
 }
 
@@ -185,7 +210,7 @@ public Action Timer_SoundEnd(Handle timer, int index)
 #endif
 
     // reset timer
-    g_tTimer[index] = INVALID_HANDLE;
+    g_tTimer[index] = null;
 
     // reset player of index
     Player_Reset(index);
@@ -197,7 +222,7 @@ public Action Timer_SoundEnd(Handle timer, int index)
             {
                 Player_Reset(i, true);
                 if(g_bLyrics[i])
-                    Player_LyricHud(i, "2.0", ">>> Music End <<<");
+                    Player_LyricHud(i, 2.0, 0.3, "......");
             }
 
     return Plugin_Stop;
@@ -206,7 +231,7 @@ public Action Timer_SoundEnd(Handle timer, int index)
 void Player_ListenMusic(int client, bool cached)
 {
     // if enabled cache and not precache
-    if(g_iEnableCache && !cached)
+    if(g_cvarECACHE.BoolValue && !cached)
     {
 #if defined DEBUG
         UTIL_DebugLog("Player_ListenMusic -> %N -> %d[%s] -> we need precache music", client, g_Sound[client][iSongId], g_Sound[client][szName]);
@@ -225,7 +250,8 @@ void Player_ListenMusic(int client, bool cached)
 
     // init player
     char murl[192];
-    FormatEx(murl, 192, "%s%d&volume=%d&cache=%d", g_urlPlayer, g_Sound[client][iSongId], g_iVolume[client], g_iEnableCache);
+    g_cvarPLAYER.GetString(murl, 192);
+    Format(murl, 192, "%s%d&volume=%d&cache=%d", murl, g_Sound[client][iSongId], g_iVolume[client], g_cvarECACHE.IntValue);
     UTIL_OpenMotd(client, murl);
     
 #if defined DEBUG
@@ -260,7 +286,7 @@ void Player_BroadcastMusic(int client, bool cached)
     // ban?
     if(g_bBanned[client])
     {
-        Chat(client, "%t", "banned notice");
+        Chat(client, "%T", "banned notice", client);
         return;
     }
 
@@ -270,12 +296,12 @@ void Player_BroadcastMusic(int client, bool cached)
 #if defined DEBUG
         UTIL_DebugLog("Player_BroadcastMusic -> %N -> [%d]%s -> Time Out", client, g_Sound[client][iSongId], g_Sound[client][szName]);
 #endif
-        Chat(client, "%t", "last timeout");
+        Chat(client, "%T", "last timeout", client);
         return;
     }
 
     // if enabled cache and not precache
-    if(g_iEnableCache && !cached)
+    if(g_cvarECACHE.BoolValue && !cached)
     {
 #if defined DEBUG
         UTIL_DebugLog("Player_BroadcastMusic -> %N -> [%d]%s -> we need precache music", client, g_Sound[client][iSongId], g_Sound[client][szName]);
@@ -287,20 +313,20 @@ void Player_BroadcastMusic(int client, bool cached)
     // get song info
     int iLength;
     UTIL_ProcessSongInfo(client, g_Sound[BROADCAST][szName], g_Sound[BROADCAST][szSinger], g_Sound[BROADCAST][szAlbum], iLength, g_Sound[BROADCAST][iSongId]);
-    
+
     // if store is available, handle credits
     if(g_bStoreLib)
     {
-        int cost = RoundFloat(iLength*g_fFactorCredits);
+        int cost = RoundFloat(iLength*g_cvarCREDIT.FloatValue);
         if(Store_GetClientCredits(client) < cost)
         {
-            Chat(client, "%t", "no enough money", cost);
+            Chat(client, "%T", "no enough money", client, cost);
             return;
         }
         char reason[128];
         FormatEx(reason, 128, "点歌系统点歌[%d.%s]", g_Sound[BROADCAST][iSongId], g_Sound[BROADCAST][szName]);
         Store_SetClientCredits(client, Store_GetClientCredits(client) - cost, reason);
-        Chat(client, "%t", "cost to broadcast", cost, g_Sound[BROADCAST][szName]);
+        Chat(client, "%T", "cost to broadcast", client, cost, g_Sound[BROADCAST][szName]);
     }
 
     g_Sound[BROADCAST][fLength] = float(iLength);
@@ -338,10 +364,11 @@ void Player_BroadcastMusic(int client, bool cached)
 
         // init player
         char murl[192];
-        FormatEx(murl, 192, "%s%d&volume=%d&cache=%d", g_urlPlayer, g_Sound[BROADCAST][iSongId], g_iVolume[i], g_iEnableCache);
+        g_cvarPLAYER.GetString(murl, 192);
+        Format(murl, 192, "%s%d&volume=%d&cache=%d", murl, g_Sound[BROADCAST][iSongId], g_iVolume[i], g_cvarECACHE.IntValue);
         DisplayMainMenu(i);
         UTIL_OpenMotd(i, murl);
-        
+
         // handle map music
         if(g_bMapMusic)
         {
