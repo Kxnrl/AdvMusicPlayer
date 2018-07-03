@@ -4,13 +4,13 @@
 /*                                                                */
 /*                                                                */
 /*  File:          utils.sp                                       */
-/*  Description:   An advance music player in source engine game. */
+/*  Description:   An advanced music player.                      */
 /*                                                                */
 /*                                                                */
 /*  Copyright (C) 2017  Kyle                                      */
-/*  2017/12/30 22:06:14                                           */
+/*  2018/07/04 05:37:22                                           */
 /*                                                                */
-/*  This code is licensed under the GPLv3 License    .            */
+/*  This code is licensed under the GPLv3 License.                */
 /*                                                                */
 /******************************************************************/
 
@@ -47,15 +47,17 @@ void UTIL_RemoveMotd(int index)
 void UTIL_ProcessResult(int userid)
 {
     int client = GetClientOfUserId(userid);
-    
+
     // ignore not in-game clients
     if(!IsValidClient(client))
         return;
 
-    KeyValues _kv = new KeyValues("songs");
+    g_bLocked[client] = false;
+
+    KeyValues _kv = new KeyValues("Song");
 
     char path[128];
-    BuildPath(Path_SM, path, 128, "data/music/search_%d.kv", userid);
+    BuildPath(Path_SM, path, 128, "data/music/search_%s_%d.kv", g_EngineName[g_kEngine[client]], userid);
 
     // check file exists
     if(!FileExists(path))
@@ -94,106 +96,80 @@ void UTIL_ProcessResult(int userid)
 
     do
     {
-        char key[32], name[32], arlist[64], album[64];
+        char key[16], title[64], artist[64], album[64];
 
-        _kv.GetSectionName(key, 32);
-        _kv.GetString("name", name, 32);
+        _kv.GetSectionName(key, 16);
 
-        if(_kv.JumpToKey("ar"))
-        {
-            if(_kv.GotoFirstSubKey(true))
-            {
-                do
-                {
-                    char ar[32];
-                    _kv.GetString("name", ar, 32);
-                    if(arlist[0] != '\0')
-                        Format(arlist, 64, "%s/%s", arlist, ar);
-                    else
-                        FormatEx(arlist, 64, "%s", ar);
-                } while (_kv.GotoNextKey(true));
-                _kv.GoBack();
-            }
-            _kv.GoBack();
-        }
-        else strcopy(arlist, 64, "unnamed");
-
-        if(_kv.JumpToKey("al"))
-        {
-            _kv.GetString("name", album, 64);
-            _kv.GoBack();
-        }
-        else strcopy(album, 64, "unknown");
+        _kv.GetString("name",    title, 64, "unnamed");
+        _kv.GetString("artist", artist, 64, "V.A.");
+        _kv.GetString("album",   album, 64, "unknown");
 
         // add song to menu
-        AddMenuItemEx(menu, ITEMDRAW_DEFAULT, key, "%T", "search result songs", client, name, arlist, album);
-        
+        AddMenuItemEx(menu, ITEMDRAW_DEFAULT, key, "%T", "search result songs", client, title, artist, album);
+
 #if defined DEBUG
-        UTIL_DebugLog("UTIL_ProcessResult -> %d[%s] - %s - %s", _kv.GetNum("id"), name, arlist, album);
+        UTIL_DebugLog("UTIL_ProcessResult -> %d[%s] - %s - %s", _kv.GetNum("id"), name, artist, album);
 #endif
         
         // display 5 items per-page
-        if(++count % 5 == 0)
-            menu.AddItem("0", "0", ITEMDRAW_SPACER);
+        if(++count % 5 == 0) menu.AddItem("0", "0", ITEMDRAW_SPACER);
+
     } while (_kv.GotoNextKey(true));
 
     // set title
-    menu.SetTitle("%T", "search result title", client, count);
+    menu.SetTitle("%T", "search result title", client, count, g_EngineName[g_kEngine[client]], client);
     menu.Display(client, 60);
 
     delete _kv;
 }
 
-void UTIL_ProcessSongInfo(int index, char[] name, char[] arlist, char[] album, int &length, int &sid)
+void UTIL_ProcessSongInfo(int index, char[] title, char[] artist, char[] album, float &length, char[] sid, kEngine &engine)
 {
     char path[128];
-    BuildPath(Path_SM, path, 128, "data/music/search_%d.kv", GetClientUserId(index));
+    BuildPath(Path_SM, path, 128, "data/music/search_%s_%d.kv", g_EngineName[g_kEngine[index]], GetClientUserId(index));
 
-    KeyValues _kv = new KeyValues("songs");
+    KeyValues _kv = new KeyValues("Song");
     _kv.ImportFromFile(path);
 
     // Go to song
-    char key[32];
-    IntToString(g_iSelect[index], key, 32);
+    char key[16];
+    IntToString(g_iSelect[index], key, 16);
     _kv.JumpToKey(key, true);
 
     // Get name
-    _kv.GetString("name", name, 128);
+    _kv.GetString("name", title, 64, "unnamed");
 
     // Get length
-    length = _kv.GetNum("dt")/1000;
-    
+    length = _kv.GetFloat("length", 240.0);
+
     // Get songid
-    sid = _kv.GetNum("id");
+    _kv.GetString("id", sid, 16);
 
     // Get arlist
-    if(_kv.JumpToKey("ar"))
-    {
-        if(_kv.GotoFirstSubKey(true))
-        {
-            do
-            {
-                char ar[32];
-                _kv.GetString("name", ar, 32);
-                if(arlist[0] != '\0')
-                    Format(arlist, 64, "%s/%s", arlist, ar);
-                else
-                    FormatEx(arlist, 64, "%s", ar);
-            } while (_kv.GotoNextKey(true));
-            _kv.GoBack();
-        }
-        _kv.GoBack();
-    }
-    else
-        strcopy(arlist, 64, "unnamed");
-    
+    _kv.GetString("artist", artist, 64, "V.A.");
+
     // Get album
-    if(_kv.JumpToKey("al"))
-    {
-        _kv.GetString("name", album, 128);
-        _kv.GoBack();
-    }
-    else strcopy(album, 128, "unknown");
+    _kv.GetString("album", album, 64, "unknown");
+
+    
+    char source[16];
+    _kv.GetString("source", source, 64, "custom");
+    if(strcmp(source, "netease") == 0)
+        engine = kE_Netease;
+    else if(strcmp(source, "tencent") == 0)
+        engine = kE_Tencent;
+    else if(strcmp(source, "xiami") == 0)
+        engine = kE_XiaMi;
+    else if(strcmp(source, "kugou") == 0)
+        engine = kE_KuGou;
+    else if(strcmp(source, "baidu") == 0)
+        engine = kE_Baidu;
+    else if(strcmp(source, "custom") == 0)
+        engine = kE_Custom;
+
+/*
+    engine = g_kEngine[index];
+*/
 
     delete _kv;
 }
@@ -209,15 +185,15 @@ public Action UTIL_ProcessLyric(Handle myself, int index)
 
     // load data from file
     char path[128];
-    BuildPath(Path_SM, path, 128, "data/music/lyric_%d.lrc", g_Sound[index][iSongId]);
+    BuildPath(Path_SM, path, 128, "data/music/lyric_%s_%s.lrc", g_EngineName[g_Sound[index][eEngine]], g_Sound[index][szSongId]);
 
     File file = OpenFile(path, "r");
     if(file == null)
     {
-        LogError("UTIL_ProcessLyric -> OpenFile -> null -> Load Lyric failed [%d].", g_Sound[index][iSongId]);
+        LogError("UTIL_ProcessLyric -> OpenFile -> null -> Load Lyric failed [%s].", path);
         return Plugin_Stop;
     }
-    
+
     // cleaning...
     for(int i = 0; i < 128; ++i)
         delay_lyric[index][i] = -1.0;
@@ -259,10 +235,6 @@ public Action UTIL_ProcessLyric(Handle myself, int index)
         if(!IsCharNumeric(time[0][0]))
             continue;
 
-        // fix '\n'
-        //pos = FindCharInString(data[1], '\n');
-        //if(pos != -1)
-        //    data[1][pos] = '\0';
         TrimString(data[1]);
 
         if(strlen(data[1]) < 3)
@@ -301,12 +273,12 @@ float UTIL_GetCurtLyricTime(int index, int lyric)
 
 void UTIL_CacheSong(int client, int index)
 {
-    char url[192];
-    g_cvarCACHED.GetString(url, 192);
-    Format(url, 192, "%s%d", url, g_Sound[index][iSongId]);
+    char url[256];
+    g_cvarAPIURL.GetString(url, 256);
+    Format(url, 256, "%s/?action=cached&engine=%s&song=%s", url, g_EngineName[g_Sound[index][eEngine]], g_Sound[index][szSongId]);
 
     // 2 vars is one
-    int values = client | (index << 7);
+    int values = GetClientUserId(client) | (index << 7);
 
     // set timeout to prevent new broadcast request
     g_fNextPlay = GetGameTime()+9999.9;
@@ -314,6 +286,7 @@ void UTIL_CacheSong(int client, int index)
     if(g_bSystem2)
     {
         System2HTTPRequest hRequest = new System2HTTPRequest(API_PrepareSong_System2, url);
+        hRequest.Timeout = 60;
         hRequest.Any = values;
         hRequest.GET();
         delete hRequest;
@@ -322,15 +295,21 @@ void UTIL_CacheSong(int client, int index)
     {
         Handle hRequest = SteamWorks_CreateHTTPRequest(k_EHTTPMethodGET, url);
         SteamWorks_SetHTTPRequestContextValue(hRequest, values);
+        SteamWorks_SetHTTPRequestNetworkActivityTimeout(hRequest, 60);
         SteamWorks_SetHTTPCallbacks(hRequest, API_PrepareSong_SteamWorks);
         SteamWorks_SendHTTPRequest(hRequest);
         delete hRequest;
     }
 
+    g_bLocked[client] = true;
+
     if(index)
         Chat(index, "%T", "precaching song");
     else
+    {
         ChatAll("%t", "precaching song");
+        g_bCaching = true;
+    }
 }
 
 void UTIL_ShowLyric(int client, const char[] message, const float hold, const float fx)
@@ -362,10 +341,14 @@ void UTIL_NotifyFailure(int client, const char[] translations)
     //"failed to precache song"
     Chat(client, "%T", translations, client);
     DisplayMainMenu(client);
+    
+    g_bLocked[client] = false;
 }
 
 void UTIL_CheckDirector()
 {
+    BuildPath(Path_SM, logFile, 128, "logs/advmusicplayer.log");
+
     char path[128];
     BuildPath(Path_SM, path, 128, "data/music");
     if(!DirExists(path))

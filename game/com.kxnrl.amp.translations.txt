@@ -18,23 +18,23 @@
 {
     "client current playing"
     {
-        "#format" "{1:N},{2:s}"
-        "en"    "{green}{1} {default} Playing [{orange}{2}{default}]"
-        "chi"   "{green}{1}{default}正在收听[{orange}{2}{default}]"
-        "fr"    "{green}{1} {default} Joué [{orange}{2}{default}]"
+        "#format" "{1:N},{2:s},{3:T}"
+        "en"    "{green}{1} {default}Playing [{orange}{2}{default}] ({purple}{3}{default)"
+        "chi"   "{green}{1} {default}正在收听[{orange}{2}{default}] ({purple}{3}{default)"
+        "fr"    "{green}{1} {default}Joué [{orange}{2}{default}] ({purple}{3}{default)"
     }
 
     "banned notice"
     {
-        "en"    "{red}You have been banned from using Music player"
-        "chi"   "{red}你已被封禁点歌"
-        "fr"    "{red}Vous avez été banni d'utiliser le lecteur de musique"
+        "en"    "{red}You have been banned from using Music player."
+        "chi"   "{red}你已被封禁点歌."
+        "fr"    "{red}Vous avez été banni d'utiliser le lecteur de musique."
     }
 
     "last timeout"
     {
         "en"    "{orange}Last-picked song still active. Please return when expired."
-        "chi"   "{orange}上次点歌未过期,请等待时间结束"
+        "chi"   "{orange}上次点歌未过期,请等待时间结束."
         "fr"    "{orange}La dernière chanson est toujours active. S'il vous plaît réessayer quand elle sera fini."
     }
 
@@ -48,10 +48,10 @@
 
     "broadcast"
     {
-        "#format" "{1:N},{2:s}"
-        "en"    "{green}{1}{default}Play song[{blue}{2}{default}]"
-        "chi"   "{green}{1}{default}点播歌曲[{blue}{2}{default}]"
-        "fr"    "{green}{1}{default}Musique jouer actuellement[{blue}{2}{default}]"
+        "#format" "{1:N},{2:s},{3:t}"
+        "en"    "{green}{1}{default}Play song[{blue}{2}{default}] ({purple}{3}{default)"
+        "chi"   "{green}{1}{default}点播歌曲[{blue}{2}{default}] ({purple}{3}{default)"
+        "fr"    "{green}{1}{default}Musique jouer actuellement[{blue}{2}{default}] ({purple}{3}{default)"
     }
 
     "search result songs"
@@ -61,7 +61,7 @@
         "chi"   "{1}\n歌手: {2}\n专辑: {3}"
         "fr"    "{1}\nArtiste: {2}\nAlbum: {3}"
     }
-    
+
     "Engine title"
     {
         "en"    "[AMP] Select Music Engine\n "
@@ -70,10 +70,10 @@
 
     "search result title"
     {
-        "#format" "{1:d}"
-        "en"    "[AMP] Search result ( {1} singles found)\n "
-        "chi"   "[AMP] 音乐搜索结果 (找到 {1} 首单曲)\n "
-        "fr"    "[AMP] Résultat de la recherche ( {1} musiques trouvés)\n "
+        "#format" "{1:d},{2:T}"
+        "en"    "[AMP] {1} results via {2}\n "
+        "chi"   "[AMP] {1} 结果 来自 {2}\n "
+        "fr"    "[AMP] {1} musiques trouvés via {2}\n "
     }
 
     "admin force stop"
@@ -93,17 +93,18 @@
 
     "searching"
     {
-        "en"    "{green}Searching(through Netease Cloudmusic)..."
-        "chi"   "{green}正在搜索音乐(当前引擎: 网易云音乐)..."
-        "fr"    "{green}Recherche(par Netease Cloudmusic)..."
+        "#format" "{1:T}"
+        "en"    "{green}Searching(Engine: {1})..."
+        "chi"   "{green}正在搜索音乐(引擎: {1})..."
+        "fr"    "{green}Recherche(par {1})..."
     }
 
     "player info"
     {
-        "#format" "{1:s},{2:s},{3:s}"
-        "en"    "Now playing▼\n \nTitle: {1}\nArtist: {2}\nAlbum: {3}\n "
-        "chi"   "正在播放▼\n \n歌名: {1}\n歌手: {2}\n专辑: {3}\n "
-        "fr"    "Lecture en cours▼\n \nTitre: {1}\nArtiste: {2}\nAlbum: {3}\n "
+        "#format" "{1:s},{2:s},{3:s},{4:T}"
+        "en"    "Now playing▼\n \nTitle: {1}\nArtist: {2}\nAlbum: {3}\nEngine: {4}\n "
+        "chi"   "正在播放▼\n \n歌名: {1}\n歌手: {2}\n专辑: {3}\n引擎: {4}\n "
+        "fr"    "Lecture en cours▼\n \nTitre: {1}\nArtiste: {2}\nAlbum: {3}\nEngine: {4}\n "
     }
 
     "player title"
@@ -199,7 +200,7 @@
     "confirm broadcast"
     {
         "en"    "You sure to order these song below?"
-        "chi"   "您确定要点播以下歌曲吗\n "
+        "chi"   "您确定要点播以下歌曲吗?"
         "fr"    "Vous êtes sûr de commander cette chanson ci-dessous?"
     }
 
@@ -331,7 +332,19 @@
     
     "locked search"
     {
-        "en"    "{red}You have a searching request in processing..."
-        "chi"   "{red}你有一个搜索请求正在执行..."
+        "en"    "{red}You have a request in processing..."
+        "chi"   "{red}你有一个请求正在执行..."
+    }
+    
+    "engine"
+    {
+        "en"    "Engine"
+        "chi"   "引擎"
+    }
+    
+    "Global caching"
+    {
+        "en"    "{red}An caching request is in processing..."
+        "chi"   "{red}服务器繁忙,已有一个播放请求等待执行..."
     }
 }

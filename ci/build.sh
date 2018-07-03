@@ -36,7 +36,7 @@ wget "https://github.com/Kxnrl/MotdEx/raw/master/include/motdex.inc" -q -O inclu
 
 
 #下载MapMusic头文件
-echo "Downlaod mapmusic.inc ..."
+echo "Download mapmusic.inc ..."
 wget "https://github.com/Kxnrl/MapMusic-API/raw/master/include/mapmusic.inc" -q -O include/mapmusic.inc
 
 

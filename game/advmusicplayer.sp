@@ -4,17 +4,20 @@
 /*                                                                */
 /*                                                                */
 /*  File:          advmusicplayer.sp                              */
-/*  Description:   An advance music player in source engine game. */
+/*  Description:   An advanced music player.                      */
 /*                                                                */
 /*                                                                */
 /*  Copyright (C) 2017  Kyle                                      */
-/*  2017/12/30 17:36:14                                           */
+/*  2018/07/04 05:37:22                                           */
 /*                                                                */
 /*  This code is licensed under the GPLv3 License.                */
 /*                                                                */
 /******************************************************************/
 
 
+
+// VERSION
+#define PI_VERSION "3.0.<commit_count>"
 
 // DEBUG?
 //#define DEBUG
@@ -39,8 +42,8 @@
 #define REQUIRE_PLUGIN
 
 // other stuff
-#define logFile           "addons/sourcemod/logs/advmusicplayer.log"
-#define BROADCAST         0
+#define BROADCAST 0
+#define MAXINDEX  MAXPLAYERS+1
 
 // compiler stuff
 #pragma semicolon 1
@@ -51,37 +54,52 @@ float g_fNextPlay;
 bool g_bMapMusic;
 bool g_bSystem2;
 bool g_bStoreLib;
+bool g_bCaching;
 
 // Console variables
-ConVar g_cvarSEARCH;
-ConVar g_cvarLYRICS;
-ConVar g_cvarPLAYER;
-ConVar g_cvarCACHED;
-ConVar g_cvarECACHE;
+ConVar g_cvarAPIURL;
+ConVar g_cvarLRCDLY;
+ConVar g_cvarLIMITS;
 ConVar g_cvarCREDIT;
 
 // client variables
-bool g_bStatus[MAXPLAYERS+1];
-bool g_bLyrics[MAXPLAYERS+1];
-bool g_bDiable[MAXPLAYERS+1];
-bool g_bBanned[MAXPLAYERS+1];
-bool g_bHandle[MAXPLAYERS+1];
-bool g_bPlayed[MAXPLAYERS+1];
-bool g_bListen[MAXPLAYERS+1];
-int  g_iVolume[MAXPLAYERS+1];
-int  g_iSelect[MAXPLAYERS+1];
-Handle g_tTimer[MAXPLAYERS+1];
+bool    g_bStatus[MAXINDEX];
+bool    g_bLyrics[MAXINDEX];
+bool    g_bDiable[MAXINDEX];
+bool    g_bBanned[MAXINDEX];
+bool    g_bHandle[MAXINDEX];
+bool    g_bPlayed[MAXINDEX];
+bool    g_bListen[MAXINDEX];
+bool    g_bLocked[MAXINDEX];
+int     g_iVolume[MAXINDEX];
+int     g_iSelect[MAXINDEX];
+Handle  g_tTimer [MAXINDEX];
+kEngine g_kEngine[MAXINDEX];
 
-// enum songinfo
-enum songinfo
+// Music Engine 
+enum kEngine
 {
-    iSongId,
-    String:szName[128],
-    String:szSinger[64],
+    kE_Netease,
+    kE_Tencent,
+    kE_XiaMi,
+    kE_KuGou,
+    kE_Baidu,
+    kE_Custom
+};
+
+enum kMuisc
+{
+    String:szSongId[32],
+    String:szTitle[64],
+    String:szArtist[64],
     String:szAlbum[64],
-    Float:fLength
-}
-any g_Sound[MAXPLAYERS+1][songinfo];
+    Float:fLength,
+    kEngine:eEngine
+};
+
+char g_EngineName[kEngine][16] = {"netease", "tencent", "xiami", "kugou", "baidu", "custom"};
+
+any g_Sound[MAXINDEX][kMuisc];
 
 // cookies
 Handle g_cDisable;
@@ -90,9 +108,12 @@ Handle g_cBanned;
 Handle g_cLyrics;
 
 // lyric array
-ArrayList array_timer[MAXPLAYERS+1];
-ArrayList array_lyric[MAXPLAYERS+1];
-float delay_lyric[MAXPLAYERS+1][128];
+ArrayList array_timer[MAXINDEX];
+ArrayList array_lyric[MAXINDEX];
+float delay_lyric[MAXINDEX][128];
+
+// logging
+char logFile[128];
 
 // files
 #include "amp/command.sp"
@@ -110,8 +131,8 @@ public Plugin myinfo =
     name        = "Advanced Music Player",
     author      = "Kyle",
     description = "Media System",
-    version     = "2.2.<commit_count>",
-    url         = "https://kxnrl.com"
+    version     = PI_VERSION,
+    url         = "https://music.kxnrl.com/"
 };
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
@@ -202,6 +223,7 @@ public void OnClientConnected(int client)
     g_bDiable[client] = false;
     g_bBanned[client] = false;
     g_bHandle[client] = false;
+    g_bLocked[client] = false;
     g_bLyrics[client] = true;
     g_iVolume[client] = 100;
 

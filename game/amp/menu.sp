@@ -4,13 +4,13 @@
 /*                                                                */
 /*                                                                */
 /*  File:          menu.sp                                        */
-/*  Description:   An advance music player in source engine game. */
+/*  Description:   An advanced music player.                      */
 /*                                                                */
 /*                                                                */
 /*  Copyright (C) 2017  Kyle                                      */
-/*  2017/12/30 22:06:14                                           */
+/*  2018/07/04 05:37:22                                           */
 /*                                                                */
-/*  This code is licensed under the GPLv3 License    .            */
+/*  This code is licensed under the GPLv3 License.                */
 /*                                                                */
 /******************************************************************/
 
@@ -21,7 +21,7 @@ void DisplayMainMenu(int client)
     Menu menu = new Menu(MenuHanlder_Main);
     
     if(g_bPlayed[client] || g_bListen[client])
-        menu.SetTitle("%T", "player info", client, g_Sound[client][szName], g_Sound[client][szSinger], g_Sound[client][szAlbum]); 
+        menu.SetTitle("%T", "player info", client, g_Sound[client][szName], g_Sound[client][szArtist], g_Sound[client][szAlbum], g_EngineName[g_Sound[client][eEngine]], client); 
     else
         menu.SetTitle("%T", "player title", client);
 
@@ -47,11 +47,7 @@ public int MenuHanlder_Main(Menu menu, MenuAction action, int client, int slot)
 
         switch(slot)
         {
-            case 0:
-            {
-                g_bHandle[client] = true;
-                Chat(client, "%T", "search help", client);
-            }
+            case 0: DisplayEngineMenu(client);
             case 1:
             {
                 reply = true;
@@ -98,6 +94,40 @@ public int MenuHanlder_Main(Menu menu, MenuAction action, int client, int slot)
         delete menu;
 }
 
+void DisplayEngineMenu(int client)
+{
+    if(g_bLocked[client])
+    {
+        Chat(client, "%T", "locked search", client);
+        return;
+    }
+    
+    Menu menu = new Menu(MenuHanlder_Engine);
+
+    menu.SetTitle("%T", "Engine title", client);
+
+    for(int i = 0; i < view_as<int>(kEngine); ++i)
+        AddMenuItemEx(menu, ITEMDRAW_DEFAULT, g_EngineName[view_as<kEngine>(i)], "%T", g_EngineName[view_as<kEngine>(i)],  client);
+
+    menu.ExitButton = false;
+    menu.ExitBackButton = true;
+    menu.Display(client, 15);
+}
+
+public int MenuHanlder_Engine(Menu menu, MenuAction action, int client, int itemNum)
+{
+    if(action == MenuAction_End)
+        delete menu;
+    else if(action == MenuAction_Cancel && itemNum == MenuCancel_ExitBack)
+        DisplayMainMenu(client);
+    else if(action == MenuAction_Select)
+    {
+        g_bHandle[client] = true;
+        g_kEngine[client] = view_as<kEngine>(itemNum);
+        Chat(client, "%T", "search help", client);
+    }
+}
+
 public int MenuHandler_DisplayList(Menu menu, MenuAction action, int client, int itemNum)
 {
     if(action == MenuAction_Select) 
@@ -108,21 +138,22 @@ public int MenuHandler_DisplayList(Menu menu, MenuAction action, int client, int
 
         g_iSelect[client] = itemNum - (itemNum/6);
 
-        int length, sid;
-        char name[128], arlist[64], album[64];
-        UTIL_ProcessSongInfo(client, name, arlist, album, length, sid);
+        float length;
+        kEngine engine;
+        char name[64], artist[64], album[64], sid[16];
+        UTIL_ProcessSongInfo(client, name, artist, album, length, sid, engine);
 
         int cost = RoundFloat(length*g_cvarCREDIT.FloatValue);
-        DisplayConfirmMenu(client, cost, name, arlist, album, length);
+        DisplayConfirmMenu(client, cost, name, artist, album, RoundFloat(length), engine);
     }
     else if(action == MenuAction_End)
         delete menu;
 }
 
-void DisplayConfirmMenu(int client, int cost, const char[] name, const char[] arlist, const char[] album, int time)
+void DisplayConfirmMenu(int client, int cost, const char[] name, const char[] arlist, const char[] album, int time, kEngine engine)
 {
     Menu menu = new Menu(MenuHandler_Confirm);
-    menu.SetTitle("%T", "confirm broadcast", client);
+    menu.SetTitle("%T (%T: %T)\n ", "confirm broadcast", client, "engine", client, g_EngineName[engine], client);
 
     AddMenuItemEx(menu, ITEMDRAW_DISABLED, " ", "%T", "song title",  client, name);
     AddMenuItemEx(menu, ITEMDRAW_DISABLED, " ", "%T", "song artist", client, arlist);

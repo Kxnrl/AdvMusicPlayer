@@ -4,13 +4,13 @@
 /*                                                                */
 /*                                                                */
 /*  File:          command.sp                                     */
-/*  Description:   An advance music player in source engine game. */
+/*  Description:   An advanced music player.                      */
 /*                                                                */
 /*                                                                */
 /*  Copyright (C) 2017  Kyle                                      */
-/*  2017/12/30 22:06:14                                           */
+/*  2018/07/04 05:37:22                                           */
 /*                                                                */
-/*  This code is licensed under the GPLv3 License    .            */
+/*  This code is licensed under the GPLv3 License.                */
 /*                                                                */
 /******************************************************************/
 
@@ -93,11 +93,11 @@ public Action OnClientSayCommand(int client, const char[] command, const char[] 
     g_bHandle[client] = false;
 
     // ToDo: will add tencent QQ music
-    Chat(client, "%T", "searching", client);
+    Chat(client, "%T", "searching", client, g_EngineName[g_kEngine[client]], client);
 
     char url[256];
-    g_cvarSEARCH.GetString(url, 256);
-    Format(url, 256, "%s%s", url, sArgs);
+    g_cvarAPIURL.GetString(url, 256);
+    Format(url, 256, "%s/?action=search&engine=%s&limit=%d&song=%s", url, g_EngineName[g_kEngine[client]], g_cvarLIMITS.IntValue, sArgs);
     //i dont want to urlencode. xD
     ReplaceString(url, 256, " ", "+", false);
 
@@ -106,13 +106,14 @@ public Action OnClientSayCommand(int client, const char[] command, const char[] 
 #endif
 
     char path[128];
-    BuildPath(Path_SM, path, 128, "data/music/search_%d.kv", GetClientUserId(client));
-    
+    BuildPath(Path_SM, path, 128, "data/music/search_%s_%d.kv", g_EngineName[g_kEngine[client]], GetClientUserId(client));
+
     // processing search
     if(g_bSystem2)
     {
         System2HTTPRequest hRequest = new System2HTTPRequest(API_SearchMusic_System2, url);
         hRequest.SetOutputFile(path);
+        hRequest.Timeout = 30;
         hRequest.Any = GetClientUserId(client);
         hRequest.GET();
         delete hRequest;
@@ -121,10 +122,13 @@ public Action OnClientSayCommand(int client, const char[] command, const char[] 
     {
         Handle hRequest = SteamWorks_CreateHTTPRequest(k_EHTTPMethodGET, url);
         SteamWorks_SetHTTPRequestContextValue(hRequest, GetClientUserId(client));
+        SteamWorks_SetHTTPRequestNetworkActivityTimeout(hRequest, 30);
         SteamWorks_SetHTTPCallbacks(hRequest, API_SearchMusic_SteamWorks);
         SteamWorks_SendHTTPRequest(hRequest);
         delete hRequest;
     }
+    
+    g_bLocked[client] = true;
 
     return Plugin_Stop;
 }

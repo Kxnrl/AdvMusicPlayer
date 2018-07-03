@@ -4,13 +4,13 @@
 /*                                                                */
 /*                                                                */
 /*  File:          system2.sp                                     */
-/*  Description:   An advance music player in source engine game. */
+/*  Description:   An advanced music player.                      */
 /*                                                                */
 /*                                                                */
 /*  Copyright (C) 2017  Kyle                                      */
-/*  2017/12/30 22:06:14                                           */
+/*  2018/07/04 05:37:22                                           */
 /*                                                                */
-/*  This code is licensed under the GPLv3 License    .            */
+/*  This code is licensed under the GPLv3 License.                */
 /*                                                                */
 /******************************************************************/
 
@@ -35,7 +35,7 @@ public void API_SearchMusic_System2(bool success, const char[] error, System2HTT
         return;
     }
 
-    UTIL_ProcessResult(view_as<int>(request.Any));
+    RequestFrame(UTIL_ProcessResult, view_as<int>(request.Any));
 }
 
 public void API_GetLyric_System2(bool success, const char[] error, System2HTTPRequest request, System2HTTPResponse response, HTTPRequestMethod method)
@@ -55,16 +55,21 @@ public void API_GetLyric_System2(bool success, const char[] error, System2HTTPRe
         return;
     }
 
-    CreateTimer(0.1, UTIL_ProcessLyric, view_as<int>(request.Any));
+    DataPack pack = view_as<DataPack>(request.Any);
+    int   index = pack.ReadCell();
+    float delay = g_cvarLRCDLY.FloatValue - (GetGameTime() - pack.ReadFloat());
+    if(delay < 0)  delay = 0.0;
+    CreateTimer(delay, UTIL_ProcessLyric, index);
 }
 
 public void API_PrepareSong_System2(bool success, const char[] error, System2HTTPRequest request, System2HTTPResponse response, HTTPRequestMethod method)
 {
     g_fNextPlay = 0.0;
     int values = view_as<int>(request.Any);
-    int client = values & 0x7f;
-    int target  = values >> 7;
-    
+    int userid = values &  0x7f;
+    int target = values >> 7;
+    int client = GetClientOfUserId(userid);
+
     if(!success)
     {
         char url[192];
@@ -86,11 +91,14 @@ public void API_PrepareSong_System2(bool success, const char[] error, System2HTT
     response.GetContent(output, response.ContentLength+1);
 
     // php echo "success!" mean preloading success. "file_exists!" mean we were precached.
-    if(strcmp(output, "success!", false) == 0 || strcmp(output, "file_exists!", false) == 0)
+    if(strcmp(output, "success!", false) == 0)
     {
         if(target == 0)
+        {
+            g_bCaching = false;
             Player_BroadcastMusic(client, true);
-        else
+        }
+        else if(IsValidClient(client))
             Player_ListenMusic(client, true);
     }
     else

@@ -4,13 +4,13 @@
 /*                                                                */
 /*                                                                */
 /*  File:          steamworks.sp                                  */
-/*  Description:   An advance music player in source engine game. */
+/*  Description:   An advanced music player.                      */
 /*                                                                */
 /*                                                                */
 /*  Copyright (C) 2017  Kyle                                      */
-/*  2017/12/30 22:06:14                                           */
+/*  2018/07/04 05:37:22                                           */
 /*                                                                */
-/*  This code is licensed under the GPLv3 License    .            */
+/*  This code is licensed under the GPLv3 License.                */
 /*                                                                */
 /******************************************************************/
 
@@ -27,7 +27,7 @@ public int API_SearchMusic_SteamWorks(Handle hRequest, bool bFailure, bool bRequ
             LogError("SteamWorks -> API_SearchMusic -> WriteHTTPResponseBodyToFile failed");
             UTIL_NotifyFailure(GetClientOfUserId(userid), "failed to search music");
         }
-        else UTIL_ProcessResult(userid);
+        else RequestFrame(UTIL_ProcessResult, userid);
     }
     else
     {
@@ -38,14 +38,18 @@ public int API_SearchMusic_SteamWorks(Handle hRequest, bool bFailure, bool bRequ
     delete hRequest;
 }
 
-public int API_GetLyric_SteamWorks(Handle hRequest, bool bFailure, bool bRequestSuccessful, EHTTPStatusCode eStatusCode, int index)
+public int API_GetLyric_SteamWorks(Handle hRequest, bool bFailure, bool bRequestSuccessful, EHTTPStatusCode eStatusCode, DataPack pack)
 {
     if(!bFailure && bRequestSuccessful && eStatusCode == k_EHTTPStatusCode200OK)
     {
+        int   index = pack.ReadCell();
+        float delay = g_cvarLRCDLY.FloatValue - (GetGameTime() - pack.ReadFloat());
+        if(delay < 0)  delay = 0.0;
+
         char path[128];
-        BuildPath(Path_SM, path, 128, "data/music/lyric_%d.lrc", g_Sound[index][iSongId]);
+        BuildPath(Path_SM, path, 128, "data/music/lyric_%s_%s.lrc", g_EngineName[g_Sound[index][eEngine]], g_Sound[index][szSongId]);
         if(SteamWorks_WriteHTTPResponseBodyToFile(hRequest, path))
-            CreateTimer(0.1, UTIL_ProcessLyric, index);
+            CreateTimer(delay, UTIL_ProcessLyric, index);
         else LogError("SteamWorks -> API_GetLyric -> SteamWorks_WriteHTTPResponseBodyToFile failed");
     }
     else LogError("SteamWorks -> API_GetLyric -> HTTP Response failed: %d", eStatusCode);
@@ -60,7 +64,7 @@ public int API_PrepareSong_SteamWorks(Handle hRequest, bool bFailure, bool bRequ
     if(bFailure || !bRequestSuccessful || eStatusCode != k_EHTTPStatusCode200OK)
     {
         LogError("SteamWorks -> API_PrepareSong -> HTTP Response failed: %d", eStatusCode);
-        UTIL_NotifyFailure(values & 0x7f, "failed to precache song");
+        UTIL_NotifyFailure(GetClientOfUserId(values & 0x7f), "failed to precache song");
     }
     else SteamWorks_GetHTTPResponseBodyCallback(hRequest, API_CachedSong_SteamWorks, values);
 
@@ -70,13 +74,17 @@ public int API_PrepareSong_SteamWorks(Handle hRequest, bool bFailure, bool bRequ
 public int API_CachedSong_SteamWorks(const char[] sData, int values)
 {
     // php echo "success!" mean preloading success. "file_exists!" mean we were precached.
-    if(strcmp(sData, "success!", false) == 0 || strcmp(sData, "file_exists!", false) == 0)
+    if(strcmp(sData, "success!", false) == 0)
     {
-        int client = values & 0x7f;
-        int index  = values >> 7;
-        if(index == 0)
+        int userid = values &  0x7f;
+        int target = values >> 7;
+        int client = GetClientOfUserId(userid);
+        if(target == 0)
+        {
+            g_bCaching = false;
             Player_BroadcastMusic(client, true);
-        else
+        }
+        else if(IsValidClient(client))
             Player_ListenMusic(client, true);
     }
     else

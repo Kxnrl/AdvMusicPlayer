@@ -4,13 +4,13 @@
 /*                                                                */
 /*                                                                */
 /*  File:          global.sp                                      */
-/*  Description:   An advance music player in source engine game. */
+/*  Description:   An advanced music player.                      */
 /*                                                                */
 /*                                                                */
 /*  Copyright (C) 2017  Kyle                                      */
-/*  2017/12/30 22:06:14                                           */
+/*  2018/07/04 05:37:22                                           */
 /*                                                                */
-/*  This code is licensed under the GPLv3 License    .            */
+/*  This code is licensed under the GPLv3 License.                */
 /*                                                                */
 /******************************************************************/
 
@@ -21,14 +21,10 @@ void Global_CreateConVar()
     /* register console variables*/
 
     // url
-    g_cvarSEARCH = CreateConVar("amp_url_search", "https://api.kxnrl.com/music/search.php?sc=", "url for searching music.");
-    g_cvarLYRICS = CreateConVar("amp_url_lyrics", "https://api.kxnrl.com/music/lyrics.php?id=", "url for downloading lyric.");
-    g_cvarPLAYER = CreateConVar("amp_url_player", "https://api.kxnrl.com/music/player.php?id=", "url of motd player.");
-    g_cvarCACHED = CreateConVar("amp_url_cached", "https://api.kxnrl.com/music/cached.php?id=", "url for caching music. (caching songs are not allowed in api.kxnrl.com)");
-
-    // others
-    g_cvarECACHE = CreateConVar("amp_url_cached_enable",   "0",   "enable music cached in your web server (0 = disabled, 1 = enabled). In some areas, player can not connect to music server directly. use ur web server to cache music", _, true, 0.0, true, 1.0);
-    g_cvarCREDIT = CreateConVar("amp_cost_factor",         "2.0", "how much for broadcasting song (if store is availavle). song length(sec) * this value = cost credits.", _, true, 0.000001, true, 100000.0);
+    g_cvarAPIURL = CreateConVar("amp_api_engine",   "https://music.kxnrl.com/api/v1/",   "Url for music engine API.");
+    g_cvarLRCDLY = CreateConVar("amp_lrc_delay",    "0.5",                               "How many second(s) delay to display lyric on lyric loaded.",                                              _, true, 0.0, true, 10.0);
+    g_cvarLIMITS = CreateConVar("amp_mnt_search",   "20",                                "How many songs will display in once search.",                                                             _, true, 5.0, true, 60.0);
+    g_cvarCREDIT = CreateConVar("amp_cost_factor",  "2.0",                               "how much for broadcasting song (if store is availavle). song length(sec) * this value = cost credits.",   _, true, 0.1, true, 99.0);
 
     AutoExecConfig(true, "com.kxnrl.advmusicplayer");
 }
@@ -40,8 +36,8 @@ void Global_CheckLibrary()
     g_bMapMusic = LibraryExists("MapMusic") && (GetFeatureStatus(FeatureType_Native, "MapMusic_SetStatus") == FeatureStatus_Available);
     g_bSystem2 = LibraryExists("system2");
     if(!g_bSystem2 && GetFeatureStatus(FeatureType_Native, "SteamWorks_CreateHTTPRequest") != FeatureStatus_Available)
-        SetFailState("Why you not install System2 or SteamWorks?");
-    
+        SetFailState("Why not install System2 or SteamWorks?");
+
 #if defined DEBUG
     UTIL_DebugLog("Global_CheckLibrary -> g_bStoreLib -> %s", g_bStoreLib ? "Loaded" : "Failed");
     UTIL_DebugLog("Global_CheckLibrary -> g_bMapMusic -> %s", g_bMapMusic ? "Loaded" : "Failed");
