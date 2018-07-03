@@ -1238,10 +1238,20 @@ class Meting
 
     private function format_netease($data)
     {
+        $artist = "";
+        foreach ($data['ar'] as $vo) {
+            if($artist == "") {
+                $artist = $vo['name'];
+            } else {
+                $artist .= "/";
+                $artist .= $vo['name'];
+            }
+        }
+        
         $result = array(
             'id'       => $data['id'],
             'name'     => $data['name'],
-            'artist'   => array(),
+            'artist'   => $artist,
             'album'    => $data['al']['name'],
             'length'   => (((int)$data['dt']) / 1000),
             'pic_id'   => isset($data['al']['pic_str']) ? $data['al']['pic_str'] : $data['al']['pic'],
@@ -1253,9 +1263,6 @@ class Meting
             preg_match('/\/(\d+)\./', $data['al']['picUrl'], $match);
             $result['pic_id'] = $match[1];
         }
-        foreach ($data['ar'] as $vo) {
-            $result['artist'][] = $vo['name'];
-        }
 
         return $result;
     }
@@ -1265,10 +1272,21 @@ class Meting
         if (isset($data['musicData'])) {
             $data = $data['musicData'];
         }
+        
+        $artist = "";
+        foreach ($data['singer'] as $vo) {
+            if($artist == "") {
+                $artist = $vo['name'];
+            } else {
+                $artist .= "/";
+                $artist .= $vo['name'];
+            }
+        }
+
         $result = array(
             'id'       => $data['mid'],
             'name'     => $data['name'],
-            'artist'   => array(),
+            'artist'   => $artist,
             'album'    => trim($data['album']['title']),
             'length'   => ((int)$data['interval']),
             'pic_id'   => $data['album']['mid'],
@@ -1276,19 +1294,26 @@ class Meting
             'lyric_id' => $data['mid'],
             'source'   => 'tencent',
         );
-        foreach ($data['singer'] as $vo) {
-            $result['artist'][] = $vo['name'];
-        }
 
         return $result;
     }
 
     private function format_xiami($data)
     {
+        $artist = "";
+        foreach ($data['singerVOs'] as $vo) {
+            if($artist == "") {
+                $artist = $vo['name'];
+            } else {
+                $artist .= "/";
+                $artist .= $vo['name'];
+            }
+        }
+        
         $result = array(
             'id'       => $data['songId'],
             'name'     => $data['songName'],
-            'artist'   => array(),
+            'artist'   => $artist,
             'album'    => $data['albumName'],
             'length'   => (((int)$data['length']) / 1000),
             'pic_id'   => $data['songId'],
@@ -1296,19 +1321,29 @@ class Meting
             'lyric_id' => $data['songId'],
             'source'   => 'xiami',
         );
-        foreach ($data['singerVOs'] as $vo) {
-            $result['artist'][] = $vo['artistName'];
-        }
 
         return $result;
     }
 
     private function format_kugou($data)
     {
+        $name = isset($data['filename']) ? $data['filename'] : $data['fileName'];
+        $temp = explode(' - ', $name, 2);
+        $name = $temp[1];
+        $artist = "";
+        foreach (explode('、', $temp[0]) as $vo) {
+            if($artist == "") {
+                $artist = $vo;
+            } else {
+                $artist .= "/";
+                $artist .= $vo;
+            }
+        }
+        
         $result = array(
             'id'       => $data['hash'],
-            'name'     => isset($data['filename']) ? $data['filename'] : $data['fileName'],
-            'artist'   => array(),
+            'name'     => $name,
+            'artist'   => $artist,
             'album'    => isset($data['album_name']) ? $data['album_name'] : '',
             'length'   => ((int)$data['duration']),
             'url_id'   => $data['hash'],
@@ -1316,8 +1351,6 @@ class Meting
             'lyric_id' => $data['hash'],
             'source'   => 'kugou',
         );
-        list($result['artist'], $result['name']) = explode(' - ', $result['name'], 2);
-        $result['artist'] = explode('、', $result['artist']);
 
         return $result;
     }
@@ -1330,11 +1363,21 @@ class Meting
         } else {
             $len = $data['file_duration'];
         }
+        
+        $artist = "";
+        foreach (explode(',', $data['author']) as $vo) {
+            if($artist == "") {
+                $artist = $vo;
+            } else {
+                $artist .= "/";
+                $artist .= $vo;
+            }
+        }
 
         $result = array(
             'id'       => $data['song_id'],
             'name'     => $data['title'],
-            'artist'   => explode(',', $data['author']),
+            'artist'   => $artist,
             'album'    => $data['album_title'],
             'length'   => $len,
             'pic_id'   => $data['song_id'],

@@ -61,6 +61,12 @@
         "chi"   "{1}\n歌手: {2}\n专辑: {3}"
         "fr"    "{1}\nArtiste: {2}\nAlbum: {3}"
     }
+    
+    "Engine title"
+    {
+        "en"    "[AMP] Select Music Engine\n "
+        "chi"   "[AMP] 选择音乐搜索引擎\n "
+    }
 
     "search result title"
     {
@@ -285,5 +291,47 @@
     {
         "en"    "{red}Failed to process searching results ..."
         "chi"   "{red}处理搜索结果发生异常错误..."
+    }
+    
+    "netease"
+    {
+        "en"    "Netease Cloud Music"
+        "chi"   "网易云音乐"
+    }
+    
+    "tencent"
+    {
+        "en"    "Tencent Music"
+        "chi"   "QQ音乐"
+    }
+    
+    "xiami"
+    {
+        "en"    "XiaMi Music"
+        "chi"   "虾米音乐"
+    }
+    
+    "kugou"
+    {
+        "en"    "KuGou Music"
+        "chi"   "酷狗音乐"
+    }
+    
+    "baidu"
+    {
+        "en"    "Baidu Music"
+        "chi"   "千千(百度)音乐"
+    }
+    
+    "custom"
+    {
+        "en"    "Kxnrl Custom Engine"
+        "chi"   "Kxnrl 自定义引擎"
+    }
+    
+    "locked search"
+    {
+        "en"    "{red}You have a searching request in processing..."
+        "chi"   "{red}你有一个搜索请求正在执行..."
     }
 }
