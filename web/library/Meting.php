@@ -11,6 +11,8 @@
 
 namespace Metowolf;
 
+require_once 'config.php';
+
 class Meting
 {
     const VERSION = '1.5.3';
@@ -93,12 +95,17 @@ class Meting
             curl_setopt($curl, CURLOPT_POST, 1);
             curl_setopt($curl, CURLOPT_POSTFIELDS, is_array($payload) ? http_build_query($payload) : $payload);
         }
-        curl_setopt($curl, CURLOPT_PROXY, "127.0.0.1:1080");
-        curl_setopt($curl, CURLOPT_PROXYTYPE, CURLPROXY_SOCKS5);
+        
+        global $config;
+        if (isset($config['curl_proxy']['host'])) {
+            curl_setopt($curl, CURLOPT_PROXY, $config['curl_proxy']['host']);
+            curl_setopt($curl, CURLOPT_PROXYTYPE, $config['curl_proxy']['type']);
+        }
+
         curl_setopt($curl, CURLOPT_HEADER, $headerOnly);
         curl_setopt($curl, CURLOPT_TIMEOUT, 20);
         curl_setopt($curl, CURLOPT_ENCODING, 'gzip');
-        curl_setopt($curl, CURLOPT_IPRESOLVE, 1);
+        curl_setopt($curl, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
         curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 10);
@@ -771,7 +778,7 @@ class Meting
             case 'netease':
             return array(
                 'Referer'         => 'https://music.163.com/',
-                'Cookie'          => 'appver=2.4.0.196477; __remember_me=true; os=pc; osver=Microsoft-Windows-10-Education-build-17134-64bit;',
+                'Cookie'          => 'JSESSIONID-WYYY=GSagSrwD7Rw3rQ%2B8lGT7Qvg1qg9GsUAsSVPTOSV4ARRddi7cTOIiKwkk93BDjpRjo123UZyDMAb9Jcvq0mfW2kEVzazMkrGb0bkTVhI0xN6tXqQMxuc5XxayGouhb8lqQsR51tx1Wf5zaKPQEOPb45kV9ViDmOXhTBwDQjrSYzfuuH2N%3A1530631437094; _iuqxldmzr_=32; _ntes_nnid=c935be6560224b2380706150552df33b,1530629637119; _ntes_nuid=c935be6560224b2380706150552df33b; __utma=94650624.1292420993.1530629642.1530629642.1530629642.1; __utmc=94650624; __utmz=94650624.1530629642.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); __utmb=94650624.2.10.1530629642',
                 'User-Agent'      => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_5) AppleWebKit/605.1.15 (KHTML, like Gecko)',
                 'X-Real-IP'       => long2ip(mt_rand(1884815360, 1884890111)),
                 'Accept'          => '*/*',

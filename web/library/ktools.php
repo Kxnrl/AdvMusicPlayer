@@ -1,4 +1,21 @@
 <?php
+/******************************************************************/
+/*                                                                */
+/*                     Advanced Music Player                      */
+/*                                                                */
+/*                                                                */
+/*  File:          ktools.php                                     */
+/*  Description:   An advanced music player.                      */
+/*                                                                */
+/*                                                                */
+/*  Copyright (C) 2018  Kyle                                      */
+/*  2018/07/04 02:02:11                                           */
+/*                                                                */
+/*  This code is licensed under the GPLv3 License.                */
+/*                                                                */
+/******************************************************************/
+
+
 
 namespace Kxnrl;
 
@@ -7,11 +24,12 @@ class KeyValues
     public $str;
     public $arr;
     
-    public function __construct($input)
+    public function __construct($title, $input)
     {
         if(is_array($input)) {
-            $this->str = $this->Encode($input, true, 0);
-            $this->arr = $input;
+            $this->str = '"' . $title . '"' .  PHP_EOL . '{' . PHP_EOL . $this->Encode($input, true, 1) . '}';
+            $this->arr = array();
+            $this->arr[$title] = $input;
         } elseif(is_string($input)) {
             $this->arr = $this->Decode($input);
             $this->str = $input;

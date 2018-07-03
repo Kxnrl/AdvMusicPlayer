@@ -1,4 +1,21 @@
 <?php 
+/******************************************************************/
+/*                                                                */
+/*                     Advanced Music Player                      */
+/*                                                                */
+/*                                                                */
+/*  File:          index.php                                      */
+/*  Description:   An advanced music player.                      */
+/*                                                                */
+/*                                                                */
+/*  Copyright (C) 2018  Kyle                                      */
+/*  2018/07/04 02:02:11                                           */
+/*                                                                */
+/*  This code is licensed under the GPLv3 License.                */
+/*                                                                */
+/******************************************************************/
+
+
 
 // ugh? no action?
 if(!isset($_GET['action']) || empty($_GET['action']) || !in_array($_GET['action'], array('search', 'player', 'cached', 'lyrics'))) {
@@ -20,20 +37,21 @@ require_once 'library/ktools.php';
 require_once 'library/kmusic.php';
 use Kxnrl\Music;
 use Kxnrl\KeyValues;
+use Metowolf\Meting;
 
 try {
     switch($_GET['action']) {
         case 'search':
-            $search = new Meting($_GET['engine']);
-            $json = $api->format(true)->search($_GET['song'], ['page' => 1, 'limit' => (isset($_GET['limit']) ? $_GET['limit'] : 30)]);
+            $engine = new Meting($_GET['engine']);
+            $json = $engine->format(true)->search($_GET['song'], ['page' => 1, 'limit' => (isset($_GET['limit']) ? $_GET['limit'] : 30)]);
             $data = json_decode($json, true);
-            $kv = new KeyValues($data);
+            $kv = new KeyValues("Song", $data);
             $result = $kv->ExportToString();
             header("Content-type: text/plain"); 
-            header("Content-Disposition: attachment; filename='search_results.kv'");
+            header("Content-Disposition: attachment; filename='" . $_GET['song'] . ".kv'");
             break;
         case 'player':
-            $result = "<html><head><title>Advanced Music Player Motd</title><meta name='description' content='Advanced Music Player' /><meta name='author' content='Kyle' /><meta name='copyright' content='2015-2018 Kyle' /></head><body><audio id='music' src='https://static.kxnrl.com/musics/". $_GET['engine'] ."/" . $_GET['song'] . ".mp3' autoplay='autoplay' />";
+            $result = "<html><head><title>Advanced Music Player Motd - by Kyle \"Kxnrl\" Frankiss</title><meta name='description' content='Advanced Music Player' /><meta name='author' content='Kyle' /><meta name='copyright' content='2015-2018 Kyle' /><link rel='icon' type='image/png' href='//kxnrl.com/assets/images/favicon.png' /></head><body><audio id='music' src='" . $config['uri_prefix']['mp3'] .$_GET['engine'] ."/" . $_GET['song'] . ".mp3' autoplay='autoplay' />";
             if(isset($_GET['volume']) && !empty($_GET['volume'])) {
                 $volume = round($_GET['volume'] / 100, 2);
                 $result .= "<script type='text/javascript'>window.onload=function(){document.getElementById('music').volume=$volume;};</script>";
@@ -43,11 +61,13 @@ try {
         case 'cached':
             $engine = new Music($_GET['engine'], $_GET['song'], true);
             $result = "success!";
+            header("Content-type: text/plain; charset=UTF-8"); 
             break;
         case 'lyrics':
             $engine = new Music($_GET['engine'], $_GET['song'], true);
             $result = $engine->lrcstr;
-            header("Content-type: text/plain; charset=UTF-8"); 
+            header("Content-type: text/plain"); 
+            header("Content-Disposition: attachment; filename='" . $_GET['song'] . ".lrc'");
             break;
         default:
             http_response_code(404);

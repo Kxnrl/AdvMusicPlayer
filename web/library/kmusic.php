@@ -1,9 +1,28 @@
 <?php
+/******************************************************************/
+/*                                                                */
+/*                     Advanced Music Player                      */
+/*                                                                */
+/*                                                                */
+/*  File:          kmusic.php                                     */
+/*  Description:   An advanced music player.                      */
+/*                                                                */
+/*                                                                */
+/*  Copyright (C) 2018  Kyle                                      */
+/*  2018/07/04 02:02:11                                           */
+/*                                                                */
+/*  This code is licensed under the GPLv3 License.                */
+/*                                                                */
+/******************************************************************/
+
+
+
 namespace Kxnrl;
 
 require_once 'config.php';
 require_once 'Meting.php';
 require_once 'Exception/HandleException.php';
+
 use Metowolf\Meting;
 use Kxnrl\HandleException;
 
@@ -20,7 +39,7 @@ class Music
     public $mp3_id;
     public $mp3loc;
     public $mp3uri;
-    
+
     // lyric
     public $lrc_id;
     public $lrcloc;
@@ -34,6 +53,8 @@ class Music
 
     public function __construct($engine, $id, $load = true)
     {
+        global $config;
+
         if(!in_array($engine, array('netease', 'tencent', 'xiami', 'kugou', 'baidu'))) {
             
             if($engine == 'custom') {
@@ -45,8 +66,8 @@ class Music
 
             throw new HandleException("Engine $engine not support.");
         }
-        
-        if(!file_exists(__DIR__ . '/../data') && !mkdir(__DIR__ . '/../data', 0755, true)) {
+
+        if(!file_exists($config['uri_prefix']['dir']) && !mkdir($config['uri_prefix']['dir'], 0755, true)) {
             throw new HandleException("Failed to create data folder.");
         }
 
@@ -63,13 +84,13 @@ class Music
             $this->pic();
         }
     }
-    
+
     public function song()
     {
         //static 
-        $dictionary = array();
+        static $dictionary = array();
 
-        if(isset($dictionary[$this->engine][$this->songid])){
+        if(isset($dictionary[$this->engine][$this->songid])) {
             $this->name = $dictionary[$this->engine][$this->songid]['name'];
             $this->artist = $dictionary[$this->engine][$this->songid]['artist'];
             return;
@@ -79,11 +100,11 @@ class Music
         $song = json_decode($json, true);
 
         if(!isset($song[0])) {
-            throw new HandleException("Null results.");
+            throw new HandleException("Null results. -> json[" . $json . "]");
         }
 
         if($song[0]['id'] != $this->songid) { throw new HandleException("Access is denied. id[" . $song[0]['id'] . "] songid[" . $this->songid . "]"); }
-        
+
         $this->name = $song[0]['name'];
         if(is_array($song[0]['artist'])) {
             foreach($song[0]['artist'] as $nmsl) {
@@ -97,7 +118,7 @@ class Music
         } else {
             $this->artist = $song[0]['artist'];
         }
-        
+
         $this->mp3_id = $song[0]['url_id'];
         $this->lrc_id = $song[0]['lyric_id'];
         $this->pic_id = $song[0]['pic_id'];
@@ -108,9 +129,11 @@ class Music
 
     public function mp3()
     {
-        $this->mp3loc = __DIR__ . '/../data/songs/' . $this->engine . '/' . $this->songid . '.mp3';
+        global $config;
+
+        $this->mp3loc = $config['uri_prefix']['dir'] . '/musics/' . $this->engine . '/' . $this->songid . '.mp3';
         
-        if(!file_exists(__DIR__ . '/../data/songs/' . $this->engine) && !mkdir(__DIR__ . '/../data/songs/' . $this->engine, 0755, true)) {
+        if(!file_exists($config['uri_prefix']['dir'] . '/musics/' . $this->engine) && !mkdir($config['uri_prefix']['dir'] . '/musics/' . $this->engine, 0755, true)) {
             throw new HandleException("Failed to create folder to store mp3 files.");
         }
 
@@ -122,14 +145,14 @@ class Music
             unlink($this->mp3loc);
         }
 
-        $data = json_decode($this->server->format(true)->url($this->mp3_id, 320), true);
+        $json = $this->server->format(true)->url($this->mp3_id, 320);
+        $data = json_decode($json, true);
 
-        if(!isset($data['url']) || strlen($data['url']) <= 15) { throw new HandleException("Access is denied. mp3url[" . $data['url'] . "]"); }
+        if(!isset($data['url']) || strlen($data['url']) <= 15) { throw new HandleException("Access is denied. mp3url[" . $data['url'] . "]. json[" . $json . "]"); }
 
         $curl = curl_init();
         curl_setopt($curl, CURLOPT_URL, $data['url']);
-        curl_setopt($curl, CURLOPT_HTTPHEADER, array("Accept: */*", "Accept-Encoding: identity;q=1, *;q=0", "Accept-Language: zh-CN,zh;q=0.9,und;q=0.8,en-US;q=0.7,en;q=0.6", "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36"));
-        curl_setopt($curl, CURLOPT_IPRESOLVE, 1);
+        curl_setopt($curl, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
         curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 10);
@@ -147,7 +170,7 @@ class Music
         curl_close($curl);
         
         if($info['http_code'] >= 300) {
-            throw new HandleException("Failed to download song file. id[" . $this->mp3_id . "] url[" . $data['url'] . "]");
+            throw new HandleException("Failed to download song file. id[" . $this->mp3_id . "] url[" . $data['url'] . "] status[" . $status . "] HttpCode[". $info['http_code'] . "]");
         }
 
         if(file_put_contents($this->mp3loc, $file, LOCK_EX) === FALSE) {
@@ -161,12 +184,14 @@ class Music
 
         $this->mp3uri = $config['uri_prefix']['mp3'] . $this->engine . "/" . $this->songid . ".mp3";
     }
-    
+
     public function lrc()
     {
-        $this->lrcloc = __DIR__ . '/../data/lyrics/' . $this->engine . '/' . $this->songid . '.lrc';
+        global $config;
         
-        if(!file_exists(__DIR__ . '/../data/lyrics/' . $this->engine) && !mkdir(__DIR__ . '/../data/lyrics/' . $this->engine, 0755, true)) {
+        $this->lrcloc = $config['uri_prefix']['dir'] . '/lyrics/' . $this->engine . '/' . $this->songid . '.lrc';
+        
+        if(!file_exists($config['uri_prefix']['dir'] . '/lyrics/' . $this->engine) && !mkdir($config['uri_prefix']['dir'] . '/lyrics/' . $this->engine, 0755, true)) {
             throw new HandleException("Failed to create folder to store lrc files.");
         }
 
@@ -195,12 +220,14 @@ class Music
         $this->lrcstr = $data['lyric'];
         $this->lrcuri = $config['uri_prefix']['lrc'] . $this->engine . "/" . $this->songid . ".lrc";
     }
-    
+
     public function pic()
     {
-        $this->picloc = __DIR__ . '/../data/covers/' . $this->engine . '/' . $this->songid . '.jpg';
+        global $config;
+
+        $this->picloc = $config['uri_prefix']['dir'] . '/covers/' . $this->engine . '/' . $this->songid . '.jpg';
         
-        if(!file_exists(__DIR__ . '/../data/covers/' . $this->engine) && !mkdir(__DIR__ . '/../data/covers/' . $this->engine, 0755, true)) {
+        if(!file_exists($config['uri_prefix']['dir'] . '/covers/' . $this->engine) && !mkdir($config['uri_prefix']['dir'] . '/covers/' . $this->engine, 0755, true)) {
             throw new HandleException("Failed to create folder to store jpg files.");
         }
 
@@ -212,14 +239,14 @@ class Music
             unlink($this->picloc);
         }
 
-        $data = json_decode($this->server->format(true)->pic($this->pic_id), true);
+        $json = $this->server->format(true)->pic($this->pic_id);
+        $data = json_decode($json, true);
 
-        if(!isset($data['url']) || strlen($data['url']) <= 15) { throw new HandleException("Access is denied. picurl[" . $data['url'] . "]"); }
+        if(!isset($data['url']) || strlen($data['url']) <= 15) { throw new HandleException("Access is denied. picurl[" . $data['url'] . "]. json[" . $json . "]"); }
 
         $curl = curl_init();
         curl_setopt($curl, CURLOPT_URL, $data['url']);
-        curl_setopt($curl, CURLOPT_HTTPHEADER, array("Accept: */*", "Accept-Encoding: identity;q=1, *;q=0", "Accept-Language: zh-CN,zh;q=0.9,und;q=0.8,en-US;q=0.7,en;q=0.6", "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36"));
-        curl_setopt($curl, CURLOPT_IPRESOLVE, 1);
+        curl_setopt($curl, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
         curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 10);
@@ -237,7 +264,7 @@ class Music
         curl_close($curl);
         
         if($info['http_code'] >= 300) {
-            throw new HandleException("Failed to download cover file. id[" . $this->pic_id . "] url[" . $data['url'] . "]");
+            throw new HandleException("Failed to download cover file. id[" . $this->pic_id . "] url[" . $data['url'] . "] status[" . $status . "] HttpCode[". $info['http_code'] . "]");
         }
 
         if(file_put_contents($this->picloc, $file, LOCK_EX) === FALSE) {

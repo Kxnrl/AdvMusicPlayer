@@ -1,4 +1,21 @@
 <?php
+/******************************************************************/
+/*                                                                */
+/*                     Advanced Music Player                      */
+/*                                                                */
+/*                                                                */
+/*  File:          HandleException.php                            */
+/*  Description:   An advanced music player.                      */
+/*                                                                */
+/*                                                                */
+/*  Copyright (C) 2018  Kyle                                      */
+/*  2018/07/04 02:02:11                                           */
+/*                                                                */
+/*  This code is licensed under the GPLv3 License.                */
+/*                                                                */
+/******************************************************************/
+
+
 
 namespace Kxnrl;
 
@@ -12,7 +29,7 @@ class HandleException extends \Exception
         fputs($fp, "\n");
         fclose($fp);
 
-        //parent::__construct($a, $b);
+        //parent::__construct($message);
     }
 }
 
