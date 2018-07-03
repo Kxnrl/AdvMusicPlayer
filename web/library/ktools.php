@@ -27,7 +27,7 @@ class KeyValues
     public function __construct($title, $input)
     {
         if(is_array($input)) {
-            $this->str = '"' . $title . '"' .  PHP_EOL . '{' . PHP_EOL . $this->Encode($input, true, 1) . '}';
+            $this->str = '"' . $title . '"' .  PHP_EOL . '{' . PHP_EOL . $this->Encode($input, 1) . '}';
             $this->arr = array();
             $this->arr[$title] = $input;
         } elseif(is_string($input)) {
@@ -121,22 +121,24 @@ class KeyValues
         return $arr;
     }
 
-    private function Encode($arr, $pretty, $level)
+    private function Encode($arr, $level)
     {
         if(!is_array($arr)) {
             throw new HandleException("Encode encounted " . gettype($arr) . ", only array or string allowed (depth " . $level . "), string:" . $arr);
         }
 
         $str = "";
-        $line_indent = ($pretty) ? str_repeat("    ", $level) : "";
+        $line_indent = str_repeat("    ", $level);
 
         foreach($arr as $key => $val) {
             if(!is_array($val)) {
-                if($key != "songCount")
-                $str .= "$line_indent\"$key\"    \"$val\"\n";
-            }
-            else {
-                $res = $this->Encode($val, $pretty, $level + 1);
+                if(is_numeric($key)) {
+                    $str .= "$line_indent\"". (string)$key . "\"    \"$val\"\n";
+                } else {
+                    $str .= "$line_indent\"$key\"    \"$val\"\n";
+                }
+            } else {
+                $res = $this->Encode($val, $level + 1);
                 if($res === null) return null;
                 $str .= "$line_indent\"$key\"\n$line_indent{\n$res$line_indent}\n";
             }
