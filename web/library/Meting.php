@@ -1243,6 +1243,7 @@ class Meting
             'name'     => $data['name'],
             'artist'   => array(),
             'album'    => $data['al']['name'],
+            'length'   => (((int)$data['dt']) / 1000),
             'pic_id'   => isset($data['al']['pic_str']) ? $data['al']['pic_str'] : $data['al']['pic'],
             'url_id'   => $data['id'],
             'lyric_id' => $data['id'],
@@ -1269,6 +1270,7 @@ class Meting
             'name'     => $data['name'],
             'artist'   => array(),
             'album'    => trim($data['album']['title']),
+            'length'   => ((int)$data['interval']),
             'pic_id'   => $data['album']['mid'],
             'url_id'   => $data['mid'],
             'lyric_id' => $data['mid'],
@@ -1288,6 +1290,7 @@ class Meting
             'name'     => $data['songName'],
             'artist'   => array(),
             'album'    => $data['albumName'],
+            'length'   => (((int)$data['length']) / 1000),
             'pic_id'   => $data['songId'],
             'url_id'   => $data['songId'],
             'lyric_id' => $data['songId'],
@@ -1307,6 +1310,7 @@ class Meting
             'name'     => isset($data['filename']) ? $data['filename'] : $data['fileName'],
             'artist'   => array(),
             'album'    => isset($data['album_name']) ? $data['album_name'] : '',
+            'length'   => ((int)$data['duration']),
             'url_id'   => $data['hash'],
             'pic_id'   => $data['hash'],
             'lyric_id' => $data['hash'],
@@ -1320,11 +1324,19 @@ class Meting
 
     private function format_baidu($data)
     {
+        if(!isset($data['file_duration'])) {
+            $res = json_decode($this->format(false)->song($data['song_id']), true);
+            $len = $res['songinfo']['file_duration'];
+        } else {
+            $len = $data['file_duration'];
+        }
+
         $result = array(
             'id'       => $data['song_id'],
             'name'     => $data['title'],
             'artist'   => explode(',', $data['author']),
             'album'    => $data['album_title'],
+            'length'   => $len,
             'pic_id'   => $data['song_id'],
             'url_id'   => $data['song_id'],
             'lyric_id' => $data['song_id'],
