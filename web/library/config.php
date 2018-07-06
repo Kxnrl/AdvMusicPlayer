@@ -26,7 +26,7 @@ $config['uri_prefix']['lrc'] = 'https://music.kxnrl.com/lyrics/';
 $config['uri_prefix']['pic'] = 'https://music.kxnrl.com/covers/';
 
 // If you want to use shadowsocks-libev
-$config['curl_proxy']['host'] = '127.0.0.1:1080';
-$config['curl_proxy']['type'] = CURLPROXY_SOCKS5;
+//$config['curl_proxy']['host'] = '127.0.0.1:1080';
+//$config['curl_proxy']['type'] = CURLPROXY_SOCKS5;
 
 ?>
