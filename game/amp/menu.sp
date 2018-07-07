@@ -21,7 +21,7 @@ void DisplayMainMenu(int client)
     Menu menu = new Menu(MenuHanlder_Main);
     
     if(g_bPlayed[client] || g_bListen[client])
-        menu.SetTitle("%T", "player info", client, g_Sound[client][szName], g_Sound[client][szArtist], g_Sound[client][szAlbum], g_EngineName[g_Sound[client][eEngine]], client); 
+        menu.SetTitle("%T", "player info", client, g_Sound[client][szTitle], g_Sound[client][szArtist], g_Sound[client][szAlbum], g_EngineName[g_Sound[client][eEngine]], client); 
     else
         menu.SetTitle("%T", "player title", client);
 
