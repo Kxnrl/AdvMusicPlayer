@@ -19,9 +19,9 @@
     "client current playing"
     {
         "#format" "{1:N},{2:s},{3:T}"
-        "en"    "{green}{1} {default}Playing [{orange}{2}{default}] ({purple}{3}{default)"
-        "chi"   "{green}{1} {default}正在收听[{orange}{2}{default}] ({purple}{3}{default)"
-        "fr"    "{green}{1} {default}Joué [{orange}{2}{default}] ({purple}{3}{default)"
+        "en"    "{green}{1}{default} Playing [{orange}{2}{default}] ({purple}{3}{default)"
+        "chi"   "{green}{1}{default} 正在收听 [{orange}{2}{default}] ({purple}{3}{default)"
+        "fr"    "{green}{1}{default} Joué [{orange}{2}{default}] ({purple}{3}{default)"
     }
 
     "banned notice"
@@ -41,17 +41,17 @@
     "cost to broadcast"
     {
         "#format" "{1:d},{2:s}"
-        "en"    "{green}You paid {orange}{1}{green}credits for order song:[{blue}{2}{green}]."
-        "chi"   "{green}您支付了{orange}{1}{green}信用点来点播[{blue}{2}{green}]."
-        "fr"    "{green}Vous avez payé {orange}{1}{green}crédits pour la chanson d'ordre:[{blue}{2}{green}]."
+        "en"    "{green}You paid{orange} {1} {green}credits for order song:[{blue}{2}{green}]."
+        "chi"   "{green}您支付了{orange} {1} {green}信用点来点播[{blue}{2}{green}]."
+        "fr"    "{green}Vous avez payé{orange} {1} {green}crédits pour la chanson d'ordre:[{blue}{2}{green}]."
     }
 
     "broadcast"
     {
         "#format" "{1:N},{2:s},{3:t}"
-        "en"    "{green}{1}{default}Play song[{blue}{2}{default}] ({purple}{3}{default)"
-        "chi"   "{green}{1}{default}点播歌曲[{blue}{2}{default}] ({purple}{3}{default)"
-        "fr"    "{green}{1}{default}Musique jouer actuellement[{blue}{2}{default}] ({purple}{3}{default)"
+        "en"    "{green}{1}{default} Play song [{blue}{2}{default}] ({purple}{3}{default})"
+        "chi"   "{green}{1}{default} 点播歌曲 [{blue}{2}{default}] ({purple}{3}{default})"
+        "fr"    "{green}{1}{default} Musique jouer actuellement [{blue}{2}{default}] ({purple}{3}{default})"
     }
 
     "search result songs"
@@ -72,7 +72,7 @@
     {
         "#format" "{1:d},{2:T}"
         "en"    "[AMP] {1} results via {2}\n "
-        "chi"   "[AMP] {1} 结果 来自 {2}\n "
+        "chi"   "[AMP] {1} 歌曲 来自 {2}\n "
         "fr"    "[AMP] {1} musiques trouvés via {2}\n "
     }
 
@@ -87,16 +87,16 @@
     {
         "#format" "{1:N},{2:s}"
         "en"    "{orange}{1}{default} got music {red}{2}{default}."
-        "chi"   "因为乱玩点歌系统,{orange}{1}{default}已被{red}封禁{default}点歌权限."
+        "chi"   "{orange}{1}{default} 已被{red}{2}{default}点歌权限."
         "fr"    "{orange}{1}{default} a de la musique {red}{2}{default}."
     }
 
     "searching"
     {
         "#format" "{1:T}"
-        "en"    "{green}Searching(Engine: {1})..."
-        "chi"   "{green}正在搜索音乐(引擎: {1})..."
-        "fr"    "{green}Recherche(par {1})..."
+        "en"    "{green}Searching {default}(Engine: {purple}{3}{default})..."
+        "chi"   "{green}正在搜索音乐 {default}(引擎: {purple}{3}{default})..."
+        "fr"    "{green}Recherche {default}(par {purple}{3}{default})..."
     }
 
     "player info"
@@ -257,19 +257,19 @@
         "chi"   "自己听[免费]"
         "fr"    "Pour soi[Gratuit]"
     }
-    
+
     "map bgm a"
     {
         "en"    "Map BGM volume"
         "chi"   "地图音乐"
     }
-    
+
     "map bgm ua"
     {
         "en"    "BGM controller is unavailable"
         "chi"   "地图音乐不可用"
     }
-    
+
     "precaching song"
     {
         "en"    "{green}Precaching music ..."
@@ -281,67 +281,67 @@
         "en"    "{red}Failed to prepare song ..."
         "chi"   "{red}缓冲歌曲失败..."
     }
-    
+
     "failed to search music"
     {
         "en"    "{red}Failed to search song ..."
         "chi"   "{red}搜索歌曲发生异常错误..."
     }
-    
+
     "failed to process searching results"
     {
         "en"    "{red}Failed to process searching results ..."
         "chi"   "{red}处理搜索结果发生异常错误..."
     }
-    
+
     "netease"
     {
         "en"    "Netease Cloud Music"
         "chi"   "网易云音乐"
     }
-    
+
     "tencent"
     {
         "en"    "Tencent Music"
         "chi"   "QQ音乐"
     }
-    
+
     "xiami"
     {
         "en"    "XiaMi Music"
         "chi"   "虾米音乐"
     }
-    
+
     "kugou"
     {
         "en"    "KuGou Music"
         "chi"   "酷狗音乐"
     }
-    
+
     "baidu"
     {
         "en"    "Baidu Music"
         "chi"   "千千(百度)音乐"
     }
-    
+
     "custom"
     {
         "en"    "Kxnrl Custom Engine"
         "chi"   "Kxnrl 自定义引擎"
     }
-    
+
     "locked search"
     {
         "en"    "{red}You have a request in processing..."
         "chi"   "{red}你有一个请求正在执行..."
     }
-    
+
     "engine"
     {
         "en"    "Engine"
         "chi"   "引擎"
     }
-    
+
     "Global caching"
     {
         "en"    "{red}An caching request is in processing..."
