@@ -264,6 +264,9 @@ void Player_ListenMusic(int client, bool cached = false)
     // set listen flag
     g_bListen[client] = true;
 
+    // set lock flag
+    g_bLocked[client] = false;
+
     // load lyric
     if(g_bLyrics[client])
         Player_LoadLyric(client);
@@ -336,6 +339,9 @@ void Player_BroadcastMusic(int client, bool cached = false)
         UTIL_CacheSong(client, BROADCAST);
         return;
     }
+
+    // set lock flag
+    g_bLocked[client] = false;
 
 #if defined DEBUG
     UTIL_DebugLog("Player_BroadcastMusic -> %N -> [%s]%s -> %.2f", client, g_Sound[BROADCAST][szSongId], g_Sound[BROADCAST][szTitle], g_Sound[BROADCAST][fLength]);
