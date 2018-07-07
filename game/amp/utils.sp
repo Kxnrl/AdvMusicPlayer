@@ -304,7 +304,7 @@ void UTIL_CacheSong(int client, int index)
     g_bLocked[client] = true;
 
     if(index)
-        Chat(index, "%T", "precaching song");
+        Chat(index, "%T", "precaching song", client);
     else
     {
         ChatAll("%t", "precaching song");

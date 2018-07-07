@@ -235,6 +235,9 @@ public Action Timer_SoundEnd(Handle timer, int index)
 
 void Player_ListenMusic(int client, bool cached)
 {
+    // load song info
+    UTIL_ProcessSongInfo(client, g_Sound[client][szTitle], g_Sound[client][szArtist], g_Sound[client][szAlbum], g_Sound[client][fLength], g_Sound[client][szSongId], g_Sound[client][eEngine]);
+    
     // if enabled cache and not precache
     if(!cached)
     {
@@ -247,9 +250,6 @@ void Player_ListenMusic(int client, bool cached)
 
     // reset player of index
     Player_Reset(client);
-
-    // get song info
-    UTIL_ProcessSongInfo(client, g_Sound[client][szTitle], g_Sound[client][szArtist], g_Sound[client][szAlbum], g_Sound[client][fLength], g_Sound[client][szSongId], g_Sound[client][eEngine]);
 
     // init player
     char murl[192];
@@ -302,23 +302,7 @@ void Player_BroadcastMusic(int client, bool cached)
         Chat(client, "%T", "last timeout", client);
         return;
     }
-
-    // if enabled cache and not precache
-    if(!cached)
-    {
-        if(g_bCaching)
-        {
-            Chat(client, "Global caching");
-            return;
-        }
-        
-#if defined DEBUG
-        UTIL_DebugLog("Player_BroadcastMusic -> %N -> [%s]%s -> we need precache music", client, g_Sound[client][szSongId], g_Sound[client][szTitle]);
-#endif
-        UTIL_CacheSong(client, BROADCAST);
-        return;
-    }
-
+    
     // get song info
     UTIL_ProcessSongInfo(client, g_Sound[BROADCAST][szTitle], g_Sound[BROADCAST][szArtist], g_Sound[BROADCAST][szAlbum], g_Sound[BROADCAST][fLength], g_Sound[BROADCAST][szSongId], g_Sound[BROADCAST][eEngine]);
 
@@ -335,6 +319,22 @@ void Player_BroadcastMusic(int client, bool cached)
         FormatEx(reason, 128, "点歌系统点歌[%s.%s]", g_Sound[BROADCAST][szSongId], g_Sound[BROADCAST][szTitle]);
         Store_SetClientCredits(client, Store_GetClientCredits(client) - cost, reason);
         Chat(client, "%T", "cost to broadcast", client, cost, g_Sound[BROADCAST][szTitle]);
+    }
+
+    // if enabled cache and not precache
+    if(!cached)
+    {
+        if(g_bCaching)
+        {
+            Chat(client, "Global caching");
+            return;
+        }
+        
+#if defined DEBUG
+        UTIL_DebugLog("Player_BroadcastMusic -> %N -> [%s]%s -> we need precache music", client, g_Sound[client][szSongId], g_Sound[client][szTitle]);
+#endif
+        UTIL_CacheSong(client, BROADCAST);
+        return;
     }
 
 #if defined DEBUG
