@@ -94,9 +94,9 @@
     "searching"
     {
         "#format" "{1:T}"
-        "en"    "{green}Searching {default}(Engine: {purple}{3}{default})..."
-        "chi"   "{green}正在搜索音乐 {default}(引擎: {purple}{3}{default})..."
-        "fr"    "{green}Recherche {default}(par {purple}{3}{default})..."
+        "en"    "{green}Searching {default}(Engine: {purple}{1}{default})..."
+        "chi"   "{green}正在搜索音乐 {default}(引擎: {purple}{1}{default})..."
+        "fr"    "{green}Recherche {default}(par {purple}{1}{default})..."
     }
 
     "player info"
