@@ -1,6 +1,6 @@
-# AdvMusicPlayer  
+# Advanced Music Player  
   
- 
+  
 An advanced music player in source engine game.  
   
   
@@ -33,12 +33,12 @@ An advanced music player in source engine game.
   
 ## Commands  
 - **sm_music** - Open main menu. [alias: ***sm_dj*** / ***sm_media***]  
-- **sm_adminmusicstop** - [Admin Command - Ban flag] Stop broadcasting.  
-- **sm_musicban** - [Admin Command - Ban flag] Bans the selected player from broadcasting. [Usage: sm_musicban <player steamid|userid>] 
+- **sm_adminmusicstop** - [Ban flag] Stop broadcasting.  
+- **sm_musicban** - [Ban flag] Bans the selected player from broadcasting. [Usage: sm_musicban <steamid|userid>] 
   
   
 ## Console Variables  
 - **amp_api_engine** - Url for music engine API.  
 - **amp_lrc_delay** - How many second(s) delay to display lyric on lyric loaded, use to adjust lyrics.  
 - **amp_mnt_search** - How many songs will display in once search.  
-- **amp_cost_factor** - How much for broadcasting song (per second), allow float.  
+- **amp_cost_factor** - How much for broadcasting song (per second).  
