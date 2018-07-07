@@ -108,9 +108,9 @@ void UTIL_ProcessResult(int userid)
         AddMenuItemEx(menu, ITEMDRAW_DEFAULT, key, "%T", "search result songs", client, title, artist, album);
 
 #if defined DEBUG
-        UTIL_DebugLog("UTIL_ProcessResult -> %d[%s] - %s - %s", _kv.GetNum("id"), name, artist, album);
+        UTIL_DebugLog("UTIL_ProcessResult -> %s[%s] - %s - %s", key, title, artist, album);
 #endif
-        
+
         // display 5 items per-page
         if(++count % 5 == 0) menu.AddItem("0", "0", ITEMDRAW_SPACER);
 
