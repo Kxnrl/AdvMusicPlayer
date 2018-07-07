@@ -78,7 +78,8 @@ public void API_PrepareSong_System2(bool success, const char[] error, System2HTT
         UTIL_NotifyFailure(client, "failed to precache song");
         return;
     }
-    else if(response.StatusCode != 200)
+
+    if(response.StatusCode != 200)
     {
         char url[192];
         response.GetLastURL(url, 192);

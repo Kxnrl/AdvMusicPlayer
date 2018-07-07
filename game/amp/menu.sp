@@ -179,9 +179,9 @@ public int MenuHandler_Confirm(Menu menu, MenuAction action, int client, int slo
 #endif
 
         if(slot == 4)
-            Player_BroadcastMusic(client, false);
+            Player_BroadcastMusic(client);
         else if(slot == 5)
-            Player_ListenMusic(client, false);
+            Player_ListenMusic(client);
     }
     else if(action == MenuAction_End)
         delete menu;

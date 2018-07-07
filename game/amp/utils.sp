@@ -123,17 +123,17 @@ void UTIL_ProcessResult(int userid)
     delete _kv;
 }
 
-void UTIL_ProcessSongInfo(int index, char[] title, char[] artist, char[] album, float &length, char[] sid, kEngine &engine)
+void UTIL_ProcessSongInfo(int client, char[] title, char[] artist, char[] album, float &length, char[] sid, kEngine &engine)
 {
     char path[128];
-    BuildPath(Path_SM, path, 128, "data/music/search_%s_%d.kv", g_EngineName[g_kEngine[index]], GetClientUserId(index));
+    BuildPath(Path_SM, path, 128, "data/music/search_%s_%d.kv", g_EngineName[g_kEngine[client]], GetClientUserId(client));
 
     KeyValues _kv = new KeyValues("Song");
     _kv.ImportFromFile(path);
 
     // Go to song
     char key[16];
-    IntToString(g_iSelect[index], key, 16);
+    IntToString(g_iSelect[client], key, 16);
     _kv.JumpToKey(key, true);
 
     // Get name
@@ -143,7 +143,7 @@ void UTIL_ProcessSongInfo(int index, char[] title, char[] artist, char[] album, 
     length = _kv.GetFloat("length", 240.0);
 
     // Get songid
-    _kv.GetString("id", sid, 16);
+    _kv.GetString("id", sid, 32);
 
     // Get arlist
     _kv.GetString("artist", artist, 64, "V.A.");
@@ -168,10 +168,14 @@ void UTIL_ProcessSongInfo(int index, char[] title, char[] artist, char[] album, 
         engine = kE_Custom;
 
 /*
-    engine = g_kEngine[index];
+    engine = g_kEngine[client];
 */
 
     delete _kv;
+    
+#if defined DEBUG
+    UTIL_DebugLog("UTIL_ProcessSongInfo -> index[%N] -> title[%s] -> artist[%s] -> album[%s] -> length[%.1f] -> sid[%s] -> engine[%s]", client, title, artist, album, length, sid, g_EngineName[engine]);
+#endif
 }
 
 public Action UTIL_ProcessLyric(Handle myself, int index)
@@ -276,6 +280,10 @@ void UTIL_CacheSong(int client, int index)
     char url[256];
     g_cvarAPIURL.GetString(url, 256);
     Format(url, 256, "%s/?action=cached&engine=%s&song=%s", url, g_EngineName[g_Sound[index][eEngine]], g_Sound[index][szSongId]);
+
+#if defined DEBUG
+        UTIL_DebugLog("UTIL_CacheSong -> Index[%d] -> url -> %s", index, url);
+#endif
 
     // 2 vars is one
     int values = GetClientUserId(client) | (index << 7);
@@ -419,8 +427,12 @@ bool IsChar(char c)
 #if defined DEBUG
 void UTIL_DebugLog(const char[] log, any ...)
 {
+    static char debugLog[128];
+    if(debugLog[0] == '\0')
+        BuildPath(Path_SM, debugLog, 128, "logs/advmusicplayer.debug.log");
+    
     char buffer[512];
     VFormat(buffer, 512, log, 2);
-    LogToFileEx("addons/sourcemod/logs/advmusicplayer.debug.log", buffer);
+    LogToFileEx(debugLog, buffer);
 }
 #endif

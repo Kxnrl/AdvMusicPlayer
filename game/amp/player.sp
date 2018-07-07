@@ -233,11 +233,11 @@ public Action Timer_SoundEnd(Handle timer, int index)
     return Plugin_Stop;
 }
 
-void Player_ListenMusic(int client, bool cached)
+void Player_ListenMusic(int client, bool cached = false)
 {
     // load song info
     UTIL_ProcessSongInfo(client, g_Sound[client][szTitle], g_Sound[client][szArtist], g_Sound[client][szAlbum], g_Sound[client][fLength], g_Sound[client][szSongId], g_Sound[client][eEngine]);
-    
+
     // if enabled cache and not precache
     if(!cached)
     {
@@ -284,7 +284,7 @@ void Player_ListenMusic(int client, bool cached)
     }
 }
 
-void Player_BroadcastMusic(int client, bool cached)
+void Player_BroadcastMusic(int client, bool cached = false)
 {
     // ban?
     if(g_bBanned[client])
@@ -329,7 +329,7 @@ void Player_BroadcastMusic(int client, bool cached)
             Chat(client, "Global caching");
             return;
         }
-        
+
 #if defined DEBUG
         UTIL_DebugLog("Player_BroadcastMusic -> %N -> [%s]%s -> we need precache music", client, g_Sound[client][szSongId], g_Sound[client][szTitle]);
 #endif
