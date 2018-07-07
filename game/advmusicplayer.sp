@@ -20,7 +20,7 @@
 #define PI_VERSION "3.0.<commit_count>"
 
 // DEBUG?
-#define DEBUG
+//#define DEBUG
 
 // Require Extensions (System2 or SteamWorks)
 #undef REQUIRE_EXTENSIONS
