@@ -1303,10 +1303,10 @@ class Meting
         $artist = "";
         foreach ($data['singerVOs'] as $vo) {
             if($artist == "") {
-                $artist = $vo['name'];
+                $artist = $vo['artistName'];
             } else {
                 $artist .= "/";
-                $artist .= $vo['name'];
+                $artist .= $vo['artistName'];
             }
         }
         
