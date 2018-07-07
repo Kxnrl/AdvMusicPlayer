@@ -235,6 +235,9 @@ public Action Timer_SoundEnd(Handle timer, int index)
 
 void Player_ListenMusic(int client, bool cached = false)
 {
+    // reset player of index
+    Player_Reset(client, false);
+
     // load song info
     UTIL_ProcessSongInfo(client, g_Sound[client][szTitle], g_Sound[client][szArtist], g_Sound[client][szAlbum], g_Sound[client][fLength], g_Sound[client][szSongId], g_Sound[client][eEngine]);
 
@@ -247,9 +250,6 @@ void Player_ListenMusic(int client, bool cached = false)
         UTIL_CacheSong(client, client);
         return;
     }
-
-    // reset player of index
-    Player_Reset(client);
 
     // init player
     char murl[192];
@@ -370,7 +370,7 @@ void Player_BroadcastMusic(int client, bool cached = false)
 
         // set playing flag
         g_bPlayed[i] = true;
-        
+
         // set song info
         g_Sound[i] = g_Sound[BROADCAST];
 
