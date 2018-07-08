@@ -32,7 +32,9 @@ class Music
     public $engine;
     public $songid;
     public $name;
+    public $album;
     public $artist;
+    public $length;
     public $server;
 
     // mp3
@@ -92,7 +94,9 @@ class Music
 
         if(isset($dictionary[$this->engine][$this->songid])) {
             $this->name = $dictionary[$this->engine][$this->songid]['name'];
+            $this->album = $dictionary[$this->engine][$this->songid]['album'];
             $this->artist = $dictionary[$this->engine][$this->songid]['artist'];
+            $this->length = $dictionary[$this->engine][$this->songid]['length'];
             return;
         }
 
@@ -106,6 +110,9 @@ class Music
         if($song[0]['id'] != $this->songid) { throw new HandleException("Access is denied. id[" . $song[0]['id'] . "] songid[" . $this->songid . "]"); }
 
         $this->name = $song[0]['name'];
+        $this->album = $song[0]['album'];
+        $this->length = $song[0]['length'];
+
         if(is_array($song[0]['artist'])) {
             foreach($song[0]['artist'] as $nmsl) {
                 if(strlen($this->artist) == 0) {
@@ -124,7 +131,9 @@ class Music
         $this->pic_id = $song[0]['pic_id'];
 
         $dictionary[$this->engine][$this->songid]['name'] = $this->name;
+        $dictionary[$this->engine][$this->songid]['album'] = $this->name;
         $dictionary[$this->engine][$this->songid]['artist'] = $this->artist;
+        $dictionary[$this->engine][$this->songid]['length'] = $this->length;
     }
 
     public function mp3()
@@ -196,17 +205,28 @@ class Music
         }
 
         if(file_exists($this->lrcloc)) {
-            if(filesize($this->lrcloc) >= 15){
-                $this->lrcstr = file_get_contents($this->lrcloc);
-                $this->lrcuri = $config['uri_prefix']['lrc'] . $this->engine . "/" . $this->songid . ".lrc";
-                return;
+            if(filesize($this->lrcloc) >= 15) {
+                $lrcold = file_get_contents($this->lrcloc);
+                if(strpos($lrcold, "[0:00] ... Music ...") !== false) {
+                    $this->lrcstr = $lrcold;
+                    $this->lrcuri = $config['uri_prefix']['lrc'] . $this->engine . "/" . $this->songid . ".lrc";
+                    return;
+                }
             }
             unlink($this->lrcloc);
         }
 
         $data = json_decode($this->server->format(true)->lyric($this->lrc_id), true);
  
-        if(!isset($data['lyric']) || strlen($data['lyric']) < 15) { throw new HandleException("Lyric string is [" . $data['lyric'] . "]."); }
+        if(!isset($data['lyric']) || strlen($data['lyric']) < 15) { 
+            $len = $this->length;
+            $crt = 10;
+            $data['lyric'] = "[0:00] ... Music ...";
+            do{
+                $data['lyric'] .= "\n[$crt:00] ... Music ...";
+                $crt += 10;
+            } while (($len - $crt) > 0);
+        }
 
         if(file_put_contents($this->lrcloc, $data['lyric'], LOCK_EX) === FALSE) {
             throw new HandleException("Failed to put the lyric file.");
