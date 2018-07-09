@@ -19,18 +19,18 @@
 
 // ugh? no action?
 if(!isset($_GET['action']) || empty($_GET['action']) || !in_array($_GET['action'], array('search', 'player', 'cached', 'lyrics'))) {
-    http_response_code(404);
-    exit(404);
+    http_response_code(400);
+    exit(400);
 }
 
 if(!isset($_GET['engine']) || empty($_GET['engine']) || !in_array($_GET['engine'], array('netease', 'tencent', 'xiami', 'kugou', 'baidu'))) {
-    http_response_code(404);
-    exit(404);
+    http_response_code(400);
+    exit(400);
 }
 
 if(!isset($_GET['song']) || empty($_GET['song'])) {
-    http_response_code(404);
-    exit(404);
+    http_response_code(400);
+    exit(400);
 }
 
 require_once 'library/ktools.php';
@@ -70,8 +70,8 @@ try {
             header("Content-Disposition: attachment; filename='" . $_GET['song'] . ".lrc'");
             break;
         default:
-            http_response_code(404);
-            exit(404);
+            http_response_code(400);
+            exit(400);
     }
 } catch (Exception $e) {
     http_response_code(404);
