@@ -25,6 +25,11 @@ $config['uri_prefix']['mp3'] = 'https://music.kxnrl.com/musics/';
 $config['uri_prefix']['lrc'] = 'https://music.kxnrl.com/lyrics/';
 $config['uri_prefix']['pic'] = 'https://music.kxnrl.com/covers/';
 
+// Your websocket server
+$config['websocket']['srv']['uri']['host'] = 'wss://music.kxnrl.com';
+$config['websocket']['srv']['uri']['port'] = '8443'; // out stream 
+$config['websocket']['srv']['cli']['port'] = '420';  // locol port listner , sasusi birthday.
+
 // If you want to use shadowsocks-libev
 //$config['curl_proxy']['host'] = '127.0.0.1:1080';
 //$config['curl_proxy']['type'] = CURLPROXY_SOCKS5;
