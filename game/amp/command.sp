@@ -7,8 +7,8 @@
 /*  Description:   An advanced music player.                      */
 /*                                                                */
 /*                                                                */
-/*  Copyright (C) 2017  Kyle                                      */
-/*  2018/07/04 05:37:22                                           */
+/*  Copyright (C) 2020  Kyle                                      */
+/*  2020/07/27 04:52:19                                           */
 /*                                                                */
 /*  This code is licensed under the GPLv3 License.                */
 /*                                                                */
@@ -31,7 +31,7 @@ void Command_CreateCommand()
 public Action Command_Music(int client, int args)
 {
     // ignore console
-    if(!IsValidClient(client))
+    if (!IsValidClient(client))
         return Plugin_Handled;
 
 #if defined DEBUG
@@ -52,7 +52,7 @@ public Action Command_AdminStop(int client, int args)
 #endif
 
     // notify sound end
-    CreateTimer(0.1, Timer_SoundEnd, BROADCAST);
+    Player_Reset();
     ChatAll("%t", "admin force stop");
 
     return Plugin_Handled;
@@ -61,7 +61,7 @@ public Action Command_AdminStop(int client, int args)
 public Action Command_MusicBan(int client, int args)
 {
     // args: sm_musicban <client SteamId|UserId>
-    if(args < 1)
+    if (args < 1)
         return Plugin_Handled;
 
     char buffer[16];
@@ -69,7 +69,7 @@ public Action Command_MusicBan(int client, int args)
     int target = FindTarget(client, buffer, true);
 
     // valid target?
-    if(!IsValidClient(target))
+    if (!IsValidClient(target))
         return Plugin_Handled;
 
     // processing ban
@@ -87,12 +87,11 @@ public Action Command_MusicBan(int client, int args)
 public Action OnClientSayCommand(int client, const char[] command, const char[] sArgs)
 {
     // ignore console and not handing client
-    if(!client || !g_bHandle[client])
+    if (!client || !g_bHandle[client])
         return Plugin_Continue;
 
     g_bHandle[client] = false;
 
-    // ToDo: will add tencent QQ music
     Chat(client, "%T", "searching", client, g_EngineName[g_kEngine[client]], client);
 
     char url[256];
@@ -106,28 +105,14 @@ public Action OnClientSayCommand(int client, const char[] command, const char[] 
 #endif
 
     char path[128];
-    BuildPath(Path_SM, path, 128, "data/music/search_%s_%d.kv", g_EngineName[g_kEngine[client]], GetClientUserId(client));
+    BuildPath(Path_SM, path, 128, "data/music/search_%d.kv", GetClientUserId(client));
 
-    // processing search
-    if(g_bSystem2)
-    {
-        System2HTTPRequest hRequest = new System2HTTPRequest(API_SearchMusic_System2, url);
-        hRequest.SetOutputFile(path);
-        hRequest.Timeout = 30;
-        hRequest.Any = GetClientUserId(client);
-        hRequest.GET();
-        delete hRequest;
-    }
-    else
-    {
-        Handle hRequest = SteamWorks_CreateHTTPRequest(k_EHTTPMethodGET, url);
-        SteamWorks_SetHTTPRequestContextValue(hRequest, GetClientUserId(client));
-        SteamWorks_SetHTTPRequestNetworkActivityTimeout(hRequest, 30);
-        SteamWorks_SetHTTPCallbacks(hRequest, API_SearchMusic_SteamWorks);
-        SteamWorks_SendHTTPRequest(hRequest);
-        delete hRequest;
-    }
-    
+    Handle hRequest = SteamWorks_CreateHTTPRequest(k_EHTTPMethodGET, url);
+    SteamWorks_SetHTTPRequestContextValue(hRequest, GetClientUserId(client));
+    SteamWorks_SetHTTPRequestNetworkActivityTimeout(hRequest, 30);
+    SteamWorks_SetHTTPCallbacks(hRequest, API_SearchMusic_SteamWorks);
+    SteamWorks_SendHTTPRequest(hRequest);
+
     g_bLocked[client] = true;
 
     return Plugin_Stop;

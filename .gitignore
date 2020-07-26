@@ -1,33 +1,94 @@
 # SourceMod
-compile.dat
-compile.exe
-spcomp.exe
-
-
-# Windows image file caches
-Thumbs.db
-ehthumbs.db
-
-# Folder config file
-Desktop.ini
-
-# Recycle Bin used on file shares
-$RECYCLE.BIN/
-
-# Windows Installer files
-*.cab
-*.msi
-*.msm
-*.msp
-*.dat
-*.exe
-
-# Windows shortcuts
-*.lnk
-
 # =========================
-# Operating System Files
+game/compile.dat
+game/compile.exe
+game/spcomp.exe
+game/compiled/*
+game/include/admin.inc
+game/include/adminmenu.inc
+game/include/adt.inc
+game/include/adt_array.inc
+game/include/adt_stack.inc
+game/include/adt_trie.inc
+game/include/banning.inc
+game/include/basecomm.inc
+game/include/bitbuffer.inc
+game/include/clientprefs.inc
+game/include/clients.inc
+game/include/commandfilters.inc
+game/include/commandline.inc
+game/include/console.inc
+game/include/convars.inc
+game/include/core.inc
+game/include/cstrike.inc
+game/include/datapack.inc
+game/include/dbi.inc
+game/include/entity.inc
+game/include/entity_prop_stocks.inc
+game/include/events.inc
+game/include/files.inc
+game/include/float.inc
+game/include/functions.inc
+game/include/geoip.inc
+game/include/halflife.inc
+game/include/handles.inc
+game/include/helpers.inc
+game/include/keyvalues.inc
+game/include/lang.inc
+game/include/logging.inc
+game/include/mapchooser.inc
+game/include/menus.inc
+game/include/nextmap.inc
+game/include/profiler.inc
+game/include/protobuf.inc
+game/include/regex.inc
+game/include/sdkhooks.inc
+game/include/sdktools.inc
+game/include/sdktools_client.inc
+game/include/sdktools_engine.inc
+game/include/sdktools_entinput.inc
+game/include/sdktools_entoutput.inc
+game/include/sdktools_functions.inc
+game/include/sdktools_gamerules.inc
+game/include/sdktools_hooks.inc
+game/include/sdktools_sound.inc
+game/include/sdktools_stocks.inc
+game/include/sdktools_stringtables.inc
+game/include/sdktools_tempents.inc
+game/include/sdktools_tempents_stocks.inc
+game/include/sdktools_trace.inc
+game/include/sdktools_variant_t.inc
+game/include/sdktools_voice.inc
+game/include/smlib.inc
+game/include/sorting.inc
+game/include/sourcemod.inc
+game/include/string.inc
+game/include/testing.inc
+game/include/textparse.inc
+game/include/tf2.inc
+game/include/tf2items.inc
+game/include/tf2_stocks.inc
+game/include/timers.inc
+game/include/topmenus.inc
+game/include/usermessages.inc
+game/include/vector.inc
+game/include/version.inc
+game/include/version_auto.inc
+
+# Third-Party
 # =========================
+game/include/PTaH.inc
+game/include/armsfix.inc
+game/include/fys.opts.inc
+game/include/fys.pupd.inc
+
+# VSCode
+# =========================
+.vscode/*
+
+# PHPStorm
+# =========================
+.idea/*
 
 # OSX
 # =========================

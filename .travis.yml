@@ -8,7 +8,7 @@ addons:
 language: c
 
 env:
-  - SOURCEMOD=1.9
+  - SOURCEMOD=1.11
   - SOURCEMOD=1.10
 
 script:

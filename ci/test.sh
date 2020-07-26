@@ -20,34 +20,6 @@ tar -xzf sourcemod.tar.gz
 mkdir include
 
 
-#下载Store头文件
-echo "Download store.inc ..."
-wget "https://github.com/Kxnrl/Store/raw/master/include/store.inc" -q -O include/store.inc
-
-
-#下载MapMusic头文件
-echo "Download mapmusic.inc ..."
-wget "https://github.com/Kxnrl/MapMusic-API/raw/master/include/mapmusic.inc" -q -O include/mapmusic.inc
-
-
-#下载System2头文件
-echo "Download system2.inc ..."
-wget "https://github.com/dordnung/System2/raw/master/sourcemod/scripting/include/system2.inc" -q -O include/system2.inc
-echo "Download system2/request.inc ..."
-mkdir include/system2
-wget "https://github.com/dordnung/System2/raw/master/sourcemod/scripting/include/system2/request.inc" -q -O include/system2/request.inc
-wget "https://github.com/dordnung/System2/raw/master/sourcemod/scripting/include/system2/legacy.inc" -q -O include/system2/legacy.inc
-
-
-#下载SteamWorks头文件
-echo "Download steamworks.inc ..."
-if [ "$1" = "1.10" ]; then
-    wget "https://github.com/Kxnrl/SteamWorks/raw/master/Pawn/includes/SteamWorks.inc" -q -O include/steamworks.inc
-else 
-    wget "https://github.com/KyleSanderson/SteamWorks/raw/master/Pawn/includes/SteamWorks.inc" -q -O include/steamworks.inc
-fi 
-
-
 #设置文件为可执行
 echo "Set compiler env ..."
 chmod +x addons/sourcemod/scripting/spcomp

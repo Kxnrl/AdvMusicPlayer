@@ -7,49 +7,20 @@
 /*  Description:   An advanced music player.                      */
 /*                                                                */
 /*                                                                */
-/*  Copyright (C) 2017  Kyle                                      */
-/*  2018/07/04 05:37:22                                           */
+/*  Copyright (C) 2020  Kyle                                      */
+/*  2020/07/27 04:52:19                                           */
 /*                                                                */
 /*  This code is licensed under the GPLv3 License.                */
 /*                                                                */
 /******************************************************************/
 
 
-
-void UTIL_OpenMotd(int index, const char[] url)
-{
-    static KeyValues kv = null;
-    if(kv == null)
-    {
-        kv = new KeyValues("data");
-        kv.SetString("title", "Advanced Music Player");
-        kv.SetNum("type", MOTDPANEL_TYPE_URL);
-        kv.SetNum("cmd", 0);
-    }
-
-    kv.SetString("msg", url);
-    ShowVGUIPanel(index, "info", kv, false);
-
-#if defined DEBUG
-    UTIL_DebugLog("UTIL_OpenMotd -> %N -> %s", index, url);
-#endif
-}
-
-void UTIL_RemoveMotd(int index)
-{
-    UTIL_OpenMotd(index, "about:blank");
-
-#if defined DEBUG
-    UTIL_DebugLog("UTIL_RemoveMotd -> %N", index);
-#endif
-}
-
 void UTIL_ProcessResult(int userid)
 {
     int client = GetClientOfUserId(userid);
 
     // ignore not in-game clients
-    if(!IsValidClient(client))
+    if (!IsValidClient(client))
         return;
 
     g_bLocked[client] = false;
@@ -57,10 +28,10 @@ void UTIL_ProcessResult(int userid)
     KeyValues _kv = new KeyValues("Song");
 
     char path[128];
-    BuildPath(Path_SM, path, 128, "data/music/search_%s_%d.kv", g_EngineName[g_kEngine[client]], userid);
+    BuildPath(Path_SM, path, 128, "data/music/search_%d.kv", userid);
 
     // check file exists
-    if(!FileExists(path))
+    if (!FileExists(path))
     {
         delete _kv;
         LogError("UTIL_ProcessResult -> Download error!");
@@ -69,7 +40,7 @@ void UTIL_ProcessResult(int userid)
     }
 
     // import result to kv tree
-    if(!_kv.ImportFromFile(path))
+    if (!_kv.ImportFromFile(path))
     {
         delete _kv;
         LogError("UTIL_ProcessResult -> Import error!");
@@ -78,7 +49,7 @@ void UTIL_ProcessResult(int userid)
     }
 
     // can open kv tree
-    if(!_kv.GotoFirstSubKey(true))
+    if (!_kv.GotoFirstSubKey(true))
     {
         delete _kv;
         LogError("UTIL_ProcessResult -> No result!");
@@ -112,7 +83,7 @@ void UTIL_ProcessResult(int userid)
 #endif
 
         // display 5 items per-page
-        if(++count % 5 == 0) menu.AddItem("0", "0", ITEMDRAW_SPACER);
+        if (++count % 5 == 0) menu.AddItem("0", "0", ITEMDRAW_SPACER);
 
     } while (_kv.GotoNextKey(true));
 
@@ -126,7 +97,7 @@ void UTIL_ProcessResult(int userid)
 void UTIL_ProcessSongInfo(int client, char[] title, char[] artist, char[] album, float &length, char[] sid, kEngine &engine)
 {
     char path[128];
-    BuildPath(Path_SM, path, 128, "data/music/search_%s_%d.kv", g_EngineName[g_kEngine[client]], GetClientUserId(client));
+    BuildPath(Path_SM, path, 128, "data/music/search_%d.kv", GetClientUserId(client));
 
     KeyValues _kv = new KeyValues("Song");
     _kv.ImportFromFile(path);
@@ -154,17 +125,17 @@ void UTIL_ProcessSongInfo(int client, char[] title, char[] artist, char[] album,
     
     char source[16];
     _kv.GetString("source", source, 64, "custom");
-    if(strcmp(source, "netease") == 0)
+    if (strcmp(source, "netease") == 0)
         engine = kE_Netease;
-    else if(strcmp(source, "tencent") == 0)
+    else if (strcmp(source, "tencent") == 0)
         engine = kE_Tencent;
-    else if(strcmp(source, "xiami") == 0)
+    else if (strcmp(source, "xiami") == 0)
         engine = kE_XiaMi;
-    else if(strcmp(source, "kugou") == 0)
+    else if (strcmp(source, "kugou") == 0)
         engine = kE_KuGou;
-    else if(strcmp(source, "baidu") == 0)
+    else if (strcmp(source, "baidu") == 0)
         engine = kE_Baidu;
-    else if(strcmp(source, "custom") == 0)
+    else if (strcmp(source, "custom") == 0)
         engine = kE_Custom;
 
 /*
@@ -178,41 +149,29 @@ void UTIL_ProcessSongInfo(int client, char[] title, char[] artist, char[] album,
 #endif
 }
 
-public Action UTIL_ProcessLyric(Handle myself, int index)
+public Action UTIL_ProcessLyric(Handle myself)
 {
-    // if client is not in game
-    if(index != 0 && !IsClientInGame(index))
-        return Plugin_Stop;
-
-    // clear lyric array of index
-    array_lyric[index].Clear();
+    g_Player.m_Lyrics = new ArrayList(sizeof(lyric_t));
 
     // load data from file
     char path[128];
-    BuildPath(Path_SM, path, 128, "data/music/lyric_%s_%s.lrc", g_EngineName[g_Sound[index][eEngine]], g_Sound[index][szSongId]);
+    BuildPath(Path_SM, path, 128, "data/music/lyric_%s_%s.lrc", g_EngineName[g_Player.m_Engine], g_Player.m_Song);
 
     File file = OpenFile(path, "r");
-    if(file == null)
+    if (file == null)
     {
         LogError("UTIL_ProcessLyric -> OpenFile -> null -> Load Lyric failed [%s].", path);
         return Plugin_Stop;
     }
 
-    // cleaning...
-    for(int i = 0; i < 128; ++i)
-        delay_lyric[index][i] = -1.0;
-
     // pre-line
-    Player_LyricHud(index, 15.0, 1.0, ".... Music ....");
-    array_lyric[index].PushString(">>> Music <<<\n");
+    Player_LyricHud(15.0, 1.0, ".... Music ....");
 
     // processing lyric
     char line[128];
-    int array;
-    float timer;
     while(file.ReadLine(line, 128))
     {
-        if(line[0] != '[')
+        if (line[0] != '[')
             continue;
 
         // remove '['
@@ -220,114 +179,80 @@ public Action UTIL_ProcessLyric(Handle myself, int index)
 
         // fix line
         int pos = FindCharInString(line, ']');
-        if(pos == -1) // wrong line
+        if (pos == -1) // wrong line
             continue;
 
         // it is ending
-        if(pos+1 == strlen(line))
+        if (pos+1 == strlen(line))
             StrCat(line, 128, "... Music ...");
 
         // get lyric time and lyric string
         char data[2][128], time[2][16];
-        if(ExplodeString(line, "]", data, 2, 128) != 2)
+        if (ExplodeString(line, "]", data, 2, 128) != 2)
             continue;
 
-        if(ExplodeString(data[0], ":", time, 2, 16) != 2)
+        if (ExplodeString(data[0], ":", time, 2, 16) != 2)
             continue;
         
         // ignore message line
-        if(!IsCharNumeric(time[0][0]))
+        if (!IsCharNumeric(time[0][0]))
             continue;
 
         TrimString(data[1]);
 
-        if(strlen(data[1]) < 3)
+        if (strlen(data[1]) < 3)
             strcopy(data[1], 128, "... Music ...");
 
 #if defined DEBUG
-        UTIL_DebugLog("UTIL_ProcessLyric -> Index[%d] -> Delay[%.2f] -> Line -> %s", index, StringToFloat(time[0])*60.0+StringToFloat(time[1]), data[1]);
+        UTIL_DebugLog("UTIL_ProcessLyric -> -> Delay[%.2f] -> Line -> %s", StringToFloat(time[0])*60.0+StringToFloat(time[1]), data[1]);
 #endif
-        array = array_lyric[index].PushString(data[1]);
-        timer = StringToFloat(time[0])*60.0+StringToFloat(time[1]);
-        delay_lyric[index][array] = timer;
-        array_timer[index].Push(CreateTimer(timer-0.05, Timer_Clear, index));
-        array_timer[index].Push(CreateTimer(timer+0.05, Timer_Lyric, array | (index << 7)));
+        lyric_t lyric;
+        lyric.m_Delay = StringToFloat(time[0])*60.0+StringToFloat(time[1]);
+        strcopy(lyric.m_Words, 64, data[1]);
+        g_Player.m_Lyrics.PushArray(lyric, sizeof(lyric_t));
     }
 
-    if(array_lyric[index].Length > 2)
-        Player_LyricHud(index, 15.0, 1.0, ".... Music ....");
+    if (g_Player.m_Lyrics.Length > 2)
+        Player_LyricHud(15.0, 1.0, ".... Music ....");
 
     delete file;
 
     return Plugin_Stop;
 }
 
-float UTIL_GetNextLyricTime(int index, int lyric)
-{
-    if(delay_lyric[index][lyric+1] == -1.0)
-        return delay_lyric[index][lyric]+10.0;
-
-    return delay_lyric[index][lyric+1];
-}
-
-float UTIL_GetCurtLyricTime(int index, int lyric)
-{
-    return delay_lyric[index][lyric];
-}
-
-void UTIL_CacheSong(int client, int index)
+void UTIL_CacheSong(int client)
 {
     char url[256];
     g_cvarAPIURL.GetString(url, 256);
-    Format(url, 256, "%s/?action=cached&engine=%s&song=%s", url, g_EngineName[g_Sound[index][eEngine]], g_Sound[index][szSongId]);
+    Format(url, 256, "%s/?action=mp3url&engine=%s&song=%s", url, g_EngineName[g_Player.m_Engine], g_Player.m_Song);
 
 #if defined DEBUG
-        UTIL_DebugLog("UTIL_CacheSong -> Index[%d] -> url -> %s", index, url);
+        UTIL_DebugLog("UTIL_CacheSong -> -> url -> %s", url);
 #endif
-
-    // 2 vars is one
-    int values = GetClientUserId(client) | (index << 7);
 
     // set timeout to prevent new broadcast request
     g_fNextPlay = GetGameTime()+9999.9;
 
-    if(g_bSystem2)
-    {
-        System2HTTPRequest hRequest = new System2HTTPRequest(API_PrepareSong_System2, url);
-        hRequest.Timeout = 60;
-        hRequest.Any = values;
-        hRequest.GET();
-        delete hRequest;
-    }
-    else
-    {
-        Handle hRequest = SteamWorks_CreateHTTPRequest(k_EHTTPMethodGET, url);
-        SteamWorks_SetHTTPRequestContextValue(hRequest, values);
-        SteamWorks_SetHTTPRequestNetworkActivityTimeout(hRequest, 60);
-        SteamWorks_SetHTTPCallbacks(hRequest, API_PrepareSong_SteamWorks);
-        SteamWorks_SendHTTPRequest(hRequest);
-        delete hRequest;
-    }
+    Handle hRequest = SteamWorks_CreateHTTPRequest(k_EHTTPMethodGET, url);
+    SteamWorks_SetHTTPRequestContextValue(hRequest, GetClientUserId(client));
+    SteamWorks_SetHTTPRequestNetworkActivityTimeout(hRequest, 60);
+    SteamWorks_SetHTTPCallbacks(hRequest, API_PrepareSong_SteamWorks);
+    SteamWorks_SendHTTPRequest(hRequest);
 
     g_bLocked[client] = true;
 
-    if(index)
-        Chat(index, "%T", "precaching song", client);
-    else
-    {
-        ChatAll("%t", "precaching song");
-        g_bCaching = true;
-    }
+    ChatAll("%t", "precaching song");
+    g_bCaching = true;
 }
 
 void UTIL_ShowLyric(int client, const char[] message, const float hold, const float fx)
 {
     // we use sync hud
     static Handle hSync;
-    if(hSync == null)
+    if (hSync == null)
         hSync = CreateHudSynchronizer();
 
-    if(hold < 0.1)
+    if (hold < 0.1)
     {
         ClearSyncHud(client, hSync);
         return;
@@ -343,7 +268,7 @@ void UTIL_ShowLyric(int client, const char[] message, const float hold, const fl
 
 void UTIL_NotifyFailure(int client, const char[] translations)
 {
-    if(!IsValidClient(client))
+    if (!IsValidClient(client))
         return;
 
     //"failed to precache song"
@@ -359,7 +284,7 @@ void UTIL_CheckDirector()
 
     char path[128];
     BuildPath(Path_SM, path, 128, "data/music");
-    if(!DirExists(path))
+    if (!DirExists(path))
     {
         CreateDirectory(path, 511);
         return;
@@ -367,7 +292,7 @@ void UTIL_CheckDirector()
 
         // we need clear logs of searching
     DirectoryListing dir = OpenDirectory(path);
-    if(dir == null)
+    if (dir == null)
     {
         LogError("UTIL_CheckDirector -> Failed to open dir %s", path);
         return;
@@ -377,7 +302,7 @@ void UTIL_CheckDirector()
     char file[128];
     while(dir.GetNext(file, 128, ftype))
     {
-        if(ftype != FileType_File || StrContains(file, "search_", false) != 0)
+        if (ftype != FileType_File || StrContains(file, "search_", false) != 0)
             continue;
 
         BuildPath(Path_SM, path, 128, "addons/sourcemod/data/music/%s", file);
@@ -394,17 +319,17 @@ int UTIL_GetCol(const char[] buffer)
 
     for(int x = 0; x < size; ++x)
     {
-        if(buffer[x] == '\0')
+        if (buffer[x] == '\0')
             break;
 
-        if(buffs == 2)
+        if (buffs == 2)
         {
             bytes++;
             buffs=0;
             continue;
         }
 
-        if(!IsChar(buffer[x]))
+        if (!IsChar(buffer[x]))
         {
             buffs++;
             continue;
@@ -418,7 +343,7 @@ int UTIL_GetCol(const char[] buffer)
 
 bool IsChar(char c)
 {
-    if(0 <= c <= 126)
+    if (0 <= c <= 126)
         return true;
 
     return false;
@@ -428,7 +353,7 @@ bool IsChar(char c)
 void UTIL_DebugLog(const char[] log, any ...)
 {
     static char debugLog[128];
-    if(debugLog[0] == '\0')
+    if (debugLog[0] == '\0')
         BuildPath(Path_SM, debugLog, 128, "logs/advmusicplayer.debug.log");
     
     char buffer[512];

@@ -42,7 +42,7 @@
     {
         "#format" "{1:d},{2:s}"
         "en"    "{green}You paid{orange} {1} {green}credits for order song:[{blue}{2}{green}]."
-        "chi"   "{green}您支付了{orange} {1} {green}信用点来点播[{blue}{2}{green}]."
+        "chi"   "{green}您支付了{orange} {1} {green}积分来点播[{blue}{2}{green}]."
         "fr"    "{green}Vous avez payé{orange} {1} {green}crédits pour la chanson d'ordre:[{blue}{2}{green}]."
     }
 
@@ -193,7 +193,7 @@
     {
         "#format" "{1:d}"
         "en"    "{red}Insufficient credits{green}{1}{red}!"
-        "chi"   "{red}你的信用点不足{green}{1}{red}!"
+        "chi"   "{red}你的积分不足{green}{1}{red}!"
         "fr"    "{red}Crédits insuffisants{green}{1}{red}!"
     }
 
@@ -240,7 +240,7 @@
     {
         "#format" "{1:d}"
         "en"    "To all[Cost: {1}credits]"
-        "chi"   "所有人[花费: {1}用点]"
+        "chi"   "所有人[花费: {1}积分]"
         "fr"    "Pour tous[Coût: {1}crédits]"
     }
 

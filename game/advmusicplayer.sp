@@ -7,8 +7,8 @@
 /*  Description:   An advanced music player.                      */
 /*                                                                */
 /*                                                                */
-/*  Copyright (C) 2017  Kyle                                      */
-/*  2018/07/04 05:37:22                                           */
+/*  Copyright (C) 2020  Kyle                                      */
+/*  2020/07/27 04:52:19                                           */
 /*                                                                */
 /*  This code is licensed under the GPLv3 License.                */
 /*                                                                */
@@ -17,19 +17,20 @@
 
 
 // VERSION
-#define PI_VERSION "3.0.<commit_count>"
+#define PI_VERSION "3.1.<commit_count>"
 
 // DEBUG?
-//#define DEBUG
+#define DEBUG
 
-// Require Extensions (System2 or SteamWorks)
-#undef REQUIRE_EXTENSIONS
-#include <system2>
+#include <sourcemod>
+
+// Require Extensions
 #include <steamworks>
-#define REQUIRE_EXTENSIONS
+#include <audio>
 
-// Cookies
+#undef REQUIRE_EXTENSIONS
 #include <clientprefs>
+#define REQUIRE_EXTENSIONS
 
 // Store library
 #undef REQUIRE_PLUGIN
@@ -42,7 +43,6 @@
 #define REQUIRE_PLUGIN
 
 // other stuff
-#define BROADCAST 0
 #define MAXINDEX  MAXPLAYERS+1
 
 // compiler stuff
@@ -52,7 +52,6 @@
 // global variables
 float g_fNextPlay;
 bool g_bMapMusic;
-bool g_bSystem2;
 bool g_bStoreLib;
 bool g_bCaching;
 
@@ -71,9 +70,7 @@ bool    g_bHandle[MAXINDEX];
 bool    g_bPlayed[MAXINDEX];
 bool    g_bListen[MAXINDEX];
 bool    g_bLocked[MAXINDEX];
-int     g_iVolume[MAXINDEX];
 int     g_iSelect[MAXINDEX];
-Handle  g_tTimer [MAXINDEX];
 kEngine g_kEngine[MAXINDEX];
 
 // Music Engine 
@@ -87,30 +84,55 @@ enum kEngine
     kE_Custom
 };
 
-enum kMuisc
+enum struct lyric_t
 {
-    String:szSongId[32],
-    String:szTitle[64],
-    String:szArtist[64],
-    String:szAlbum[64],
-    Float:fLength,
-    kEngine:eEngine
-};
+    char m_Words[64];
+    float m_Delay;
+}
+
+enum struct music_t
+{
+    char m_Song[32];
+    char m_Title[64];
+    char m_Artist[64];
+    char m_Album[64];
+    char m_Mp3Uri[256];
+    float m_Length;
+    kEngine m_Engine;
+    ArrayList m_Lyrics;
+    AudioPlayer m_Player;
+
+    void Reset()
+    {
+        this.m_Song[0] = '\0';
+        this.m_Title[0] = '\0';
+        this.m_Artist[0] = '\0';
+        this.m_Album[0] = '\0';
+        this.m_Mp3Uri[0] = '\0';
+        this.m_Length = 0.0;
+        
+        if (this.m_Lyrics != null)
+        {
+            delete this.m_Lyrics;
+            this.m_Lyrics  = null;
+        }
+
+        if (this.m_Player != null)
+        {
+            delete this.m_Player;
+            this.m_Player  = null;
+        }
+    }
+}
 
 char g_EngineName[kEngine][16] = {"netease", "tencent", "xiami", "kugou", "baidu", "custom"};
 
-any g_Sound[MAXINDEX][kMuisc];
+music_t g_Player;
 
 // cookies
 Handle g_cDisable;
-Handle g_cVolume;
 Handle g_cBanned;
 Handle g_cLyrics;
-
-// lyric array
-ArrayList array_timer[MAXINDEX];
-ArrayList array_lyric[MAXINDEX];
-float delay_lyric[MAXINDEX][128];
 
 // logging
 char logFile[128];
@@ -123,7 +145,6 @@ char logFile[128];
 #include "amp/utils.sp"
 #include "amp/player.sp"
 #include "amp/steamworks.sp"
-#include "amp/system2.sp"
 
 
 public Plugin myinfo = 
@@ -140,17 +161,6 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
     // Store
     MarkNativeAsOptional("Store_GetClientCredits");
     MarkNativeAsOptional("Store_SetClientCredits");
-
-    // System2
-    MarkNativeAsOptional("System2HTTPRequest.System2HTTPRequest");
-    MarkNativeAsOptional("System2HTTPRequest.GET");
-    MarkNativeAsOptional("System2Request.SetOutputFile");
-    MarkNativeAsOptional("System2Request.GetOutputFile");
-    MarkNativeAsOptional("System2Request.Any.get");
-    MarkNativeAsOptional("System2Request.Any.set");
-    MarkNativeAsOptional("System2Request.GetURL");
-    MarkNativeAsOptional("System2Response.StatusCode.get");
-    MarkNativeAsOptional("System2Response.GetLastURL");
 
     // SteamWorks
     MarkNativeAsOptional("SteamWorks_CreateHTTPRequest");
@@ -182,10 +192,10 @@ public void OnPluginStart()
 
     // We need check all client
     for(int client = 1; client <= MaxClients; ++client)
-        if(IsValidClient(client))
+        if (IsValidClient(client))
         {
             OnClientConnected(client);
-            if(AreClientCookiesCached(client))
+            if (AreClientCookiesCached(client))
                 OnClientCookiesCached(client);
         }
 }
@@ -212,7 +222,7 @@ public void OnLibraryRemoved(const char[] name)
 public void OnMapEnd()
 {
     // Reset broadcast
-    Player_Reset(BROADCAST);
+    Player_Reset();
 }
 
 public void OnClientConnected(int client)
@@ -225,17 +235,10 @@ public void OnClientConnected(int client)
     g_bHandle[client] = false;
     g_bLocked[client] = false;
     g_bLyrics[client] = true;
-    g_iVolume[client] = 100;
 
 #if defined DEBUG
     UTIL_DebugLog("OnClientConnected -> Init %N", client);
 #endif
-}
-
-public void OnClientDisconnect(int client)
-{
-    // Reset client`s player
-    Player_Reset(client);
 }
 
 bool IsValidClient(int client)
@@ -254,7 +257,7 @@ bool AddMenuItemEx(Menu menu, int style, const char[] info, const char[] display
 void Chat(int client, const char[] chat, any ...)
 {
     Protobuf SayText2 = view_as<Protobuf>(StartMessageOne("SayText2", client, USERMSG_RELIABLE|USERMSG_BLOCKHOOKS));
-    if(SayText2 == null)
+    if (SayText2 == null)
     {
         LogError("StartMessageOne -> SayText2 is null");
         return;
@@ -278,7 +281,7 @@ void ChatAll(const char[] chat, any ...)
 {
     char msg[256];
     for(int client = 1; client <= MaxClients; ++client)
-        if(IsValidClient(client))
+        if (IsValidClient(client))
         {
             SetGlobalTransTarget(client);
 
@@ -287,7 +290,7 @@ void ChatAll(const char[] chat, any ...)
             ProcessColorString(msg, 256);
 
             Protobuf SayText2 = view_as<Protobuf>(StartMessageOne("SayText2", client, USERMSG_RELIABLE|USERMSG_BLOCKHOOKS));
-            if(SayText2 == null)
+            if (SayText2 == null)
             {
                 LogError("StartMessageOne -> SayText2 is null");
                 continue;

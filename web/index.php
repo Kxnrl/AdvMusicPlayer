@@ -8,8 +8,8 @@
 /*  Description:   An advanced music player.                      */
 /*                                                                */
 /*                                                                */
-/*  Copyright (C) 2018  Kyle                                      */
-/*  2018/07/04 02:02:11                                           */
+/*  Copyright (C) 2020  Kyle                                      */
+/*  2020/07/28 04:35:14                                           */
 /*                                                                */
 /*  This code is licensed under the GPLv3 License.                */
 /*                                                                */
@@ -18,17 +18,17 @@
 
 
 // ugh? no action?
-if(!isset($_GET['action']) || empty($_GET['action']) || !in_array($_GET['action'], array('search', 'player', 'cached', 'lyrics'))) {
+if (!isset($_GET['action']) || empty($_GET['action']) || !in_array($_GET['action'], array('search', 'player', 'cached', 'lyrics', 'mp3url'))) {
     http_response_code(400);
     exit(400);
 }
 
-if(!isset($_GET['engine']) || empty($_GET['engine']) || !in_array($_GET['engine'], array('netease', 'tencent', 'xiami', 'kugou', 'baidu'))) {
+if (!isset($_GET['engine']) || empty($_GET['engine']) || !in_array($_GET['engine'], array('netease', 'tencent', 'xiami', 'kugou', 'baidu'))) {
     http_response_code(400);
     exit(400);
 }
 
-if(!isset($_GET['song']) || empty($_GET['song'])) {
+if (!isset($_GET['song']) || empty($_GET['song'])) {
     http_response_code(400);
     exit(400);
 }
@@ -52,7 +52,7 @@ try {
             break;
         case 'player':
             $result = "<html><head><title>Advanced Music Player Motd - by Kyle \"Kxnrl\" Frankiss</title><meta name='description' content='Advanced Music Player' /><meta name='author' content='Kyle' /><meta name='copyright' content='2015-2018 Kyle' /><link rel='icon' type='image/png' href='//kxnrl.com/assets/images/favicon.png' /></head><body><audio id='music' src='" . $config['uri_prefix']['mp3'] .$_GET['engine'] ."/" . $_GET['song'] . ".mp3' autoplay='autoplay' />";
-            if(isset($_GET['volume']) && !empty($_GET['volume'])) {
+            if (isset($_GET['volume']) && !empty($_GET['volume'])) {
                 $volume = round($_GET['volume'] / 100, 2);
                 $result .= "<script type='text/javascript'>window.onload=function(){document.getElementById('music').volume=$volume;};</script>";
             }
@@ -67,7 +67,12 @@ try {
             $engine = new Music($_GET['engine'], $_GET['song'], true);
             $result = $engine->lrcstr;
             header("Content-type: text/plain"); 
-            header("Content-Disposition: attachment; filename='" . $_GET['song'] . ".lrc'");
+            header("Content-Disposition: attachment; filename=" . $_GET['song'] . ".lrc");
+            break;
+        case 'mp3url':
+            $engine = new Music($_GET['engine'], $_GET['song'], true);
+            $result = $engine->mp3uri;
+            header("Content-type: text/plain");
             break;
         default:
             http_response_code(400);
