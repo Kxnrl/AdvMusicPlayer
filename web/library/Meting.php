@@ -1240,7 +1240,7 @@ class Meting
     {
         $artist = "";
         foreach ($data['ar'] as $vo) {
-            if($artist == "") {
+            if ($artist == "") {
                 $artist = $vo['name'];
             } else {
                 $artist .= "/";
@@ -1275,7 +1275,7 @@ class Meting
         
         $artist = "";
         foreach ($data['singer'] as $vo) {
-            if($artist == "") {
+            if ($artist == "") {
                 $artist = $vo['name'];
             } else {
                 $artist .= "/";
@@ -1302,7 +1302,7 @@ class Meting
     {
         $artist = "";
         foreach ($data['singerVOs'] as $vo) {
-            if($artist == "") {
+            if ($artist == "") {
                 $artist = $vo['artistName'];
             } else {
                 $artist .= "/";
@@ -1332,7 +1332,7 @@ class Meting
         $name = $temp[1];
         $artist = "";
         foreach (explode('、', $temp[0]) as $vo) {
-            if($artist == "") {
+            if ($artist == "") {
                 $artist = $vo;
             } else {
                 $artist .= "/";
@@ -1357,7 +1357,7 @@ class Meting
 
     private function format_baidu($data)
     {
-        if(!isset($data['file_duration'])) {
+        if (!isset($data['file_duration'])) {
             $res = json_decode($this->format(false)->song($data['song_id']), true);
             $len = $res['songinfo']['file_duration'];
         } else {
@@ -1366,7 +1366,7 @@ class Meting
         
         $artist = "";
         foreach (explode(',', $data['author']) as $vo) {
-            if($artist == "") {
+            if ($artist == "") {
                 $artist = $vo;
             } else {
                 $artist .= "/";

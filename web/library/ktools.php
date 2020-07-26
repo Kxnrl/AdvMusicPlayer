@@ -26,11 +26,11 @@ class KeyValues
     
     public function __construct($title, $input)
     {
-        if(is_array($input)) {
+        if (is_array($input)) {
             $this->str = '"' . $title . '"' .  PHP_EOL . '{' . PHP_EOL . $this->Encode($input, 1) . '}';
             $this->arr = array();
             $this->arr[$title] = $input;
-        } elseif(is_string($input)) {
+        } elseif (is_string($input)) {
             $this->arr = $this->Decode($input);
             $this->str = $input;
         } else {
@@ -50,7 +50,7 @@ class KeyValues
 
     private function Decode($text)
     {
-        if(!is_string($text)) {
+        if (!is_string($text)) {
             throw new HandleException("Decode expects parameter 1 to be a string, " . gettype($text) . " given.");
         }
 
@@ -71,18 +71,18 @@ class KeyValues
         for($i = 0; $i < $j; $i++) {
             $line = trim($lines[$i]);
 
-            if($line == "" || $line[0] == '/') { continue; }
+            if ($line == "" || $line[0] == '/') { continue; }
 
-            if($line[0] == "{") {
+            if ($line[0] == "{") {
                 $expect_bracket = false;
                 continue;
             }
 
-            if($expect_bracket) {
+            if ($expect_bracket) {
                 throw new HandleException("Decode: invalid syntax, expected a '}' on line " . ($i+1));
             }
 
-            if($line[0] == "}") {
+            if ($line[0] == "}") {
                 array_pop($stack);
                 continue;
             }
@@ -90,21 +90,21 @@ class KeyValues
             while(true) {
                 preg_match($re_keyvalue, $line, $m);
                 
-                if(!$m) {
+                if (!$m) {
                     throw new HandleException("Decode: invalid syntax on line " . ($i+1));
                 }
                 
                 $key = (isset($m['key']) && $m['key'] !== "") ? $m['key'] : $m['qkey'];
                 $val = (isset($m['qval']) && (!isset($m['vq_end']) || $m['vq_end'] !== "")) ? $m['qval'] : (isset($m['val']) ? $m['val'] : False);
                 
-                if($val === False) {
-                    if(!isset($stack[count($stack)-1][$key])) {
+                if ($val === False) {
+                    if (!isset($stack[count($stack)-1][$key])) {
                         $stack[count($stack)-1][$key] = array();
                     }
                     $stack[count($stack)] = &$stack[count($stack)-1][$key];
                     $expect_bracket = true;
                 } else {
-                    if(!isset($m['vq_end']) && isset($m['qval'])) {
+                    if (!isset($m['vq_end']) && isset($m['qval'])) {
                         $line .= "\n" . $lines[++$i];
                         continue;
                     }
@@ -114,7 +114,7 @@ class KeyValues
             }
         }
 
-        if(count($stack) !== 1)  {
+        if (count($stack) !== 1)  {
             throw new HandleException("Decode: open parentheses somewhere");
         }
 
@@ -123,7 +123,7 @@ class KeyValues
 
     private function Encode($arr, $level)
     {
-        if(!is_array($arr)) {
+        if (!is_array($arr)) {
             throw new HandleException("Encode encounted " . gettype($arr) . ", only array or string allowed (depth " . $level . "), string:" . $arr);
         }
 
@@ -131,15 +131,15 @@ class KeyValues
         $line_indent = str_repeat("    ", $level);
 
         foreach($arr as $key => $val) {
-            if(!is_array($val)) {
-                if(is_numeric($key)) {
+            if (!is_array($val)) {
+                if (is_numeric($key)) {
                     $str .= "$line_indent\"". (string)$key . "\"    \"$val\"\n";
                 } else {
                     $str .= "$line_indent\"$key\"    \"$val\"\n";
                 }
             } else {
                 $res = $this->Encode($val, $level + 1);
-                if($res === null) return null;
+                if ($res === null) return null;
                 $str .= "$line_indent\"$key\"\n$line_indent{\n$res$line_indent}\n";
             }
         }
