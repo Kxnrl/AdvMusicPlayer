@@ -9,13 +9,12 @@ An advanced music player in source engine game.
   
 |Build Status|Download|
 |---|---
-|[![Build Status](https://img.shields.io/travis/Kxnrl/AdvMusicPlayer/master.svg?style=flat-square)](https://travis-ci.org/Kxnrl/AdvMusicPlayer?branch=master) |[![Download](https://static.kxnrl.com/images/web/buttons/download.png)](https://build.kxnrl.com/AdvMusicPlayer)  
+|[![Build Status](https://img.shields.io/travis/Kxnrl/AdvMusicPlayer/csgo.svg?style=flat-square)](https://travis-ci.org/Kxnrl/AdvMusicPlayer?branch=csgo) |[![Download](https://static.kxnrl.com/images/web/buttons/download.png)](https://build.kxnrl.com/AdvMusicPlayer)  
   
   
 ## Requirements  
-#### Extensions (Select one, if both were installed, priority use System2)  
+#### Extensions
 - [SteamWorks](https://forums.alliedmods.net/showthread.php?t=229556 "AlliedModders") - Required to download anything.  
-- [System2](https://forums.alliedmods.net/showthread.php?t=146019 "AlliedModders") - Required to download anything. (version >= 3.0)  
   
   
 ## Recommend Plugins  
