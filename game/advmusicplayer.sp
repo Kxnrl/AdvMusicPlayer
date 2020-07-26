@@ -125,7 +125,7 @@ enum struct music_t
     }
 }
 
-char g_EngineName[kEngine][16] = {"netease", "tencent", "xiami", "kugou", "baidu", "custom"};
+char g_EngineName[][] = {"netease", "tencent", "xiami", "kugou", "baidu", "custom"};
 
 music_t g_Player;
 
