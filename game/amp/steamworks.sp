@@ -66,9 +66,11 @@ public int API_PrepareSong_SteamWorks(Handle hRequest, bool bFailure, bool bRequ
         g_bCaching = false;
         UTIL_NotifyFailure(GetClientOfUserId(userid), "failed to precache song");
     }
-    else SteamWorks_GetHTTPResponseBodyCallback(hRequest, API_CachedSong_SteamWorks, userid);
-
-    UTIL_EraseRequest(hRequest);
+    else
+    {
+        SteamWorks_GetHTTPResponseBodyCallback(hRequest, API_CachedSong_SteamWorks, userid);
+        UTIL_EraseRequest(hRequest);
+    }
 }
 
 public int API_CachedSong_SteamWorks(const char[] sData, int userid)
@@ -79,6 +81,7 @@ public int API_CachedSong_SteamWorks(const char[] sData, int userid)
     {
         int client = GetClientOfUserId(userid);
         g_bCaching = false;
+        g_fNextPlay = 0.0;
         Format(path, 128, "csgo/%s", path);
         Player_BroadcastMusic(client, true, path);
         return;
@@ -95,7 +98,6 @@ public int API_CachedSong_SteamWorks(const char[] sData, int userid)
 public int API_DownloadSound_SteamWorks(Handle hRequest, bool bFailure, bool bRequestSuccessful, EHTTPStatusCode eStatusCode, int userid)
 {
     g_fNextPlay = GetGameTime() + 5.0;
-    g_bCaching = false;
     
     if (bFailure || !bRequestSuccessful || eStatusCode != k_EHTTPStatusCode200OK)
     {
@@ -114,9 +116,9 @@ public int API_DownloadSound_SteamWorks(Handle hRequest, bool bFailure, bool bRe
             Player_BroadcastMusic(client, true, path);
         }
         else LogError("SteamWorks -> API_DownloadSound_SteamWorks -> SteamWorks_WriteHTTPResponseBodyToFile failed");
-    }
 
-    UTIL_EraseRequest(hRequest);
+        UTIL_EraseRequest(hRequest);
+    }
 }
 
 public int API_DownloadTranslations_SteamWorks(Handle hRequest, bool bFailure, bool bRequestSuccessful, EHTTPStatusCode eStatusCode)

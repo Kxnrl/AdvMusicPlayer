@@ -393,7 +393,7 @@ void UTIL_DebugLog(const char[] log, any ...)
 }
 #endif
 
-int UTIL_CreateFakeClient()
+int UTIL_CreateFakeClient(const char[] title)
 {
     int client = -1;
     for (int i = 1; i <= MaxClients; i++)
@@ -405,16 +405,15 @@ int UTIL_CreateFakeClient()
 
     if (client == -1)
     {
-        client = CreateFakeClient("Kxnrl.MusicBot");
+        client = CreateFakeClient(title);
     }
 
     if (client == 0)
         ThrowError("Failed to create fake client");
 
-    char name[32];
-    GetClientName(client, name, 32);
-    if (strcmp(name, "Kxnrl.MusicBot") != 0)
-        SetClientName(client, "Kxnrl.MusicBot");
+    char header[64];
+    FormatEx(header, 64, "[AMP] - %s", title);
+    SetClientName(client, header);
 
     return client;
 }
@@ -428,8 +427,7 @@ void UTIL_EraseRequest(Handle request)
 {
     for (int i = 0; i < g_Player.m_Request.Length; i++)
     {
-        Handle storage = g_Player.m_Request.Get(i);
-        if (request == storage)
+        if (g_Player.m_Request.Get(i) == request)
         {
             g_Player.m_Request.Erase(i);
             break;

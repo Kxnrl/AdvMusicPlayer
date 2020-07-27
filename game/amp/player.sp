@@ -225,7 +225,7 @@ void Player_BroadcastMusic(int client, bool cached, const char[] url = NULL_STRI
     g_fNextPlay = GetGameTime()+g_Player.m_Length+1.5;
 
     // play music
-    int source = g_Cvars.fakeid.BoolValue ? UTIL_CreateFakeClient() : client;
+    int source = g_Cvars.fakeid.BoolValue ? UTIL_CreateFakeClient(g_Player.m_Title) : client;
     g_Player.m_Player = new AudioPlayer();
     g_Player.m_Player.PlayAsClient(source, url);
 
