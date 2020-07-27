@@ -216,7 +216,7 @@ void Player_BroadcastMusic(int client, bool cached, const char[] url = NULL_STRI
     LogToFileEx(logFile, "\"%L\" 点播了歌曲[%s - %s]", client, g_Player.m_Title,  g_Player.m_Artist);
 
     // set timeout
-    g_fNextPlay = GetGameTime()+g_Player.m_Length;
+    g_fNextPlay = GetGameTime()+g_Player.m_Length+1.5;
 
     // play music
     int source = g_Cvars.fakeid.BoolValue ? UTIL_CreateFakeClient() : client;
