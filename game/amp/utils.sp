@@ -243,6 +243,8 @@ void UTIL_CacheSong(int client)
     SteamWorks_SetHTTPCallbacks(hRequest, API_PrepareSong_SteamWorks);
     SteamWorks_SendHTTPRequest(hRequest);
 
+    UTIL_QueueRequest(hRequest);
+
     g_bLocked[client] = true;
 
     ChatAll("%t", "precaching song");
@@ -415,4 +417,24 @@ int UTIL_CreateFakeClient()
         SetClientName(client, "Kxnrl.MusicBot");
 
     return client;
+}
+
+void UTIL_QueueRequest(Handle request)
+{
+    g_Player.m_Request.Push(request);
+}
+
+void UTIL_EraseRequest(Handle request)
+{
+    for (int i = 0; i < g_Player.m_Request.Length; i++)
+    {
+        Handle storage = g_Player.m_Request.Get(i);
+        if (request == storage)
+        {
+            g_Player.m_Request.Erase(i);
+            break;
+        }
+    }
+
+    delete request;
 }

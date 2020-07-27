@@ -117,6 +117,7 @@ enum struct music_t
     kEngine m_Engine;
     ArrayList m_Lyrics;
     AudioPlayer m_Player;
+    ArrayList m_Request;
 
     void Reset()
     {
@@ -146,6 +147,14 @@ enum struct music_t
 
             delete this.m_Player;
             this.m_Player  = null;
+        }
+
+        // close all steamworks handle
+        while (this.m_Request.Length > 0)
+        {
+            Handle request = this.m_Request.Get(0);
+            delete request;
+            this.m_Request.Erase(0);
         }
     }
 }

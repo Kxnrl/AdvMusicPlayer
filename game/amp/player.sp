@@ -18,6 +18,10 @@
 
 void Player_InitPlayer()
 {
+    // INIT 
+    g_Player.m_Request = new ArrayList();
+
+    // GLOBAL RESET
     g_Player.Reset();
 
     CreateTimer(0.02, Timer_Interval, _, TIMER_REPEAT);
@@ -101,6 +105,8 @@ static void Player_LoadLyric()
     SteamWorks_SetHTTPCallbacks(hRequest, API_GetLyric_SteamWorks);
     SteamWorks_SetHTTPRequestNetworkActivityTimeout(hRequest, 10);
     SteamWorks_SendHTTPRequest(hRequest);
+
+    UTIL_QueueRequest(hRequest);
 }
 
 void Player_DisplayLyric()

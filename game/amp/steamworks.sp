@@ -53,7 +53,7 @@ public int API_GetLyric_SteamWorks(Handle hRequest, bool bFailure, bool bRequest
     }
     else LogError("SteamWorks -> API_GetLyric -> HTTP Response failed: %d", eStatusCode);
 
-    delete hRequest;
+    UTIL_EraseRequest(hRequest);
 }
 
 public int API_PrepareSong_SteamWorks(Handle hRequest, bool bFailure, bool bRequestSuccessful, EHTTPStatusCode eStatusCode, int userid)
@@ -68,7 +68,7 @@ public int API_PrepareSong_SteamWorks(Handle hRequest, bool bFailure, bool bRequ
     }
     else SteamWorks_GetHTTPResponseBodyCallback(hRequest, API_CachedSong_SteamWorks, userid);
 
-    delete hRequest;
+    UTIL_EraseRequest(hRequest);
 }
 
 public int API_CachedSong_SteamWorks(const char[] sData, int userid)
@@ -88,6 +88,8 @@ public int API_CachedSong_SteamWorks(const char[] sData, int userid)
     SteamWorks_SetHTTPRequestContextValue(hRequest, userid);
     SteamWorks_SetHTTPCallbacks(hRequest, API_DownloadSound_SteamWorks);
     SteamWorks_SendHTTPRequest(hRequest);
+
+    UTIL_QueueRequest(hRequest);
 }
 
 public int API_DownloadSound_SteamWorks(Handle hRequest, bool bFailure, bool bRequestSuccessful, EHTTPStatusCode eStatusCode, int userid)
@@ -114,7 +116,7 @@ public int API_DownloadSound_SteamWorks(Handle hRequest, bool bFailure, bool bRe
         else LogError("SteamWorks -> API_DownloadSound_SteamWorks -> SteamWorks_WriteHTTPResponseBodyToFile failed");
     }
 
-    delete hRequest;
+    UTIL_EraseRequest(hRequest);
 }
 
 public int API_DownloadTranslations_SteamWorks(Handle hRequest, bool bFailure, bool bRequestSuccessful, EHTTPStatusCode eStatusCode)
