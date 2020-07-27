@@ -58,11 +58,12 @@ public int API_GetLyric_SteamWorks(Handle hRequest, bool bFailure, bool bRequest
 
 public int API_PrepareSong_SteamWorks(Handle hRequest, bool bFailure, bool bRequestSuccessful, EHTTPStatusCode eStatusCode, int userid)
 {
-    g_fNextPlay = 0.0;
+    g_fNextPlay = GetGameTime() + 5.0;
     
     if (bFailure || !bRequestSuccessful || eStatusCode != k_EHTTPStatusCode200OK)
     {
         LogError("SteamWorks -> API_PrepareSong -> HTTP Response failed: %d", eStatusCode);
+        g_bCaching = false;
         UTIL_NotifyFailure(GetClientOfUserId(userid), "failed to precache song");
     }
     else SteamWorks_GetHTTPResponseBodyCallback(hRequest, API_CachedSong_SteamWorks, userid);
@@ -91,7 +92,8 @@ public int API_CachedSong_SteamWorks(const char[] sData, int userid)
 
 public int API_DownloadSound_SteamWorks(Handle hRequest, bool bFailure, bool bRequestSuccessful, EHTTPStatusCode eStatusCode, int userid)
 {
-    g_fNextPlay = 0.0;
+    g_fNextPlay = GetGameTime() + 5.0;
+    g_bCaching = false;
     
     if (bFailure || !bRequestSuccessful || eStatusCode != k_EHTTPStatusCode200OK)
     {
