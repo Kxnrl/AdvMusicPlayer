@@ -75,13 +75,6 @@ game/include/vector.inc
 game/include/version.inc
 game/include/version_auto.inc
 
-# Third-Party
-# =========================
-game/include/PTaH.inc
-game/include/armsfix.inc
-game/include/fys.opts.inc
-game/include/fys.pupd.inc
-
 # VSCode
 # =========================
 .vscode/*
