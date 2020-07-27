@@ -270,3 +270,8 @@ bool IsPlaying()
 {
     return g_Player.m_Player != null && !g_Player.m_Player.IsFinished && g_Player.m_Player.PlayedSecs > 0.0;
 }
+
+bool AllowStop(int client)
+{
+    return IsPlaying() && g_Player.m_Player.ClientIndex != client;
+}

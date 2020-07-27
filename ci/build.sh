@@ -76,7 +76,7 @@ echo "Upload file RSYNC ..."
 RSYNC_PASSWORD=$RSYNC_PSWD rsync -avz --port $RSYNC_PORT ./$FILE $RSYNC_USER@$RSYNC_HOST::TravisCI/AdvMusicPlayer/$1/
 
 #RAW
-if [ "$1" = "1.11" ]; then
+if [ "$1" = "1.10" ]; then
     echo "Upload RAW..."
     RSYNC_PASSWORD=$RSYNC_PSWD rsync -avz --port $RSYNC_PORT ./plugins/advmusicplayer.smx $RSYNC_USER@$RSYNC_HOST::TravisCI/_Raw/
     mv ./scripts/com.kxnrl.amp.translations.txt ./scripts/com.kxnrl.amp.csgo.translations.txt

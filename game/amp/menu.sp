@@ -29,10 +29,10 @@ void DisplayMainMenu(int client)
     UTIL_DebugLog("DisplayMainMenu -> %N -> %b | %b -> %.1f", client, g_Player.m_Player != null, g_Player.m_Player != null && g_Player.m_Player.IsFinished, g_Player.m_Player != null ? g_Player.m_Player.PlayedSecs : 0.0);
 #endif
 
-    AddMenuItemEx(menu, IsPlaying() ? ITEMDRAW_DISABLED : ITEMDRAW_DEFAULT, "search",  "%T", "search", client);
+    AddMenuItemEx(menu, IsPlaying()       ? ITEMDRAW_DISABLED : ITEMDRAW_DEFAULT, "search",  "%T", "search", client);
     AddMenuItemEx(menu, ITEMDRAW_DEFAULT, "toggle", "%T", "receive", client, g_bDiable[client] ? "OFF" : "ON");
     AddMenuItemEx(menu, ITEMDRAW_DEFAULT, "lyrics", "%T", "lyrics",  client, g_bLyrics[client] ? "ON" : "OFF");
-    AddMenuItemEx(menu, IsPlaying() ? ITEMDRAW_DISABLED : ITEMDRAW_DEFAULT, "stop",   "%T", "stop playing", client);
+    AddMenuItemEx(menu, AllowStop(client) ? ITEMDRAW_DISABLED : ITEMDRAW_DEFAULT, "stop",   "%T", "stop playing", client);
     AddMenuItemEx(menu, g_bMapMusic ? ITEMDRAW_DEFAULT : ITEMDRAW_DISABLED, "mapbgm", "%T: %d", g_bMapMusic ? "map bgm a" : "map bgm ua", client, g_bMapMusic ? MapMusic_GetVolume(client) : 100);
 
     menu.Display(client, 30);
