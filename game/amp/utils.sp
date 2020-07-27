@@ -285,9 +285,13 @@ void UTIL_ShowLyric(int client, const char[] message, const float hold, const fl
     Chat(client, message);
 }
 
-void UTIL_NotifyFailure(int client, const char[] translations)
+void UTIL_NotifyFailure(int client, const char[] translations, bool reset = false)
 {
-    Player_Reset();
+    if (reset)
+    {
+        // should reset player
+        Player_Reset();
+    }
 
     if (!IsValidClient(client))
         return;

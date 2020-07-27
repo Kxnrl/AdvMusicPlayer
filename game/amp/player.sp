@@ -160,6 +160,12 @@ void Player_LyricHud(float hold, float fx, const char[] message)
 
 void Player_BroadcastMusic(int client, bool cached, const char[] url = NULL_STRING)
 {
+    if (!client)
+    {
+        Player_Reset();
+        return;
+    }
+
     // ban?
     if (g_bBanned[client])
     {
@@ -171,7 +177,7 @@ void Player_BroadcastMusic(int client, bool cached, const char[] url = NULL_STRI
     if (GetGameTime() < g_fNextPlay)
     {
 #if defined DEBUG
-        UTIL_DebugLog("Player_BroadcastMusic -> %N -> [%s]%s -> Time Out", client, g_Player.m_Song, g_Player.m_Title);
+        UTIL_DebugLog("Player_BroadcastMusic -> %N -> [%s]%s -> Time Out -> %.1f : %.1f", client, g_Player.m_Song, g_Player.m_Title, GetGameTime(), g_fNextPlay);
 #endif
         Chat(client, "%T", "last timeout", client);
         return;

@@ -28,14 +28,14 @@ public int API_SearchMusic_SteamWorks(Handle hRequest, bool bFailure, bool bRequ
         if (!SteamWorks_WriteHTTPResponseBodyToFile(hRequest, path))
         {
             LogError("SteamWorks -> API_SearchMusic -> WriteHTTPResponseBodyToFile failed");
-            UTIL_NotifyFailure(GetClientOfUserId(userid), "failed to search music");
+            UTIL_NotifyFailure(GetClientOfUserId(userid), "failed to search music", true);
         }
         else RequestFrame(UTIL_ProcessResult, userid);
     }
     else
     {
         LogError("SteamWorks -> API_SearchMusic -> HTTP Response failed: %d", eStatusCode);
-        UTIL_NotifyFailure(GetClientOfUserId(userid), "failed to search music");
+        UTIL_NotifyFailure(GetClientOfUserId(userid), "failed to search music", true);
     }
 
     delete hRequest;
@@ -58,16 +58,19 @@ public int API_GetLyric_SteamWorks(Handle hRequest, bool bFailure, bool bRequest
 
 public int API_PrepareSong_SteamWorks(Handle hRequest, bool bFailure, bool bRequestSuccessful, EHTTPStatusCode eStatusCode, int userid)
 {
-    g_fNextPlay = GetGameTime() + 5.0;
+    g_fNextPlay = GetGameTime() + 15.0;
     
     if (bFailure || !bRequestSuccessful || eStatusCode != k_EHTTPStatusCode200OK)
     {
         LogError("SteamWorks -> API_PrepareSong -> HTTP Response failed: %d", eStatusCode);
         g_bCaching = false;
-        UTIL_NotifyFailure(GetClientOfUserId(userid), "failed to precache song");
+        UTIL_NotifyFailure(GetClientOfUserId(userid), "failed to precache song", true);
     }
     else
     {
+#if defined DEBUG
+        UTIL_DebugLog("API_PrepareSong_SteamWorks -> success");
+#endif
         SteamWorks_GetHTTPResponseBodyCallback(hRequest, API_CachedSong_SteamWorks, userid);
         UTIL_EraseRequest(hRequest);
     }
@@ -75,17 +78,24 @@ public int API_PrepareSong_SteamWorks(Handle hRequest, bool bFailure, bool bRequ
 
 public int API_CachedSong_SteamWorks(const char[] sData, int userid)
 {
+#if defined DEBUG
+        UTIL_DebugLog("API_CachedSong_SteamWorks -> %d -> %s", userid, sData);
+#endif
+
     char path[128];
     BuildPath(Path_SM, path, 128, "data/music/sound_%s_%s.mp3", g_EngineName[g_Player.m_Engine], g_Player.m_Song);
     if (FileExists(path))
     {
-        int client = GetClientOfUserId(userid);
         g_bCaching = false;
         g_fNextPlay = 0.0;
         Format(path, 128, "csgo/%s", path);
-        Player_BroadcastMusic(client, true, path);
+        Player_BroadcastMusic(GetClientOfUserId(userid), true, path);
         return;
     }
+
+#if defined DEBUG
+    UTIL_DebugLog("API_CachedSong_SteamWorks -> try to download song from %s", sData);
+#endif
 
     Handle hRequest = SteamWorks_CreateHTTPRequest(k_EHTTPMethodGET, sData);
     SteamWorks_SetHTTPRequestContextValue(hRequest, userid);
@@ -98,11 +108,15 @@ public int API_CachedSong_SteamWorks(const char[] sData, int userid)
 public int API_DownloadSound_SteamWorks(Handle hRequest, bool bFailure, bool bRequestSuccessful, EHTTPStatusCode eStatusCode, int userid)
 {
     g_fNextPlay = GetGameTime() + 5.0;
-    
+
+#if defined DEBUG
+    UTIL_DebugLog("API_DownloadSound_SteamWorks -> finished.");
+#endif
+
     if (bFailure || !bRequestSuccessful || eStatusCode != k_EHTTPStatusCode200OK)
     {
         LogError("SteamWorks -> API_DownloadSound_SteamWorks -> HTTP Response failed: %d", eStatusCode);
-        UTIL_NotifyFailure(GetClientOfUserId(userid), "failed to precache song");
+        UTIL_NotifyFailure(GetClientOfUserId(userid), "failed to precache song", true);
     }
     else
     {
@@ -110,12 +124,16 @@ public int API_DownloadSound_SteamWorks(Handle hRequest, bool bFailure, bool bRe
         BuildPath(Path_SM, path, 128, "data/music/sound_%s_%s.mp3", g_EngineName[g_Player.m_Engine], g_Player.m_Song);
         if (SteamWorks_WriteHTTPResponseBodyToFile(hRequest, path))
         {
-            int client = GetClientOfUserId(userid);
             g_bCaching = false;
+            g_fNextPlay = 0.0;
             Format(path, 128, "csgo/%s", path);
-            Player_BroadcastMusic(client, true, path);
+            Player_BroadcastMusic(GetClientOfUserId(userid), true, path);
         }
-        else LogError("SteamWorks -> API_DownloadSound_SteamWorks -> SteamWorks_WriteHTTPResponseBodyToFile failed");
+        else
+        {
+            LogError("SteamWorks -> API_DownloadSound_SteamWorks -> SteamWorks_WriteHTTPResponseBodyToFile failed");
+            UTIL_NotifyFailure(GetClientOfUserId(userid), "failed to precache song", true);
+        }
 
         UTIL_EraseRequest(hRequest);
     }
