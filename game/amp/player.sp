@@ -237,6 +237,7 @@ void Player_BroadcastMusic(int client, bool cached, const char[] url = NULL_STRI
     for(int i = 1; i <= MaxClients; ++i)
     {
         g_bHandle[i] = false;
+        g_bStopEx[i] = false;
 
         // ignore fakeclient and not in-game client
         if (!IsValidClient(i))
@@ -296,13 +297,13 @@ public void Event_PlayerDeath(Event e, const char[] name, bool db)
     if (client == source)
     {
         for(int target = 1; target <= MaxClients; target++)
-        if (IsValidClient(target))
+        if (IsValidClient(target) && !g_bStopEx[target])
         {
             // force override sv_talk
             SetListenOverride(target, source, Listen_Yes);
         }
     }
-    else
+    else if (!g_bStopEx[client])
     {
         SetListenOverride(client, source, Listen_Yes);
     }

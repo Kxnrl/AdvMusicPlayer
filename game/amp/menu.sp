@@ -70,6 +70,8 @@ public int MenuHanlder_Main(Menu menu, MenuAction action, int client, int slot)
                 // in playing?
                 if (IsPlaying())
                     SetListenOverride(client, g_Player.m_Player.ClientIndex, Listen_No);
+                
+                g_bStopEx[client] = true;
                 Chat(client, "%T", "stop chat", client);
                 reply = true;
             }

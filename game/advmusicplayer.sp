@@ -84,6 +84,7 @@ bool    g_bDiable[MAXINDEX];
 bool    g_bBanned[MAXINDEX];
 bool    g_bHandle[MAXINDEX];
 bool    g_bLocked[MAXINDEX];
+bool    g_bStopEx[MAXINDEX];
 int     g_iSelect[MAXINDEX];
 kEngine g_kEngine[MAXINDEX];
 
@@ -272,6 +273,7 @@ public void OnClientConnected(int client)
     g_bDiable[client] = false;
     g_bBanned[client] = false;
     g_bHandle[client] = false;
+    g_bStopEx[client] = false;
     g_bLocked[client] = false;
     g_bLyrics[client] = true;
 
