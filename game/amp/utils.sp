@@ -227,7 +227,7 @@ public Action UTIL_ProcessLyric(Handle myself)
 void UTIL_CacheSong(int client)
 {
     char url[256];
-    g_cvarAPIURL.GetString(url, 256);
+    g_Cvars.apiurl.GetString(url, 256);
     Format(url, 256, "%s/?action=mp3url&engine=%s&song=%s", url, g_EngineName[g_Player.m_Engine], g_Player.m_Song);
 
 #if defined DEBUG
@@ -388,3 +388,29 @@ void UTIL_DebugLog(const char[] log, any ...)
     LogToFileEx(debugLog, buffer);
 }
 #endif
+
+int UTIL_CreateFakeClient()
+{
+    int client = -1;
+    for (int i = 1; i <= MaxClients; i++)
+    if (IsClientInGame(i) && (IsClientSourceTV(i) || IsFakeClient(i)))
+    {
+        client = i;
+        break;
+    }
+
+    if (client == -1)
+    {
+        client = CreateFakeClient("Kxnrl.MusicBot");
+    }
+
+    if (client == 0)
+        ThrowError("Failed to create fake client");
+
+    char name[32];
+    GetClientName(client, name, 32);
+    if (strcmp(name, "Kxnrl.MusicBot") != 0)
+        SetClientName(client, "Kxnrl.MusicBot");
+
+    return client;
+}

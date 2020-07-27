@@ -83,12 +83,12 @@ static void Player_LoadLyric()
 #if defined DEBUG
         UTIL_DebugLog("Timer_GetLyric -> Loading Local Lyrics -> %s[%s] -> %s", g_Player.m_Song, g_Player.m_Title, path);
 #endif
-        CreateTimer(g_cvarLRCDLY.FloatValue, UTIL_ProcessLyric);
+        CreateTimer(g_Cvars.lyrics.FloatValue, UTIL_ProcessLyric);
         return;
     }
 
     char url[256];
-    g_cvarAPIURL.GetString(url, 256);
+    g_Cvars.apiurl.GetString(url, 256);
     Format(url, 256, "%s/?action=lyrics&engine=%s&song=%s", url, g_EngineName[g_Player.m_Engine], g_Player.m_Song);
 
 #if defined DEBUG
@@ -191,7 +191,7 @@ void Player_BroadcastMusic(int client, bool cached, const char[] url = NULL_STRI
     // if store is available, handle credits
     if (g_bStoreLib)
     {
-        int cost = RoundFloat(g_Player.m_Length*g_cvarCREDIT.FloatValue);
+        int cost = RoundFloat(g_Player.m_Length*g_Cvars.credit.FloatValue);
         if (Store_GetClientCredits(client) < cost)
         {
             Chat(client, "%T", "no enough money", client, cost);
@@ -217,10 +217,13 @@ void Player_BroadcastMusic(int client, bool cached, const char[] url = NULL_STRI
     g_fNextPlay = GetGameTime()+g_Player.m_Length;
 
     // play music
+    int source = g_Cvars.fakeid.BoolValue ? UTIL_CreateFakeClient() : client;
     g_Player.m_Player = new AudioPlayer();
-    g_Player.m_Player.PlayAsClient(client, url);
+    g_Player.m_Player.PlayAsClient(source, url);
 
-    AudioMixer_SetClientCanHearSelf(client, true);
+    // if source from real player
+    if (IsValidClient(g_Player.m_Player.ClientIndex))
+        AudioMixer_SetClientCanHearSelf(client, true);
 
 #if defined DEBUG
     UTIL_DebugLog("Player_BroadcastMusic -> Prepare player from %N to %s", client, url);
@@ -239,7 +242,13 @@ void Player_BroadcastMusic(int client, bool cached, const char[] url = NULL_STRI
 
         // ignore client who sets disabled
         if (g_bDiable[i])
+        {
+            SetListenOverride(i, g_Player.m_Player.ClientIndex, Listen_No);
             continue;
+        }
+
+        // otherwise
+        SetListenOverride(i, g_Player.m_Player.ClientIndex, Listen_Yes);
 
         // init player
         DisplayMainMenu(i);

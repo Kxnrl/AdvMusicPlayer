@@ -15,18 +15,23 @@
 /******************************************************************/
 
 
+// compiler stuff
+#pragma semicolon 1
+#pragma newdecls required
 
 // VERSION
 #define PI_VERSION "3.1.<commit_count>"
 
 // DEBUG?
-#define DEBUG
+//#define DEBUG
 
 #include <sourcemod>
 
 // Require Extensions
 #include <steamworks>
 #include <audio>
+#include <sdktools_voice>
+#include <sdktools_functions>
 
 #undef REQUIRE_EXTENSIONS
 #include <clientprefs>
@@ -40,14 +45,11 @@
 // MapMusic library
 #undef REQUIRE_PLUGIN
 #include <mapmusic>
+#include <fys.opts>
 #define REQUIRE_PLUGIN
 
 // other stuff
-#define MAXINDEX  MAXPLAYERS+1
-
-// compiler stuff
-#pragma semicolon 1
-#pragma newdecls required
+#define MAXINDEX MAXPLAYERS+1
 
 // global variables
 float g_fNextPlay;
@@ -56,10 +58,24 @@ bool g_bStoreLib;
 bool g_bCaching;
 
 // Console variables
-ConVar g_cvarAPIURL;
-ConVar g_cvarLRCDLY;
-ConVar g_cvarLIMITS;
-ConVar g_cvarCREDIT;
+enum struct cvars_t
+{
+    ConVar apiurl;
+    ConVar lyrics;
+    ConVar limits;
+    ConVar credit;
+    ConVar fakeid;
+
+    void Init()
+    {
+        this.apiurl = CreateConVar("amp_api_engine",   "https://music.kxnrl.com/api/v4",   "Url for music engine API. (DON'T CHANGE THIS IF YOU DON'T KNOW WHAT YOU DO, IF NOT WORKING, CHANGE TO DEFAULT VALUE)");
+        this.lyrics = CreateConVar("amp_lrc_delay",    "0.5",                              "How many second(s) delay to display lyric on lyric loaded.",                                              _, true, 0.0, true, 10.0);
+        this.limits = CreateConVar("amp_mnt_search",    "20",                              "How many songs will display in once search.",                                                             _, true, 5.0, true, 60.0);
+        this.credit = CreateConVar("amp_cost_factor",  "2.0",                              "How much for broadcasting song (if store is availavle). song length(sec) * this value = cost credits.",   _, true, 0.1, true, 99.0);
+        this.fakeid = CreateConVar("amp_player_fake",    "1",                              "If true, play sound from GOTV or fake client, from player index otherwise.",                              _, true, 0.0, true,  1.0);
+    }
+}
+cvars_t g_Cvars;
 
 // client variables
 bool    g_bStatus[MAXINDEX];
@@ -108,7 +124,7 @@ enum struct music_t
         this.m_Album[0] = '\0';
         this.m_Mp3Uri[0] = '\0';
         this.m_Length = 0.0;
-        
+
         if (this.m_Lyrics != null)
         {
             delete this.m_Lyrics;
@@ -117,6 +133,15 @@ enum struct music_t
 
         if (this.m_Player != null)
         {
+            for (int client = 1; client <= MaxClients; client++)
+            if (IsValidClient(client))
+            SetListenOverride(client, this.m_Player.ClientIndex, Listen_Default);
+
+            if (IsValidClient(this.m_Player.ClientIndex))
+                AudioMixer_SetClientCanHearSelf(this.m_Player.ClientIndex, false);
+            else if (this.m_Player.ClientIndex != 1) // ignore GOTV?
+                KickClient(this.m_Player.ClientIndex, "Reset Player");
+
             delete this.m_Player;
             this.m_Player  = null;
         }
@@ -128,9 +153,26 @@ char g_EngineName[][] = {"netease", "tencent", "xiami", "kugou", "baidu", "custo
 music_t g_Player;
 
 // cookies
-Handle g_cDisable;
-Handle g_cBanned;
-Handle g_cLyrics;
+enum opts_ref
+{
+    Opts_Enable,
+    Opts_Banned,
+    Opts_Lyrics
+}
+enum struct opts_t
+{
+    Handle enable;
+    Handle banned;
+    Handle lyrics;
+
+    void Init()
+    {
+        this.enable = RegClientCookie("amp_disable", "", CookieAccess_Private);
+        this.banned = RegClientCookie("amp_banned",  "", CookieAccess_Private);
+        this.lyrics = RegClientCookie("amp_lyrics",  "", CookieAccess_Private);
+    }
+}
+opts_t g_Cookie;
 
 // logging
 char logFile[128];
@@ -208,12 +250,14 @@ public void OnLibraryAdded(const char[] name)
 {
     // Fire to modules
     Global_CheckLibrary();
+    Cookies_CheckLibrary();
 }
 
 public void OnLibraryRemoved(const char[] name)
 {
     // Fire to modules
     Global_CheckLibrary();
+    Cookies_CheckLibrary();
 }
 
 public void OnMapEnd()
@@ -234,6 +278,17 @@ public void OnClientConnected(int client)
 #if defined DEBUG
     UTIL_DebugLog("OnClientConnected -> Init %N", client);
 #endif
+}
+
+public void OnClientDisconnect(int client)
+{
+    if (g_Player.m_Player == null)
+        return;
+
+    if (g_Player.m_Player.ClientIndex != client)
+        return;
+
+    Player_Reset();
 }
 
 bool IsValidClient(int client)

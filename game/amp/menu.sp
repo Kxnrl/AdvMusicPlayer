@@ -32,7 +32,7 @@ void DisplayMainMenu(int client)
     AddMenuItemEx(menu, IsPlaying() ? ITEMDRAW_DISABLED : ITEMDRAW_DEFAULT, "search",  "%T", "search", client);
     AddMenuItemEx(menu, ITEMDRAW_DEFAULT, "toggle", "%T", "receive", client, g_bDiable[client] ? "OFF" : "ON");
     AddMenuItemEx(menu, ITEMDRAW_DEFAULT, "lyrics", "%T", "lyrics",  client, g_bLyrics[client] ? "ON" : "OFF");
-    AddMenuItemEx(menu, ITEMDRAW_DEFAULT, "stop",   "%T", "stop playing", client);
+    AddMenuItemEx(menu, IsPlaying() ? ITEMDRAW_DISABLED : ITEMDRAW_DEFAULT, "stop",   "%T", "stop playing", client);
     AddMenuItemEx(menu, g_bMapMusic ? ITEMDRAW_DEFAULT : ITEMDRAW_DISABLED, "mapbgm", "%T: %d", g_bMapMusic ? "map bgm a" : "map bgm ua", client, g_bMapMusic ? MapMusic_GetVolume(client) : 100);
 
     menu.Display(client, 30);
@@ -55,20 +55,21 @@ public int MenuHanlder_Main(Menu menu, MenuAction action, int client, int slot)
             {
                 reply = true;
                 g_bDiable[client] = !g_bDiable[client];
-                Cookie_SetValue(client, g_cDisable, g_bDiable[client] ? "1" : "0");
+                Cookie_SetValue(client, Opts_Enable, g_bDiable[client]);
                 Chat(client, "%T", "receive chat", client, g_bDiable[client] ? "\x07OFF" : "\x04ON");
             }
             case 2:
             {
                 reply = true;
                 g_bLyrics[client] = !g_bLyrics[client];
-                Cookie_SetValue(client, g_cLyrics, g_bLyrics[client] ? "0" : "1");
+                Cookie_SetValue(client, Opts_Lyrics, g_bLyrics[client]);
                 Chat(client, "%T", "receive chat", client, g_bLyrics[client] ? "\x04ON" : "\x07OFF");
             }
             case 3:
             {
-                // todo
-                // we need stop bot voice.
+                // in playing?
+                if (IsPlaying())
+                    SetListenOverride(client, g_Player.m_Player.ClientIndex, Listen_No);
                 Chat(client, "%T", "stop chat", client);
                 reply = true;
             }
@@ -130,7 +131,7 @@ public int MenuHandler_DisplayList(Menu menu, MenuAction action, int client, int
         char name[64], artist[64], album[64], sid[16];
         UTIL_ProcessSongInfo(client, name, artist, album, length, sid, engine);
 
-        int cost = RoundFloat(length*g_cvarCREDIT.FloatValue);
+        int cost = RoundFloat(length*g_Cvars.credit.FloatValue);
         DisplayConfirmMenu(client, cost, name, artist, album, RoundFloat(length), engine);
     }
     else if (action == MenuAction_End)

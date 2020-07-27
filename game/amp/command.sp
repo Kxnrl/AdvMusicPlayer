@@ -74,7 +74,7 @@ public Action Command_MusicBan(int client, int args)
 
     // processing ban
     g_bBanned[target] = !g_bBanned[target];
-    SetClientCookie(target, g_cBanned, g_bBanned[target] ? "1" : "0");
+    Cookie_SetValue(target, Opts_Banned, g_bBanned[target]);
     ChatAll("%t", "music ban chat", target, g_bBanned[target] ? "BAN" : "UNBAN");
     
 #if defined DEBUG
@@ -95,8 +95,8 @@ public Action OnClientSayCommand(int client, const char[] command, const char[] 
     Chat(client, "%T", "searching", client, g_EngineName[g_kEngine[client]], client);
 
     char url[256];
-    g_cvarAPIURL.GetString(url, 256);
-    Format(url, 256, "%s/?action=search&engine=%s&limit=%d&song=%s", url, g_EngineName[g_kEngine[client]], g_cvarLIMITS.IntValue, sArgs);
+    g_Cvars.apiurl.GetString(url, 256);
+    Format(url, 256, "%s/?action=search&engine=%s&limit=%d&song=%s", url, g_EngineName[g_kEngine[client]], g_Cvars.limits.IntValue, sArgs);
     //i dont want to urlencode. xD
     ReplaceString(url, 256, " ", "+", false);
 

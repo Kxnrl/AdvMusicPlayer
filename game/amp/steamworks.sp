@@ -48,7 +48,7 @@ public int API_GetLyric_SteamWorks(Handle hRequest, bool bFailure, bool bRequest
         char path[128];
         BuildPath(Path_SM, path, 128, "data/music/lyric_%s_%s.lrc", g_EngineName[g_Player.m_Engine], g_Player.m_Song);
         if (SteamWorks_WriteHTTPResponseBodyToFile(hRequest, path))
-            CreateTimer(g_cvarLRCDLY.FloatValue, UTIL_ProcessLyric);
+            CreateTimer(g_Cvars.lyrics.FloatValue, UTIL_ProcessLyric);
         else LogError("SteamWorks -> API_GetLyric -> SteamWorks_WriteHTTPResponseBodyToFile failed");
     }
     else LogError("SteamWorks -> API_GetLyric -> HTTP Response failed: %d", eStatusCode);
@@ -122,7 +122,10 @@ public int API_DownloadTranslations_SteamWorks(Handle hRequest, bool bFailure, b
         char path[128];
         BuildPath(Path_SM, path, 128, "translations/com.kxnrl.amp.translations.txt");
         if (SteamWorks_WriteHTTPResponseBodyToFile(hRequest, path) && FileExists(path) && FileSize(path) > 2048)
+        {
             LoadTranslations("com.kxnrl.amp.translations");
+            ServerCommand("sm_reload_translations");
+        }
         else SetFailState("SteamWorks -> API_DownloadTranslations -> SteamWorks_WriteHTTPResponseBodyToFile failed");
     }
     else SetFailState("SteamWorks -> API_DownloadTranslations -> HTTP Response failed: %d", eStatusCode);
