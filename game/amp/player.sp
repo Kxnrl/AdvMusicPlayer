@@ -21,6 +21,8 @@ void Player_InitPlayer()
     g_Player.Reset();
 
     CreateTimer(0.02, Timer_Interval, _, TIMER_REPEAT);
+
+    HookEvent("player_death", Event_PlayerDeath, EventHookMode_Post);
 }
 
 public Action Timer_Interval(Handle timer)
@@ -278,6 +280,32 @@ public Action Timer_DisplayMenu(Handle timer)
     }
 
     return Plugin_Stop;
+}
+
+public void Event_PlayerDeath(Event e, const char[] name, bool db)
+{
+    if (!IsPlaying())
+        return;
+
+    int client = GetClientOfUserId(e.GetInt("userid"));
+    if (!client)
+        return;
+
+    int source = g_Player.m_Player.ClientIndex;
+
+    if (client == source)
+    {
+        for(int target = 1; target <= MaxClients; target++)
+        if (IsValidClient(target))
+        {
+            // force override sv_talk
+            SetListenOverride(target, source, Listen_Yes);
+        }
+    }
+    else
+    {
+        SetListenOverride(client, source, Listen_Yes);
+    }
 }
 
 bool IsPlaying()
