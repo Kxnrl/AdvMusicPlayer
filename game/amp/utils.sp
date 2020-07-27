@@ -285,6 +285,8 @@ void UTIL_ShowLyric(int client, const char[] message, const float hold, const fl
 
 void UTIL_NotifyFailure(int client, const char[] translations)
 {
+    Player_Reset();
+
     if (!IsValidClient(client))
         return;
 
