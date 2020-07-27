@@ -44,11 +44,13 @@ public Action Timer_Interval(Handle timer)
     // clear all
     Player_LyricHud(2.0, 0.3, "......");
     for(int i = 1; i <= MaxClients; ++i)
-        if (IsValidClient(i) && g_bPlayed[i] && !g_bListen[i])
+    {
+        if (IsValidClient(i))
         {
             // mapmusic
             MapMusic_SetStatus(i, g_bStatus[i]);
         }
+    }
 
     return Plugin_Continue;
 }
@@ -110,23 +112,37 @@ void Player_DisplayLyric()
     if (fCurrent < l.m_Delay)
         return;
 
-    // display lyric
-    int bytes = UTIL_GetCol(l.m_Words);
-    float kp = l.m_Delay - fCurrent;
-    float fx = (kp-1.0)/float(bytes);
-
-    Player_LyricHud(kp, fx, l.m_Words);
-
+    g_Player.m_Lyrics.Erase(0);
+    if (g_Player.m_Lyrics.Length > 0)
+    {
+        char words[64];
+        strcopy(words, 64, l.m_Words);
+        fCurrent = l.m_Delay;
+        g_Player.m_Lyrics.GetArray(0, l, sizeof(lyric_t));
+        
+        // display lyric
+        int bytes = UTIL_GetCol(words);
+        float kp = l.m_Delay - fCurrent;
+        float fx = (kp-0.8)/float(bytes);
+        Player_LyricHud(kp, fx, words);
 #if defined DEBUG
-    UTIL_DebugLog("Player_DisplayLyric -> %.2f:%.2f -> %.2f:%.2f ->%s", fCurrent, l.m_Delay, fx, kp, l.m_Words);
+        UTIL_DebugLog("Player_DisplayLyric -> %.2f:%.2f -> %.2f:%.2f ->%s", fCurrent, l.m_Delay, fx, kp, words);
 #endif
+    }
+    else
+    {
+        Player_LyricHud(10.0, 9.0, l.m_Words);
+#if defined DEBUG
+        UTIL_DebugLog("Player_DisplayLyric -> %.2f:%.2f ->%s", fCurrent, l.m_Delay, l.m_Words);
+#endif
+    }
 }
 
 void Player_LyricHud(float hold, float fx, const char[] message)
 {
     // loop all client who is playing
     for(int client = 1; client <= MaxClients; ++client)
-        if (IsValidClient(client) && g_bPlayed[client] && g_bLyrics[client])
+        if (IsValidClient(client) && g_bLyrics[client])
             UTIL_ShowLyric(client, message, hold, fx);
 
 #if defined DEBUG
@@ -156,6 +172,22 @@ void Player_BroadcastMusic(int client, bool cached, const char[] url = NULL_STRI
     // get song info
     UTIL_ProcessSongInfo(client, g_Player.m_Title, g_Player.m_Artist, g_Player.m_Album, g_Player.m_Length, g_Player.m_Song, g_Player.m_Engine);
 
+    // if enabled cache and not precache
+    if (!cached)
+    {
+        if (g_bCaching)
+        {
+            Chat(client, "%T", "Global caching", client);
+            return;
+        }
+
+#if defined DEBUG
+        UTIL_DebugLog("Player_BroadcastMusic -> %N -> [%s]%s -> we need precache music", client, g_Player.m_Song, g_Player.m_Title);
+#endif
+        UTIL_CacheSong(client);
+        return;
+    }
+
     // if store is available, handle credits
     if (g_bStoreLib)
     {
@@ -171,22 +203,6 @@ void Player_BroadcastMusic(int client, bool cached, const char[] url = NULL_STRI
         Chat(client, "%T", "cost to broadcast", client, cost, g_Player.m_Title);
     }
 
-    // if enabled cache and not precache
-    if (!cached)
-    {
-        if (g_bCaching)
-        {
-            Chat(client, "Global caching");
-            return;
-        }
-
-#if defined DEBUG
-        UTIL_DebugLog("Player_BroadcastMusic -> %N -> [%s]%s -> we need precache music", client, g_Player.m_Song, g_Player.m_Title);
-#endif
-        UTIL_CacheSong(client);
-        return;
-    }
-
     // set lock flag
     g_bLocked[client] = false;
 
@@ -200,6 +216,19 @@ void Player_BroadcastMusic(int client, bool cached, const char[] url = NULL_STRI
     // set timeout
     g_fNextPlay = GetGameTime()+g_Player.m_Length;
 
+    // play music
+    g_Player.m_Player = new AudioPlayer();
+    g_Player.m_Player.PlayAsClient(client, url);
+
+    AudioMixer_SetClientCanHearSelf(client, true);
+
+#if defined DEBUG
+    UTIL_DebugLog("Player_BroadcastMusic -> Prepare player from %N to %s", client, url);
+#endif
+
+    // load lyric
+    Player_LoadLyric();
+
     for(int i = 1; i <= MaxClients; ++i)
     {
         g_bHandle[i] = false;
@@ -211,9 +240,6 @@ void Player_BroadcastMusic(int client, bool cached, const char[] url = NULL_STRI
         // ignore client who sets disabled
         if (g_bDiable[i])
             continue;
-
-        // set playing flag
-        g_bPlayed[i] = true;
 
         // init player
         DisplayMainMenu(i);
@@ -229,16 +255,9 @@ void Player_BroadcastMusic(int client, bool cached, const char[] url = NULL_STRI
         UTIL_DebugLog("Player_BroadcastMusic -> Handle clients -> %N", i);
 #endif
     }
+}
 
-    g_Player.m_Player = new AudioPlayer();
-    g_Player.m_Player.PlayAsClient(client, "_test.mp3");
-
-    AudioMixer_SetClientCanHearSelf(client, true);
-
-#if defined DEBUG
-    UTIL_DebugLog("Player_BroadcastMusic -> Prepare player from %N to %s", client, url);
-#endif
-
-    // load lyric
-    Player_LoadLyric();
+bool IsPlaying()
+{
+    return g_Player.m_Player != null && !g_Player.m_Player.IsFinished && g_Player.m_Player.PlayedSecs > 0.0;
 }

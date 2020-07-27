@@ -22,6 +22,9 @@ public int API_SearchMusic_SteamWorks(Handle hRequest, bool bFailure, bool bRequ
     {
         char path[128];
         BuildPath(Path_SM, path, 128, "data/music/search_%d.kv", userid);
+#if defined DEBUG
+        UTIL_DebugLog("API_SearchMusic_SteamWorks -> Success -> %d -> %s", userid, path);
+#endif
         if (!SteamWorks_WriteHTTPResponseBodyToFile(hRequest, path))
         {
             LogError("SteamWorks -> API_SearchMusic -> WriteHTTPResponseBodyToFile failed");
@@ -69,9 +72,47 @@ public int API_PrepareSong_SteamWorks(Handle hRequest, bool bFailure, bool bRequ
 
 public int API_CachedSong_SteamWorks(const char[] sData, int userid)
 {
-    int client = GetClientOfUserId(userid);
-    g_bCaching = false;
-    Player_BroadcastMusic(client, true, sData);
+    char path[128];
+    BuildPath(Path_SM, path, 128, "data/music/sound_%s_%s.mp3", g_EngineName[g_Player.m_Engine], g_Player.m_Song);
+    if (FileExists(path))
+    {
+        int client = GetClientOfUserId(userid);
+        g_bCaching = false;
+        Format(path, 128, "csgo/%s", path);
+        Player_BroadcastMusic(client, true, path);
+        return;
+    }
+
+    Handle hRequest = SteamWorks_CreateHTTPRequest(k_EHTTPMethodGET, sData);
+    SteamWorks_SetHTTPRequestContextValue(hRequest, userid);
+    SteamWorks_SetHTTPCallbacks(hRequest, API_DownloadSound_SteamWorks);
+    SteamWorks_SendHTTPRequest(hRequest);
+}
+
+public int API_DownloadSound_SteamWorks(Handle hRequest, bool bFailure, bool bRequestSuccessful, EHTTPStatusCode eStatusCode, int userid)
+{
+    g_fNextPlay = 0.0;
+    
+    if (bFailure || !bRequestSuccessful || eStatusCode != k_EHTTPStatusCode200OK)
+    {
+        LogError("SteamWorks -> API_DownloadSound_SteamWorks -> HTTP Response failed: %d", eStatusCode);
+        UTIL_NotifyFailure(GetClientOfUserId(userid), "failed to precache song");
+    }
+    else
+    {
+        char path[128];
+        BuildPath(Path_SM, path, 128, "data/music/sound_%s_%s.mp3", g_EngineName[g_Player.m_Engine], g_Player.m_Song);
+        if (SteamWorks_WriteHTTPResponseBodyToFile(hRequest, path))
+        {
+            int client = GetClientOfUserId(userid);
+            g_bCaching = false;
+            Format(path, 128, "csgo/%s", path);
+            Player_BroadcastMusic(client, true, path);
+        }
+        else LogError("SteamWorks -> API_DownloadSound_SteamWorks -> SteamWorks_WriteHTTPResponseBodyToFile failed");
+    }
+
+    delete hRequest;
 }
 
 public int API_DownloadTranslations_SteamWorks(Handle hRequest, bool bFailure, bool bRequestSuccessful, EHTTPStatusCode eStatusCode)

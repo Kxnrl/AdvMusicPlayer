@@ -30,6 +30,10 @@ void UTIL_ProcessResult(int userid)
     char path[128];
     BuildPath(Path_SM, path, 128, "data/music/search_%d.kv", userid);
 
+#if defined DEBUG
+    UTIL_DebugLog("UTIL_ProcessResult -> Path -> %s", path);
+#endif
+
     // check file exists
     if (!FileExists(path))
     {
@@ -227,7 +231,7 @@ void UTIL_CacheSong(int client)
     Format(url, 256, "%s/?action=mp3url&engine=%s&song=%s", url, g_EngineName[g_Player.m_Engine], g_Player.m_Song);
 
 #if defined DEBUG
-        UTIL_DebugLog("UTIL_CacheSong -> -> url -> %s", url);
+    UTIL_DebugLog("UTIL_CacheSong -> -> url -> %s", url);
 #endif
 
     // set timeout to prevent new broadcast request
@@ -247,7 +251,12 @@ void UTIL_CacheSong(int client)
 
 void UTIL_ShowLyric(int client, const char[] message, const float hold, const float fx)
 {
+#if defined DEBUG
+    UTIL_DebugLog("UTIL_ShowLyric -> %N -> %.2f -> 2%f -> %s", client, hold, fx, message);
+#endif
+
     // we use sync hud
+    
     static Handle hSync;
     if (hSync == null)
         hSync = CreateHudSynchronizer();
@@ -257,13 +266,21 @@ void UTIL_ShowLyric(int client, const char[] message, const float hold, const fl
         ClearSyncHud(client, hSync);
         return;
     }
-
-#if defined DEBUG
-    UTIL_DebugLog("UTIL_ShowLyric -> %N -> %.2f -> 2%f -> %s", client, hold, fx, message);
-#endif
-
-    SetHudTextParamsEx(-1.0, 0.825, hold, {255,20,147,255}, {218,112,214,233}, 2, fx, fx, fx);
+    
+    int color[4] = {255,255,255,255};
+    color[0] = RandomInt(1, 255);
+    color[1] = RandomInt(1, 255);
+    color[2] = RandomInt(1, 255);
+    int color2[4] = {255,255,255,255};
+    color2[0] = RandomInt(1, 255);
+    color2[1] = RandomInt(1, 255);
+    color2[2] = RandomInt(1, 255);
+    //{255,20,147,255}, {218,112,214,233}
+    SetHudTextParamsEx(-1.0, 0.825, hold-0.1, color, color2, 2, fx, fx, fx);
     ShowSyncHudText(client, hSync, message);
+    //ShowHudText(client, 4, (hold < 0.1) ? "" : message);
+    if (hold > 0.1)
+    Chat(client, message);
 }
 
 void UTIL_NotifyFailure(int client, const char[] translations)
@@ -347,6 +364,16 @@ bool IsChar(char c)
         return true;
 
     return false;
+}
+
+int RandomInt(int min = 0, int max = 2147483647)
+{
+    int random = GetURandomInt();
+
+    if(random == 0)
+        random++;
+
+    return RoundToCeil(float(random) / (float(2147483647) / float(max - min + 1))) + min - 1;
 }
 
 #if defined DEBUG

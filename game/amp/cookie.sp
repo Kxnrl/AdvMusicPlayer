@@ -27,6 +27,14 @@ void Cookie_RegisterCookie()
     g_cLyrics  = RegClientCookie("amp_lyrics",  "", CookieAccess_Private);
 }
 
+void Cookies_OnClientLoad(int client)
+{
+    if (!LibraryExists("clientprefs")|| !AreClientCookiesCached(client))
+        return;
+
+    OnClientCookiesCached(client);
+}
+
 public void OnClientCookiesCached(int client)
 {
     // load cookies

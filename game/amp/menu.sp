@@ -20,12 +20,16 @@ void DisplayMainMenu(int client)
 {
     Menu menu = new Menu(MenuHanlder_Main);
 
-    if (g_Player.m_Player != null && !g_Player.m_Player.IsFinished)
-        menu.SetTitle("%t", "player info", g_Player.m_Title, g_Player.m_Artist, g_Player.m_Album, g_EngineName[g_Player.m_Engine]); 
+    if (IsPlaying())
+        menu.SetTitle("%T", "player info", client, g_Player.m_Title, g_Player.m_Artist, g_Player.m_Album, g_EngineName[g_Player.m_Engine], client);
     else
         menu.SetTitle("%T", "player title", client);
 
-    AddMenuItemEx(menu, g_bPlayed[client] ? ITEMDRAW_DISABLED : ITEMDRAW_DEFAULT, "search",  "%T", "search", client);
+#if defined DEBUG
+    UTIL_DebugLog("DisplayMainMenu -> %N -> %b | %b -> %.1f", client, g_Player.m_Player != null, g_Player.m_Player != null && g_Player.m_Player.IsFinished, g_Player.m_Player != null ? g_Player.m_Player.PlayedSecs : 0.0);
+#endif
+
+    AddMenuItemEx(menu, IsPlaying() ? ITEMDRAW_DISABLED : ITEMDRAW_DEFAULT, "search",  "%T", "search", client);
     AddMenuItemEx(menu, ITEMDRAW_DEFAULT, "toggle", "%T", "receive", client, g_bDiable[client] ? "OFF" : "ON");
     AddMenuItemEx(menu, ITEMDRAW_DEFAULT, "lyrics", "%T", "lyrics",  client, g_bLyrics[client] ? "ON" : "OFF");
     AddMenuItemEx(menu, ITEMDRAW_DEFAULT, "stop",   "%T", "stop playing", client);
@@ -53,11 +57,6 @@ public int MenuHanlder_Main(Menu menu, MenuAction action, int client, int slot)
                 g_bDiable[client] = !g_bDiable[client];
                 Cookie_SetValue(client, g_cDisable, g_bDiable[client] ? "1" : "0");
                 Chat(client, "%T", "receive chat", client, g_bDiable[client] ? "\x07OFF" : "\x04ON");
-                if (g_bDiable[client] && g_bPlayed[client] && !g_bListen[client])
-                {
-                    Player_Reset();
-                    Player_LyricHud(0.5, 0.0, "");
-                }
             }
             case 2:
             {
@@ -68,7 +67,8 @@ public int MenuHanlder_Main(Menu menu, MenuAction action, int client, int slot)
             }
             case 3:
             {
-                Player_Reset();
+                // todo
+                // we need stop bot voice.
                 Chat(client, "%T", "stop chat", client);
                 reply = true;
             }

@@ -67,8 +67,6 @@ bool    g_bLyrics[MAXINDEX];
 bool    g_bDiable[MAXINDEX];
 bool    g_bBanned[MAXINDEX];
 bool    g_bHandle[MAXINDEX];
-bool    g_bPlayed[MAXINDEX];
-bool    g_bListen[MAXINDEX];
 bool    g_bLocked[MAXINDEX];
 int     g_iSelect[MAXINDEX];
 kEngine g_kEngine[MAXINDEX];
@@ -195,8 +193,7 @@ public void OnPluginStart()
         if (IsValidClient(client))
         {
             OnClientConnected(client);
-            if (AreClientCookiesCached(client))
-                OnClientCookiesCached(client);
+            Cookies_OnClientLoad(client);
         }
 }
 
@@ -228,8 +225,6 @@ public void OnMapEnd()
 public void OnClientConnected(int client)
 {
     // Reset client
-    g_bPlayed[client] = false;
-    g_bListen[client] = false;
     g_bDiable[client] = false;
     g_bBanned[client] = false;
     g_bHandle[client] = false;
