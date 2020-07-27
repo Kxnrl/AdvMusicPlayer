@@ -154,7 +154,7 @@ class Music
             unlink($this->mp3loc);
         }
 
-        $json = $this->server->format(true)->url($this->mp3_id, 320);
+        $json = $this->server->format(true)->url($this->mp3_id, 128);
         $data = json_decode($json, true);
 
         if (!isset($data['url']) || strlen($data['url']) <= 15) { throw new HandleException("Access is denied. mp3url[" . $data['url'] . "]. json[" . $json . "]"); }

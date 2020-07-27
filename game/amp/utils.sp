@@ -412,7 +412,7 @@ int UTIL_CreateFakeClient(const char[] title)
         ThrowError("Failed to create fake client");
 
     char header[64];
-    FormatEx(header, 64, "[AMP] - %s", title);
+    FormatEx(header, 64, "[AMP] ▶ %s", title);
     SetClientName(client, header);
 
     return client;
