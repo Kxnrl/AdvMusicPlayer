@@ -250,9 +250,6 @@ void Player_BroadcastMusic(int client, bool cached, const char[] url = NULL_STRI
         // otherwise
         SetListenOverride(i, g_Player.m_Player.ClientIndex, Listen_Yes);
 
-        // init player
-        DisplayMainMenu(i);
-
         // handle map music
         if (g_bMapMusic)
         {
@@ -264,6 +261,23 @@ void Player_BroadcastMusic(int client, bool cached, const char[] url = NULL_STRI
         UTIL_DebugLog("Player_BroadcastMusic -> Handle clients -> %N", i);
 #endif
     }
+
+    CreateTimer(1.5, Timer_DisplayMenu, _, TIMER_FLAG_NO_MAPCHANGE);
+}
+
+public Action Timer_DisplayMenu(Handle timer)
+{
+    for(int i = 1; i <= MaxClients; ++i)
+    {
+        // ignore fakeclient and not in-game client
+        if (!IsValidClient(i))
+            continue;
+
+        // init player
+        DisplayMainMenu(i);
+    }
+
+    return Plugin_Stop;
 }
 
 bool IsPlaying()
@@ -273,5 +287,5 @@ bool IsPlaying()
 
 bool AllowStop(int client)
 {
-    return IsPlaying() && g_Player.m_Player.ClientIndex != client;
+    return !(IsPlaying() && g_Player.m_Player.ClientIndex != client);
 }
