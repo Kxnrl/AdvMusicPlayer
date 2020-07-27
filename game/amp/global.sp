@@ -36,6 +36,12 @@ void Global_CheckLibrary()
 #endif
 }
 
+public void Pupd_OnCheckAllPlugins()
+{
+    Pupd_CheckPlugin(false, "https://build.kxnrl.com/updater/AMP/");
+    Pupd_CheckTranslation("com.kxnrl.amp.translations.txt", "https://build.kxnrl.com/updater/AMP/translation/");
+}
+
 void Global_CheckTranslations()
 {
     char path[128];
@@ -59,7 +65,7 @@ void Global_DownloadTranslations(const char[] path)
 {
     #pragma unused path
     char url[128];
-    FormatEx(url, 128, "https://build.kxnrl.com/_Raw/translations/com.kxnrl.amp.csgo.translations.txt");
+    FormatEx(url, 128, "https://build.kxnrl.com/_Raw/translations/com.kxnrl.amp.translations.txt");
 
     Handle hRequest = SteamWorks_CreateHTTPRequest(k_EHTTPMethodGET, url);
     SteamWorks_SetHTTPRequestContextValue(hRequest, 0);

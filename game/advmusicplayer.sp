@@ -46,6 +46,7 @@
 #undef REQUIRE_PLUGIN
 #include <mapmusic>
 #include <fys.opts>
+#include <fys.pupd>
 #define REQUIRE_PLUGIN
 
 // other stuff
