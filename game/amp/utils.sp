@@ -76,7 +76,30 @@ void UTIL_ProcessResult(int userid)
         _kv.GetSectionName(key, 16);
 
         _kv.GetString("name",    title, 64, "unnamed");
-        _kv.GetString("artist", artist, 64, "V.A.");
+        if (_kv.JumpToKey("artist", false))
+        {
+            char art[16];
+            if (_kv.GotoFirstSubKey(false))
+            {
+                do
+                {
+                    _kv.GetString(NULL_STRING, art, 16);
+                    if (strlen(art) > 0)
+                    {
+                        if (artist[0])
+                            StrCat(artist, 64, ", ");
+                        StrCat(artist, 64, art);
+                    }
+                } while (_kv.GotoNextKey(false));
+                _kv.GoBack();
+            }
+            _kv.GoBack();
+        }
+        else
+        {
+            strcopy(artist, 64, "未知歌手");
+        }
+        
         _kv.GetString("album",   album, 64, "unknown");
 
         // add song to menu
@@ -87,12 +110,15 @@ void UTIL_ProcessResult(int userid)
 #endif
 
         // display 5 items per-page
-        if (++count % 5 == 0) menu.AddItem("0", "0", ITEMDRAW_SPACER);
+        //if (++count % 5 == 0) menu.AddItem("0", "0", ITEMDRAW_SPACER);
 
     } while (_kv.GotoNextKey(true));
 
     // set title
     menu.SetTitle("%T", "search result title", client, count, g_EngineName[g_kEngine[client]], client);
+    menu.ExitButton = false;
+    menu.ExitBackButton = true;
+    menu.Pagination = 4;
     menu.Display(client, 60);
 
     delete _kv;

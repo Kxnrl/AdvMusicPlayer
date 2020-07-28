@@ -30,8 +30,4 @@ $config['websocket']['srv']['uri']['host'] = 'wss://music.kxnrl.com';
 $config['websocket']['srv']['uri']['port'] = '8443'; // out stream 
 $config['websocket']['srv']['cli']['port'] = '420';  // locol port listner , sasusi birthday.
 
-// If you want to use shadowsocks-libev
-//$config['curl_proxy']['host'] = '127.0.0.1:1080';
-//$config['curl_proxy']['type'] = CURLPROXY_SOCKS5;
-
 ?>

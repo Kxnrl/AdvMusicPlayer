@@ -136,6 +136,8 @@ public int MenuHandler_DisplayList(Menu menu, MenuAction action, int client, int
         int cost = RoundFloat(length*g_Cvars.credit.FloatValue);
         DisplayConfirmMenu(client, cost, name, artist, album, RoundFloat(length), engine);
     }
+    else if (action == MenuAction_Cancel && itemNum == MenuCancel_ExitBack)
+        DisplayEngineMenu(client);
     else if (action == MenuAction_End)
         delete menu;
 }

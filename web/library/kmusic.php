@@ -107,7 +107,7 @@ class Music
             throw new HandleException("Null results. -> json[" . $json . "]");
         }
 
-        if ($song[0]['id'] != $this->songid) { throw new HandleException("Access is denied. id[" . $song[0]['id'] . "] songid[" . $this->songid . "]"); }
+        if ($song[0]['id'] != $this->songid) { throw new HandleException("Access is denied. id[" . $song[0]['id'] . "] songid[" . $this->songid . "] json[" . $json . "]"); }
 
         $this->name = $song[0]['name'];
         $this->album = $song[0]['album'];
