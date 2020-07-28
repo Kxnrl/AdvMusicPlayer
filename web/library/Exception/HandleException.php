@@ -8,8 +8,8 @@
 /*  Description:   An advanced music player.                      */
 /*                                                                */
 /*                                                                */
-/*  Copyright (C) 2018  Kyle                                      */
-/*  2018/07/04 02:02:11                                           */
+/*  Copyright (C) 2020  Kyle                                      */
+/*  2020/07/28 19:57:11                                           */
 /*                                                                */
 /*  This code is licensed under the GPLv3 License.                */
 /*                                                                */
