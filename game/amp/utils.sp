@@ -147,7 +147,30 @@ void UTIL_ProcessSongInfo(int client, char[] title, char[] artist, char[] album,
     _kv.GetString("id", sid, 32);
 
     // Get arlist
-    _kv.GetString("artist", artist, 64, "V.A.");
+    //_kv.GetString("artist", artist, 64, "V.A.");
+    if (_kv.JumpToKey("artist", false))
+    {
+        char art[16];
+        if (_kv.GotoFirstSubKey(false))
+        {
+            do
+            {
+                _kv.GetString(NULL_STRING, art, 16);
+                if (strlen(art) > 0)
+                {
+                    if (artist[0])
+                        StrCat(artist, 64, ", ");
+                    StrCat(artist, 64, art);
+                }
+            } while (_kv.GotoNextKey(false));
+            _kv.GoBack();
+        }
+        _kv.GoBack();
+    }
+    else
+    {
+        strcopy(artist, 64, "未知歌手");
+    }
 
     // Get album
     _kv.GetString("album", album, 64, "unknown");

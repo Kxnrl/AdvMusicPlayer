@@ -126,7 +126,7 @@ public int MenuHandler_DisplayList(Menu menu, MenuAction action, int client, int
         UTIL_DebugLog("MenuHandler_DisplayList -> %N -> %d", client, itemNum);
 #endif
 
-        g_iSelect[client] = itemNum - (itemNum/6);
+        g_iSelect[client] = itemNum;// - (itemNum/6);
 
         float length;
         kEngine engine;
