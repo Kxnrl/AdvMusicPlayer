@@ -283,9 +283,6 @@ void UTIL_CacheSong(int client)
     UTIL_DebugLog("UTIL_CacheSong -> -> url -> %s", url);
 #endif
 
-    // set timeout to prevent new broadcast request
-    g_fNextPlay = GetGameTime()+60.0;
-
     Handle hRequest = SteamWorks_CreateHTTPRequest(k_EHTTPMethodGET, url);
     SteamWorks_SetHTTPRequestContextValue(hRequest, GetClientUserId(client));
     SteamWorks_SetHTTPRequestNetworkActivityTimeout(hRequest, 60);

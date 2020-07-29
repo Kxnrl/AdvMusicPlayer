@@ -63,9 +63,6 @@ public Action Timer_Interval(Handle timer)
 
 void Player_Reset()
 {
-    // we need reset nextplay time
-    g_fNextPlay = 0.0;
-
     // song info
     g_Player.Reset();
 
@@ -173,18 +170,12 @@ void Player_BroadcastMusic(int client, bool cached, const char[] url = NULL_STRI
         return;
     }
 
-    // if timeout 
-    if (GetGameTime() < g_fNextPlay)
+    // if still activating 
+    if (g_Player.m_Player != null)
     {
-#if defined DEBUG
-        UTIL_DebugLog("Player_BroadcastMusic -> %N -> [%s]%s -> Time Out -> %.1f : %.1f", client, g_Player.m_Song, g_Player.m_Title, GetGameTime(), g_fNextPlay);
-#endif
         Chat(client, "%T", "last timeout", client);
         return;
     }
-    
-    // get song info
-    UTIL_ProcessSongInfo(client, g_Player.m_Title, g_Player.m_Artist, g_Player.m_Album, g_Player.m_Length, g_Player.m_Song, g_Player.m_Engine);
 
     // if enabled cache and not precache
     if (!cached)
@@ -194,6 +185,9 @@ void Player_BroadcastMusic(int client, bool cached, const char[] url = NULL_STRI
             Chat(client, "%T", "Global caching", client);
             return;
         }
+
+        // get song info
+        UTIL_ProcessSongInfo(client, g_Player.m_Title, g_Player.m_Artist, g_Player.m_Album, g_Player.m_Length, g_Player.m_Song, g_Player.m_Engine);
 
 #if defined DEBUG
         UTIL_DebugLog("Player_BroadcastMusic -> %N -> [%s]%s -> we need precache music", client, g_Player.m_Song, g_Player.m_Title);
@@ -226,9 +220,6 @@ void Player_BroadcastMusic(int client, bool cached, const char[] url = NULL_STRI
 
     ChatAll("%t", "broadcast", client, g_Player.m_Title, g_EngineName[g_Player.m_Engine]);
     LogToFileEx(logFile, "\"%L\" 点播了歌曲[%s - %s]", client, g_Player.m_Title,  g_Player.m_Artist);
-
-    // set timeout
-    g_fNextPlay = GetGameTime()+g_Player.m_Length+1.5;
 
     // play music
     int source = g_Cvars.fakeid.BoolValue ? UTIL_CreateFakeClient(g_Player.m_Title) : client;

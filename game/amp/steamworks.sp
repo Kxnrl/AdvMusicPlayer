@@ -58,8 +58,6 @@ public int API_GetLyric_SteamWorks(Handle hRequest, bool bFailure, bool bRequest
 
 public int API_PrepareSong_SteamWorks(Handle hRequest, bool bFailure, bool bRequestSuccessful, EHTTPStatusCode eStatusCode, int userid)
 {
-    g_fNextPlay = GetGameTime() + 15.0;
-    
     if (bFailure || !bRequestSuccessful || eStatusCode != k_EHTTPStatusCode200OK)
     {
         LogError("SteamWorks -> API_PrepareSong -> HTTP Response failed: %d", eStatusCode);
@@ -87,7 +85,6 @@ public int API_CachedSong_SteamWorks(const char[] sData, int userid)
     if (FileExists(path))
     {
         g_bCaching = false;
-        g_fNextPlay = 0.0;
         Format(path, 128, "csgo/%s", path);
         Player_BroadcastMusic(GetClientOfUserId(userid), true, path);
         return;
@@ -107,8 +104,6 @@ public int API_CachedSong_SteamWorks(const char[] sData, int userid)
 
 public int API_DownloadSound_SteamWorks(Handle hRequest, bool bFailure, bool bRequestSuccessful, EHTTPStatusCode eStatusCode, int userid)
 {
-    g_fNextPlay = GetGameTime() + 5.0;
-
 #if defined DEBUG
     UTIL_DebugLog("API_DownloadSound_SteamWorks -> finished.");
 #endif
@@ -125,7 +120,6 @@ public int API_DownloadSound_SteamWorks(Handle hRequest, bool bFailure, bool bRe
         if (SteamWorks_WriteHTTPResponseBodyToFile(hRequest, path))
         {
             g_bCaching = false;
-            g_fNextPlay = 0.0;
             Format(path, 128, "csgo/%s", path);
             Player_BroadcastMusic(GetClientOfUserId(userid), true, path);
         }

@@ -53,7 +53,6 @@
 #define MAXINDEX MAXPLAYERS+1
 
 // global variables
-float g_fNextPlay;
 bool g_bMapMusic;
 bool g_bStoreLib;
 bool g_bCaching;
