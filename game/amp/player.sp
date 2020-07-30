@@ -279,6 +279,10 @@ public Action Timer_DisplayMenu(Handle timer)
         if (!IsValidClient(i))
             continue;
 
+        // don't recv
+        if (g_bDiable[i])
+            continue;
+
         // init player
         DisplayMainMenu(i);
     }
