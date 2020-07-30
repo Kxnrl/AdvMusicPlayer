@@ -52,6 +52,7 @@ void Global_CheckTranslations()
         if (FileSize(path) > 2048)
         {
             LoadTranslations("com.kxnrl.amp.translations");
+            LoadTranslations("common.phrases.txt");
             return;
         }
         else DeleteFile(path);

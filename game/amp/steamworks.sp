@@ -142,6 +142,7 @@ public int API_DownloadTranslations_SteamWorks(Handle hRequest, bool bFailure, b
         if (SteamWorks_WriteHTTPResponseBodyToFile(hRequest, path) && FileExists(path) && FileSize(path) > 2048)
         {
             LoadTranslations("com.kxnrl.amp.translations");
+            LoadTranslations("common.phrases.txt");
             ServerCommand("sm_reload_translations");
         }
         else SetFailState("SteamWorks -> API_DownloadTranslations -> SteamWorks_WriteHTTPResponseBodyToFile failed");
