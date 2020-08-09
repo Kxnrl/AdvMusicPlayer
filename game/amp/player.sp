@@ -310,10 +310,22 @@ public void Event_PlayerDeath(Event e, const char[] name, bool db)
             SetListenOverride(target, source, Listen_Yes);
         }
     }
-    else if (!g_bStopEx[client])
+    else if (!IsFakeClient(client))
     {
-        SetListenOverride(client, source, Listen_Yes);
+        // stop again if stopped
+        SetListenOverride(client, source, g_bStopEx[client] ? Listen_No : Listen_Yes);
     }
+}
+
+void Player_OnPutInServer(int client)
+{
+    if (!IsPlaying())
+        return;
+
+    if (IsFakeClient(client))
+        return;
+
+    SetListenOverride(client, g_Player.m_Player.ClientIndex, Listen_No);
 }
 
 bool IsPlaying()

@@ -291,6 +291,14 @@ public void OnClientConnected(int client)
 #endif
 }
 
+public void OnClientPutInServer(int client)
+{
+    // stopped by default
+    g_bStopEx[client] = true;
+
+    Player_OnPutInServer(client);
+}
+
 public void OnClientDisconnect(int client)
 {
     if (g_Player.m_Player == null)
