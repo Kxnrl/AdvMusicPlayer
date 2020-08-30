@@ -25,6 +25,7 @@ An advanced music player in source engine game.
 ## Installation  
 - Download and install requirements.  
 - [Download](https://build.kxnrl.com/AdvMusicPlayer) latest build.  
+- Download ffmpeg precompiled ([windows](https://ffmpeg.zeranoe.com/builds/) | [linux](https://johnvansickle.com/ffmpeg/)) and upload `ffmpeg.exe` (for windows) or `ffmpeg` (for linux) to `addons/sourcemod/data/audio_ext`.
 - Upload web patch to your web host. (If you want to use our music server, ship this. Recommend using our music server)  
 - Upload smx plugin to your {game dir}/addons/sourcemod/plugins .  
 - Start your server.  

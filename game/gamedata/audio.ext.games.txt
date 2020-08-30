@@ -7,6 +7,7 @@
 			"CGameClient::IsHearingClient"
 			{
 				"windows"	"38"
+				"linux"         "35"
 			}
 		}
 		"Signatures"
@@ -15,6 +16,7 @@
 			{
 				"library" "engine"
 				"windows" "\x55\x8B\xEC\x83\xE4\xF8\x81\xEC\xE4\x00\x00\x00\x53\x56\x57"
+				"linux"   "\x55\x89\xE5\x57\x56\x8D\x55\xDC"
 			}
 		}
 	}
