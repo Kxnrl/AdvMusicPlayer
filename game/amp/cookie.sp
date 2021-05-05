@@ -29,7 +29,15 @@ void Cookie_RegisterCookie()
 void Cookies_CheckLibrary()
 {
     bClps = LibraryExists("clientprefs");
-    bOpts = LibraryExists("fys-Opts");
+    bOpts = GetFeatureStatus(FeatureType_Native, "Opts_GetOptBool") == FeatureStatus_Available;
+    
+    // Idk why this not working
+    //LibraryExists("fys-Opts");
+
+#if defined DEBUG
+    UTIL_DebugLog("Cookies_CheckLibrary -> bClps -> %s", bClps ? "Loaded" : "Failed");
+    UTIL_DebugLog("Cookies_CheckLibrary -> bOpts -> %s", bOpts ? "Loaded" : "Failed");
+#endif
 }
 
 void Cookies_OnClientLoad(int client)
@@ -49,10 +57,17 @@ public void Opts_OnClientLoad(int client)
     g_bDiable[client] = Opts_GetOptBool(client, Cookie_RefToOptsName(Opts_Enable), false);
     g_bBanned[client] = Opts_GetOptBool(client, Cookie_RefToOptsName(Opts_Banned), false);
     g_bLyrics[client] = Opts_GetOptBool(client, Cookie_RefToOptsName(Opts_Lyrics), true);
+
+#if defined DEBUG
+    UTIL_DebugLog("Opts_OnClientLoad -> %N -> %b | %b | %b", client, g_bDiable[client], g_bBanned[client], g_bLyrics[client]);
+#endif
 }
 
 public void OnClientCookiesCached(int client)
 {
+    if (bOpts)
+        return;
+
     // load cookies
     char buf[3][4];
     GetClientCookie(client, g_Cookie.enable, buf[0], 4);
